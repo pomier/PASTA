@@ -44,31 +44,33 @@ class Connection:
         # TODO: other things for Task4
 
     def __repr__(self):
-        s = '''
-            Connection: %s:%d --> %s:%d
-            Start date: %s
-            Duration: %s
-            Client: %s
-            Server: %s
-            Datagrams sent by client: %d (%d bytes)
-            Datagrams sent by server: %d (%d bytes)
-            ''' % (self.clientIP, self.clientPort, self.serverIP, self.serverPort, \
-                   self.startTime.strftime('%b %d, %Y - %H:%M:%S'), \
-                   str(self.duration), # FIXME better representation? \
-                   self.clientProtocol, self.serverProtocol, \
-                   self.clientSentNbDatagrams, self.clientSentLen, \
-                   self.serverSentNbDatagrams, self.serverSentLen)
+        s = (
+                'Connection: %s:%d --> %s:%d\n' + \
+                'Start date: %s\n' + \
+                'Duration: %s\n' + \
+                'Client: %s\n' +  \
+                'Server: %s\n' + \
+                'Datagrams sent by client: %d (%d bytes)\n' + \
+                'Datagrams sent by server: %d (%d bytes)'
+            ) % (
+                self.clientIP, self.clientPort, self.serverIP, self.serverPort, \
+                self.startTime.strftime('%b %d, %Y - %H:%M:%S'), \
+                str(self.duration), # FIXME better representation? \
+                self.clientProtocol, self.serverProtocol, \
+                self.clientSentNbDatagrams, self.clientSentLen, \
+                self.serverSentNbDatagrams, self.serverSentLen
+            )
         if self.idleTime is not None:
-            s += 'Idle time: %.2f%%\n' % self.idleTime
+            s += '\nIdle time: %.2f%%' % self.idleTime
         if self.connexionType is not None:
-            s += 'Connexion type: %s\n' % self.connexionType
-        return s.strip()
+            s += '\nConnexion type: %s' % self.connexionType
+        return s
 
 
     def __str__(self):
         return repr(self)
 
-    def computeRTT(self):
+    def compute_RTT(self):
         """Set an approximate RTT for each datagram in self.datagrams"""
         # FIXME on fait un RTT moyen, ca serait bcp plus simple non ?
         #       A voir si ya une grosse difference du "Idle" avec une moyenne
@@ -89,20 +91,22 @@ class Datagram:
         self.RTT = None # instance of datetime.timedelta
 
     def __repr__(self):
-        s = '''
-            Datagram sent by %s
-            Time: %s
-            Sequence number: %d
-            Payload length: %d bytes
-            ''' % ('client' if self.sentByClient else 'server', \
-                   self.time.strftime('%b %d, %Y - %H:%M:%S.%f'), \
-                   self.seqNb, \
-                   self.payloadLen)
+        s = (
+                'Datagram sent by %s\n' + \
+                'Time: %s\n' + \
+                'Sequence number: %d\n' + \
+                'Payload length: %d bytes'
+            ) % (
+                'client' if self.sentByClient else 'server', \
+               self.time.strftime('%b %d, %Y - %H:%M:%S.%f'), \
+               self.seqNb, \
+               self.payloadLen
+            )
         if self.ack > 0:
-            s += 'Sequence number of datagram ACKed: %d\n' % self.ack
+            s += '\nSequence number of datagram ACKed: %d' % self.ack
         if self.RTT is not None:
-            s += 'Estimate RTT: %s\n' % str(self.RTT) # FIXME better repr?
-        return s.strip()
+            s += '\nEstimate RTT: %s' % str(self.RTT) # FIXME better repr?
+        return s
         
 
     def __str__(self):
