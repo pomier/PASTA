@@ -19,10 +19,10 @@
 
 
 class Connection:
-    'A SSH connection'
+    """A SSH connection"""
 
     def __init__(self, datagrams, startTime, duration, clientIP,
-            serverIP, clientPort, serverPort, clientProtocol, serverProtocol):
+                 serverIP, clientPort, serverPort, clientProtocol, serverProtocol):
         self.datagrams = datagrams # list of Datagram instances
         self.startTime = startTime # instance of datetime.datetime
         self.duration = duration # instance of datetime.timedelta
@@ -45,31 +45,31 @@ class Connection:
 
     def __repr__(self):
         s = '''
-Connection: %s:%d --> %s:%d
-Start date: %s
-Duration: %s
-Client: %s
-Server: %s
-Datagrams sent by client: %d (%d bytes)
-Datagrams sent by server: %d (%d bytes)
-''' % (self.clientIP, self.clientPort, self.serverIP, self.serverPort, \
-                self.startTime.strftime('%b %d, %Y - %H:%M:%S'), \
-                str(self.duration), # FIXME better representation? \
-                self.clientProtocol, self.serverProtocol, \
-                self.clientSentNbDatagrams, self.clientSentLen, \
-                self.serverSentNbDatagrams, self.serverSentLen)
+            Connection: %s:%d --> %s:%d
+            Start date: %s
+            Duration: %s
+            Client: %s
+            Server: %s
+            Datagrams sent by client: %d (%d bytes)
+            Datagrams sent by server: %d (%d bytes)
+            ''' % (self.clientIP, self.clientPort, self.serverIP, self.serverPort, \
+                   self.startTime.strftime('%b %d, %Y - %H:%M:%S'), \
+                   str(self.duration), # FIXME better representation? \
+                   self.clientProtocol, self.serverProtocol, \
+                   self.clientSentNbDatagrams, self.clientSentLen, \
+                   self.serverSentNbDatagrams, self.serverSentLen)
         if self.idleTime is not None:
             s += 'Idle time: %.2f%%\n' % self.idleTime
         if self.connexionType is not None:
             s += 'Connexion type: %s\n' % self.connexionType
         return s.strip()
-        
+
 
     def __str__(self):
         return repr(self)
 
     def computeRTT(self):
-        'Set an approximate RTT for each datagram in self.datagrams'
+        """Set an approximate RTT for each datagram in self.datagrams"""
         # FIXME on fait un RTT moyen, ca serait bcp plus simple non ?
         #       A voir si ya une grosse difference du "Idle" avec une moyenne
         #       simple, ou un RTT flottant...
@@ -78,7 +78,7 @@ Datagrams sent by server: %d (%d bytes)
 
 
 class Datagram:
-    'A datagram of a ssh connection'
+    """A datagram of a ssh connection"""
 
     def __init__(self, sentByClient, time, seqNb, payloadLen, ack):
         self.sentByClient = sentByClient # True or False
@@ -90,14 +90,14 @@ class Datagram:
 
     def __repr__(self):
         s = '''
-Datagram sent by %s
-Time: %s
-Sequence number: %d
-Payload length: %d bytes
-''' % ('client' if self.sentByClient else 'server', \
-                self.time.strftime('%b %d, %Y - %H:%M:%S.%f'), \
-                self.seqNb,
-                self.payloadLen)
+            Datagram sent by %s
+            Time: %s
+            Sequence number: %d
+            Payload length: %d bytes
+            ''' % ('client' if self.sentByClient else 'server', \
+                   self.time.strftime('%b %d, %Y - %H:%M:%S.%f'), \
+                   self.seqNb, \
+                   self.payloadLen)
         if self.ack > 0:
             s += 'Sequence number of datagram ACKed: %d\n' % self.ack
         if self.RTT is not None:
