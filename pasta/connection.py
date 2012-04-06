@@ -45,12 +45,12 @@ class Connection:
 
     def __repr__(self):
         s = (
-                'Connection: %s:%d --> %s:%d\n' + \
-                'Start date: %s\n' + \
-                'Duration: %s\n' + \
-                'Client: %s\n' +  \
-                'Server: %s\n' + \
-                'Datagrams sent by client: %d (%d bytes)\n' + \
+                'Connection: %s:%d --> %s:%d\n' \
+                'Start date: %s\n' \
+                'Duration: %s\n' \
+                'Client: %s\n' \
+                'Server: %s\n' \
+                'Datagrams sent by client: %d (%d bytes)\n' \
                 'Datagrams sent by server: %d (%d bytes)'
             ) % (
                 self.clientIP, self.clientPort, self.serverIP, self.serverPort, \
@@ -92,9 +92,9 @@ class Datagram:
 
     def __repr__(self):
         s = (
-                'Datagram sent by %s\n' + \
-                'Time: %s\n' + \
-                'Sequence number: %d\n' + \
+                'Datagram sent by %s\n' \
+                'Time: %s\n' \
+                'Sequence number: %d\n' \
                 'Payload length: %d bytes'
             ) % (
                 'client' if self.sentByClient else 'server', \
