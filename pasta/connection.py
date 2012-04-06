@@ -33,10 +33,10 @@ class Connection:
         self.clientProtocol = clientProtocol # string eg. "OpenSSH 5.3"
         self.serverProtocol = serverProtocol # string eg. "OpenSSH 5.2"
         self.clientSentNbDatagrams = sum(1 for p in self.datagrams if p.sentByClient)
-        self.serverSentNbDatagrams = sum(1 for p in self.datagrams \
+        self.serverSentNbDatagrams = sum(1 for p in self.datagrams
                 if not p.sentByClient)
         self.clientSentLen = sum(p.len for p in self.datagrams if p.sentByClient)
-        self.serverSentLen = sum(p.len for p in self.datagrams \
+        self.serverSentLen = sum(p.len for p in self.datagrams
                 if not p.sentByClient)
         self.idleTime = None # [Task3] e.g. 0.31415 (for 31.14%)
         self.connexionType = None # [Task3] e.g. 'shell', 'ssh', 'tunnel'
@@ -45,19 +45,19 @@ class Connection:
 
     def __repr__(self):
         s = (
-                'Connection: %s:%d --> %s:%d\n' \
-                'Start date: %s\n' \
-                'Duration: %s\n' \
-                'Client: %s\n' \
-                'Server: %s\n' \
-                'Datagrams sent by client: %d (%d bytes)\n' \
+                'Connection: %s:%d --> %s:%d\n'
+                'Start date: %s\n'
+                'Duration: %s\n'
+                'Client: %s\n'
+                'Server: %s\n'
+                'Datagrams sent by client: %d (%d bytes)\n'
                 'Datagrams sent by server: %d (%d bytes)'
             ) % (
-                self.clientIP, self.clientPort, self.serverIP, self.serverPort, \
-                self.startTime.strftime('%b %d, %Y - %H:%M:%S'), \
-                str(self.duration), # FIXME better representation? \
-                self.clientProtocol, self.serverProtocol, \
-                self.clientSentNbDatagrams, self.clientSentLen, \
+                self.clientIP, self.clientPort, self.serverIP, self.serverPort,
+                self.startTime.strftime('%b %d, %Y - %H:%M:%S'),
+                str(self.duration), # FIXME better representation?
+                self.clientProtocol, self.serverProtocol,
+                self.clientSentNbDatagrams, self.clientSentLen,
                 self.serverSentNbDatagrams, self.serverSentLen
             )
         if self.idleTime is not None:
@@ -92,14 +92,14 @@ class Datagram:
 
     def __repr__(self):
         s = (
-                'Datagram sent by %s\n' \
-                'Time: %s\n' \
-                'Sequence number: %d\n' \
+                'Datagram sent by %s\n'
+                'Time: %s\n'
+                'Sequence number: %d\n'
                 'Payload length: %d bytes'
             ) % (
-                'client' if self.sentByClient else 'server', \
-               self.time.strftime('%b %d, %Y - %H:%M:%S.%f'), \
-               self.seqNb, \
+                'client' if self.sentByClient else 'server',
+               self.time.strftime('%b %d, %Y - %H:%M:%S.%f'),
+               self.seqNb,
                self.payloadLen
             )
         if self.ack > 0:
