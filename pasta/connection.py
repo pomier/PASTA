@@ -34,10 +34,10 @@ class Connection:
         self.serverProtocol = serverProtocol # string eg. "OpenSSH 5.2"
         self.clientSentNbDatagrams = sum(1 for p in self.datagrams if p.sentByClient)
         self.serverSentNbDatagrams = sum(1 for p in self.datagrams
-                if not p.sentByClient)
+                                         if not p.sentByClient)
         self.clientSentLen = sum(p.len for p in self.datagrams if p.sentByClient)
         self.serverSentLen = sum(p.len for p in self.datagrams
-                if not p.sentByClient)
+                                 if not p.sentByClient)
         self.idleTime = None # [Task3] e.g. 0.31415 (for 31.14%)
         self.connexionType = None # [Task3] e.g. 'shell', 'ssh', 'tunnel'
         #                           [Task4] other things
