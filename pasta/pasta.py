@@ -27,11 +27,12 @@ if __name__ == '__main__':
         description = 'PASTA is another SSH traffic analyser',
         epilog = '' ) #FIXME: epilog
     parser.add_argument('-v', '--verbose', dest='verbose',
-            action='append_const', const=None, help='print logging '
-            'messages; multiple -v options increase verbosity, maximum is 4')
+                        action='append_const', const=None,
+                        help='print logging messages; multiple -v options '
+                             'increase verbosity, maximum is 4')
     parser.add_argument('--logfile', metavar='file', dest='logfile',
-            default=None, help='store logs in a file instead of standard '
-            'output')
+                        default=None,
+                        help='store logs in a file instead of standard output')
     args = parser.parse_args()
 
     # Logging
@@ -44,7 +45,7 @@ if __name__ == '__main__':
             4: logging.DEBUG
             }[len(args.verbose)])
         formatter = logging.Formatter('%(asctime)s    %(levelname)7s    '
-                '%(name)s    %(message)s')
+                                      '%(name)s    %(message)s')
         if args.logfile is None:
             handler = logging.StreamHandler()
         else:
