@@ -82,10 +82,11 @@ class Connection:
 class Datagram:
     """A datagram of a ssh connection"""
 
-    def __init__(self, sentByClient, time, seqNb, payloadLen, ack):
+    def __init__(self, sentByClient, time, seqNb, len, payloadLen, ack):
         self.sentByClient = sentByClient # True or False
         self.time = time # instance of datetime.datetime
         self.seqNb = seqNb #int
+        self.len = len # int length of the datagram
         self.payloadLen = payloadLen # int length of the payload
         self.ack = ack # int : -1 if not ACKed else seqnb of the datagram ACKed.
         self.RTT = None # instance of datetime.timedelta
