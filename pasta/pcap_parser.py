@@ -42,12 +42,30 @@ class PcapParser:
         start_time = {}
         end_time = {}
         # TODO: Check if tshark is available
-        # TODO: Take all the TCP stream, not only ssh
+
+        # Read the pcap file to get the number of ssh connections streams
+        for stream in check_output(
+                ["tshark", "-r", file, "-Rssh", "-Tfields", "-etcp.stream"
+                ]).split("\n"):
+            if stream and stream not in streams:
+                streams.append(stream);
+
+        tshark_stream_string = " or ".join(["tcp.stream=="+stream
+                                            for stream in streams])
+
         for packet in check_output(
-                ["tshark", "-r", file, "-Rssh", "-Tfields", "-etcp.stream",
-                 "-etcp.seq", "-eframe.time", "-eip.src", "-etcp.srcport",
-                 "-eip.dst", "-etcp.dstport", "-etcp.len", "-eframe.len",
-                 "-etcp.ack", "-essh.protocol"]).split("\n"):
+                ["tshark", "-r", file, "-R", tshark_stream_string, "-Tfields",
+                 "-etcp.stream",
+                 "-etcp.seq",
+                 "-eframe.time",
+                 "-eip.src",
+                 "-etcp.srcport",
+                 "-eip.dst",
+                 "-etcp.dstport",
+                 "-etcp.len",
+                 "-eframe.len",
+                 "-etcp.ack",
+                 "-essh.protocol"]).split("\n"):
             # TODO: Fix for IPv6
             p = packet.split("\t")
             if len(p) > 10:
@@ -57,7 +75,6 @@ class PcapParser:
                 end_time[p[0]] = time # Keep last know time for duration
 
                 if p[0] not in datagrams.keys(): # This is a new connection
-                    streams.append(p[0])
                     datagrams[p[0]] = []
                     clients[p[0]] = src
                     servers[p[0]] = dst
