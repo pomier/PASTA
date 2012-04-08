@@ -53,24 +53,31 @@ class PcapParser:
         tshark_stream_string = " or ".join(["tcp.stream=="+stream
                                             for stream in streams])
 
-        for packet in check_output(
-                ["tshark", "-r", file, "-R", tshark_stream_string, "-Tfields",
-                 "-etcp.stream",
-                 "-etcp.seq",
-                 "-eframe.time",
-                 "-eip.src",
-                 "-etcp.srcport",
-                 "-eip.dst",
-                 "-etcp.dstport",
-                 "-etcp.len",
-                 "-eframe.len",
-                 "-etcp.ack",
-                 "-essh.protocol"]).split("\n"):
-            # TODO: Fix for IPv6
+        for packet in check_output([
+                "tshark", "-r", file, "-R", tshark_stream_string, "-Tfields",
+                "-etcp.stream",
+                "-etcp.seq",
+                "-eframe.time",
+                "-eip.src",
+                "-eipv6.src", # Nothing more elegant than two ip requests ?
+                "-etcp.srcport",
+                "-eip.dst",
+                "-eipv6.dst", # Nothing more elegant than two ip requests ?
+                "-etcp.dstport",
+                "-etcp.len",
+                "-eframe.len",
+                "-etcp.ack",
+                "-essh.protocol"]).split("\n"):
             p = packet.split("\t")
-            if len(p) > 10:
-                src = (p[3], int(p[4]))
-                dst = (p[5], int(p[6]))
+            if len(p) > 12:
+                if p[3]:
+                    src = (p[3], int(p[5]))
+                else:
+                    src = (p[4], int(p[5]))
+                if p[6]:
+                    dst = (p[6], int(p[8]))
+                else:
+                    dst = (p[7], int(p[8]))
                 time = datetime.strptime(p[2][:-3], "%b %d, %Y %H:%M:%S.%f")
                 end_time[p[0]] = time # Keep last know time for duration
 
@@ -83,15 +90,15 @@ class PcapParser:
                 sentByClient = clients[p[0]] == src
 
                 # Get protocol name if available
-                if p[10]:
+                if p[12]:
                     if sentByClient:
-                        clients_protocol[p[0]] = p[10]
+                        clients_protocol[p[0]] = p[12]
                     else:
-                        servers_protocol[p[0]] = p[10]
+                        servers_protocol[p[0]] = p[12]
 
                 if self.keep_datagrams:
-                    if p[9]:
-                        ack = int(p[8])
+                    if p[11]:
+                        ack = int(p[10])
                     else:
                         ack = -1
 
@@ -100,8 +107,8 @@ class PcapParser:
                         sentByClient,
                         time,
                         int(p[1]), # seq number
-                        int(p[8]), # datagram len
-                        int(p[7]), # payload length
+                        int(p[10]), # datagram len
+                        int(p[9]), # payload length
                         ack))
 
         # Create Connection objects
