@@ -19,9 +19,8 @@
 
 
 from connection import Connection, Datagram
-from subprocess import check_output
 from datetime import datetime
-import logging
+import logging, subprocess, sys
 
 class PcapParser:
     """Parser for pcap files"""
@@ -47,23 +46,31 @@ class PcapParser:
         end_time = {}
 
         # TODO: Check if tshark is available
-        # TODO: Add errors handlers
+        # TODO: Add errors handlers arround int(...) calls
+
         # Read the pcap file to get the number of ssh connections streams
-        for stream in check_output(
-                ["tshark", "-r", fileName, "-Rssh", "-Tfields", "-etcp.stream"
-                ]).split("\n"):
+        tsharkP1 = subprocess.Popen(
+            ["tshark", "-r", fileName, "-Rssh", "-Tfields", "-etcp.stream"],
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        tsharkP1.wait()
+        if tsharkP1.returncode:
+            self.__tshark_error(tsharkP1.returncode, tsharkP1.stderr)
+
+        for stream in tsharkP1.stdout:
+            stream = stream.strip()
             if stream and stream not in streams:
-                self.logger.debug("Stream found : %s", stream)
+                self.logger.debug("Stream found: %s", stream)
                 streams.append(stream);
 
         if not len(streams):
-            self.logger.warning("Any connection found")
+            self.logger.warning("No connection found")
             return []
 
-        tshark_stream_string = " or ".join(["tcp.stream=="+stream
+        # Read the pcap file to get the packet informations
+        tshark_stream_string = " or ".join(["tcp.stream==" + stream
                                             for stream in streams])
 
-        for packet in check_output([
+        tsharkP2 = subprocess.Popen([
                 "tshark", "-r", fileName, "-R", tshark_stream_string, "-Tfields",
                 "-etcp.stream",
                 "-etcp.seq",
@@ -77,8 +84,14 @@ class PcapParser:
                 "-etcp.len",
                 "-eframe.len",
                 "-etcp.ack",
-                "-essh.protocol"]).split("\n"):
-            p = packet.split("\t")
+                "-essh.protocol"],
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        tsharkP2.wait()
+        if tsharkP2.returncode:
+            self.__tshark_error(tsharkP2.returncode, tsharkP2.stderr)
+
+        for packet in tsharkP2.stdout:
+            p = packet.strip().split("\t")
             if len(p) > 12:
                 if p[3]:
                     src = (p[3], int(p[5]))
@@ -116,7 +129,7 @@ class PcapParser:
                         int(p[9]), # payload length
                         int(p[10]) if p[11] else -1 # datagram acked
                         ))
-                    self.logger.debug("New datagram : %s", datagrams[p[0]][-1])
+                    self.logger.debug("New datagram: %s", datagrams[p[0]][-1])
 
         # Create Connection objects
         connections = []
@@ -131,15 +144,21 @@ class PcapParser:
                 servers[k][1], # Server port
                 clients_protocol[k],
                 servers_protocol[k]))
-            self.logger.debug("New connection : %s", connections[-1])
+            self.logger.debug("New connection: %s", connections[-1].summary())
 
         self.logger.info("Parsing %s finished", fileName)
         return connections
 
+    def __tshark_error(self, code, stderr):
+        """Handle an error from tshark call"""
+        self.logger.error('Tshark exited with exit status %d' % code)
+        for line in stderr:
+            print line.strip()
+        sys.exit(1)
+
 
 
 if __name__ == '__main__':
-    import sys
     logging.basicConfig(
         format='%(asctime)s    %(levelname)7s    %(name)11s    %(message)s',
         level=logging.INFO)
@@ -148,4 +167,4 @@ if __name__ == '__main__':
         for conn in parser.parse(sys.argv[1]):
             print "\n" + str(conn)
     else:
-        print "usage : pcap_parser.py file"
+        print "usage: pcap_parser.py file"
