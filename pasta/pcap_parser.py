@@ -141,7 +141,7 @@ class PcapParser:
 if __name__ == '__main__':
     import sys
     logging.basicConfig(
-        format='%(asctime)s    %(levelname)7s    %(name)s    %(message)s',
+        format='%(asctime)s    %(levelname)7s    %(name)11s    %(message)s',
         level=logging.INFO)
     if len(sys.argv) > 1:
         parser = PcapParser(True)

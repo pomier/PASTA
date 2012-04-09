@@ -69,6 +69,17 @@ class Connection:
             s += '\nConnexion type: %s' % self.connexionType
         return s
 
+    def summary(self):
+        """A one-line summary of the connection"""
+        s = '%s:%d --> %s:%d, %s' % (
+               self.clientIP, self.clientPort, self.serverIP, self.serverPort,
+               str(self.duration) # FIXME better representation nedded!
+               )
+        if self.idleTime is not None:
+            s += ', %.2f%% idle' % self.idleTime
+        if self.connexionType is not None:
+            s += ', %s' % self.connexionType
+        return s
 
     def __str__(self):
         return repr(self)

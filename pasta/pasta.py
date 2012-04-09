@@ -18,7 +18,8 @@
 
 
 if __name__ == '__main__':
-    import logging, argparse
+    import logging, argparse, sys
+    from pcap_parser import PcapParser
 
     # TODO: check the right version of Python
 
@@ -26,14 +27,23 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description = 'PASTA is another SSH traffic analyser',
         epilog = '' ) #FIXME: epilog
-    parser.add_argument('-v', '--verbose', dest='verbose',
-                        action='append_const', const=None,
+    parser.add_argument('-r', metavar='file.pcap', dest='inputFile',
+                        required=True, help='filename to read from')
+    parser.add_argument('-s', '--summary', action='store_true',
+                        help='show only a summary of the ssh connections')
+    parser.add_argument('-v', '--verbose', dest='verbose', action='count',
                         help='print logging messages; multiple -v options '
                              'increase verbosity, maximum is 4')
-    parser.add_argument('--logfile', metavar='file', dest='logfile',
+    parser.add_argument('--logfile', metavar='file', dest='logFile',
                         default=None,
                         help='store logs in a file instead of standard output')
     args = parser.parse_args()
+
+    # Security notice:
+    # The validity of the files used as input/output is not tested at this
+    # point, since it may create a security hole (race condition) due to the
+    # time elapsed between this check and the real use of the file.
+    # As a consequence, the real tests are done when the files are really used.
 
     # Logging
     if args.verbose:
@@ -43,23 +53,35 @@ if __name__ == '__main__':
             2: logging.WARNING,
             3: logging.INFO,
             4: logging.DEBUG
-            }[len(args.verbose)])
+            }[args.verbose])
         formatter = logging.Formatter('%(asctime)s    %(levelname)7s    '
-                                      '%(name)s    %(message)s')
-        if args.logfile is None:
+                                      '%(name)10s    %(message)s')
+        if args.logFile is None:
             handler = logging.StreamHandler()
         else:
-            handler = logging.FileHandler(logfile)
+            try:
+                handler = logging.FileHandler(args.logFile)
+            except IOError as e:
+                print 'Error while opening file %s for logging: %s' % (
+                      e.filename, e.strerror)
+                sys.exit(1)
         handler.setFormatter(formatter)
         logger.addHandler(handler)
     else:
         logging.raiseExceptions = False
 
-    # TODO: to be continued
+    logger = logging.getLogger('PASTA')
+    logger.info('Loggin set')
 
-    # FIXME: temp, for test purposes
-    l=logging.getLogger('Logger name')
-    l.info('message 0')
-    l.debug('message 1')
-    l.warning('message 2')
-    l.error('message 3')
+    # Pcap parser
+    pcapParser = PcapParser(keep_datagrams=not args.summary)
+    logger.info('PcapParser set')
+    connections = pcapParser.parse(args.inputFile)
+
+    # Printing connections
+    logger.info('Printing connections')
+    for connection in connections:
+        if args.summary:
+            print connection.summary()
+        else:
+            print '\n%s\n' % connection
