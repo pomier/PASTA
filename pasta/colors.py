@@ -33,7 +33,7 @@ def Coloramaze():
         logger.warning('Failed to import colorama')
     else:
         logger.info('Using colorama colors')
-        colorama.init(autoreset=True)
+        colorama.init()
         global FBla, FBlu, FCya, FGre, FMag, FRed, FRes, FWhi, FYel
         global BBla, BBlu, BCya, BGre, BMag, BRed, BRes, BWhi, BYel
         FBla = colorama.Fore.BLACK
