@@ -21,6 +21,7 @@
 from connection import Connection, Datagram
 from subprocess import check_output
 from datetime import datetime
+import logging
 
 class PcapParser:
     """Parser for pcap files"""
@@ -29,9 +30,12 @@ class PcapParser:
         # TODO: Add options
 
         self.keep_datagrams = keep_datagrams # Boolean
+        self.logger = logging.getLogger("PcapParser")
 
     def parse(self, file):
         """Parse the given pcap file and create Connection objects"""
+
+        self.logger.info("Start to parse %s", file)
 
         streams = []
         datagrams = {}
@@ -41,14 +45,20 @@ class PcapParser:
         servers_protocol = {}
         start_time = {}
         end_time = {}
-        # TODO: Check if tshark is available
 
+        # TODO: Check if tshark is available
+        # TODO: Add errors handlers
         # Read the pcap file to get the number of ssh connections streams
         for stream in check_output(
                 ["tshark", "-r", file, "-Rssh", "-Tfields", "-etcp.stream"
                 ]).split("\n"):
             if stream and stream not in streams:
+                self.logger.debug("Stream found : %s", stream)
                 streams.append(stream);
+
+        if not len(streams):
+            self.logger.warning("Any connection found")
+            return []
 
         tshark_stream_string = " or ".join(["tcp.stream=="+stream
                                             for stream in streams])
@@ -110,6 +120,7 @@ class PcapParser:
                         int(p[10]), # datagram len
                         int(p[9]), # payload length
                         ack))
+                    self.logger.debug("New datagram : %s", datagrams[p[0]][-1])
 
         # Create Connection objects
         connections = []
@@ -124,15 +135,21 @@ class PcapParser:
                 servers[k][1], # Server port
                 clients_protocol[k],
                 servers_protocol[k]))
+            self.logger.debug("New connection : %s", connections[-1])
 
+        self.logger.info("Parsing %s finished", file)
         return connections
 
 
 
 if __name__ == '__main__':
-    # TODO: logging
     import sys
-    parser = PcapParser(True)
-    for conn in parser.parse(sys.argv[1]):
-        print conn
-        print
+    logging.basicConfig(
+        format='%(asctime)s    %(levelname)7s    %(name)s    %(message)s',
+        level=logging.INFO)
+    if len(sys.argv) > 1:
+        parser = PcapParser(True)
+        for conn in parser.parse(sys.argv[1]):
+            print "\n" + str(conn)
+    else:
+        print "usage : pcap_parser.py file"
