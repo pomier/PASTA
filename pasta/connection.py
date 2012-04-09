@@ -18,6 +18,8 @@
 
 
 
+from colors import Colors as C
+
 class Connection:
     """A SSH connection"""
 
@@ -48,7 +50,9 @@ class Connection:
 
     def __repr__(self):
         s = (
-                'Connection: %s:%d --> %s:%d\n'
+                'Connection: ' + C.FBlu + '%s' + C.FRes + ':' + C.FCya + '%d'
+                + C.FRes + ' --> ' + C.FBlu + '%s' + C.FRes + ':' + C.FCya
+                + '%d' + C.FRes + '\n'
                 'Start date: %s\n'
                 'Duration: %s\n'
                 'Client: %s\n'
@@ -71,10 +75,14 @@ class Connection:
 
     def summary(self):
         """A one-line summary of the connection"""
-        s = '%s:%d --> %s:%d, %s' % (
-               self.clientIP, self.clientPort, self.serverIP, self.serverPort,
-               str(self.duration) # FIXME better representation nedded!
-               )
+        s = (
+                'Connection: ' + C.FBlu + '%s' + C.FRes + ':' + C.FCya + '%d'
+                + C.FRes + ' --> ' + C.FBlu + '%s' + C.FRes + ':' + C.FCya
+                + '%d' + C.FRes + ', %s'
+            ) % (
+                self.clientIP, self.clientPort, self.serverIP, self.serverPort,
+                str(self.duration) # FIXME better representation nedded!
+            )
         if self.idleTime is not None:
             s += ', %.2f%% idle' % self.idleTime
         if self.connexionType is not None:

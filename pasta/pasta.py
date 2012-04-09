@@ -17,9 +17,11 @@
 # along with PASTA.  If not, see <http://www.gnu.org/licenses/>.
 
 
+
 if __name__ == '__main__':
     import logging, argparse, sys
     from pcap_parser import PcapParser
+    from colors import Coloramaze
 
     # TODO: check the right version of Python
 
@@ -72,6 +74,11 @@ if __name__ == '__main__':
 
     logger = logging.getLogger('PASTA')
     logger.info('Loggin set')
+    
+    # Colors
+    # TODO: check if we want to have colors or not
+    Coloramaze()
+    logger.info('Colors set')
 
     # Pcap parser
     pcapParser = PcapParser(keep_datagrams=not args.summary)
