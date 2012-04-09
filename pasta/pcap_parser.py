@@ -32,10 +32,10 @@ class PcapParser:
         self.keep_datagrams = keep_datagrams # Boolean
         self.logger = logging.getLogger("PcapParser")
 
-    def parse(self, file):
+    def parse(self, fileName):
         """Parse the given pcap file and create Connection objects"""
 
-        self.logger.info("Start to parse %s", file)
+        self.logger.info("Start to parse %s", fileName)
 
         streams = []
         datagrams = {}
@@ -50,7 +50,7 @@ class PcapParser:
         # TODO: Add errors handlers
         # Read the pcap file to get the number of ssh connections streams
         for stream in check_output(
-                ["tshark", "-r", file, "-Rssh", "-Tfields", "-etcp.stream"
+                ["tshark", "-r", fileName, "-Rssh", "-Tfields", "-etcp.stream"
                 ]).split("\n"):
             if stream and stream not in streams:
                 self.logger.debug("Stream found : %s", stream)
@@ -64,7 +64,7 @@ class PcapParser:
                                             for stream in streams])
 
         for packet in check_output([
-                "tshark", "-r", file, "-R", tshark_stream_string, "-Tfields",
+                "tshark", "-r", fileName, "-R", tshark_stream_string, "-Tfields",
                 "-etcp.stream",
                 "-etcp.seq",
                 "-eframe.time",
@@ -133,7 +133,7 @@ class PcapParser:
                 servers_protocol[k]))
             self.logger.debug("New connection : %s", connections[-1])
 
-        self.logger.info("Parsing %s finished", file)
+        self.logger.info("Parsing %s finished", fileName)
         return connections
 
 
