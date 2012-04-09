@@ -37,9 +37,9 @@ class Connection:
                                          if p.sentByClient)
         self.serverSentNbDatagrams = sum(1 for p in self.datagrams
                                          if not p.sentByClient)
-        self.clientSentLen = sum(p.len for p in self.datagrams
+        self.clientSentLen = sum(p.totalLen for p in self.datagrams
                                  if p.sentByClient)
-        self.serverSentLen = sum(p.len for p in self.datagrams
+        self.serverSentLen = sum(p.totalLen for p in self.datagrams
                                  if not p.sentByClient)
         self.idleTime = None # [Task3] e.g. 0.31415 (for 31.14%)
         self.connexionType = None # [Task3] e.g. 'shell', 'ssh', 'tunnel'
@@ -96,11 +96,11 @@ class Connection:
 class Datagram:
     """A datagram of a ssh connection"""
 
-    def __init__(self, sentByClient, time, seqNb, len, payloadLen, ack):
+    def __init__(self, sentByClient, time, seqNb, totalLen, payloadLen, ack):
         self.sentByClient = sentByClient # True or False
         self.time = time # instance of datetime.datetime
         self.seqNb = seqNb #int
-        self.len = len # int length of the datagram
+        self.totalLen = totalLen # int length of the datagram
         self.payloadLen = payloadLen # int length of the payload
         self.ack = ack # int: -1 if not ACKed else seqnb of the datagram ACKed
         self.RTT = None # instance of datetime.timedelta
