@@ -18,7 +18,7 @@
 
 
 
-from colors import Colors as C
+import colors as C
 
 class Connection:
     """A SSH connection"""

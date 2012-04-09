@@ -20,13 +20,12 @@
 
 import logging
 
-class Colors:
-    """Basic codes for colors"""
-    FBla = FBlu = FCya = FGre = FMag = FRed = FRes = FWhi = FYel = ''
-    BBla = BBlu = BCya = BGre = BMag = BRed = BRes = BWhi = BYel = ''
+FBla = FBlu = FCya = FGre = FMag = FRed = FRes = FWhi = FYel = ''
+BBla = BBlu = BCya = BGre = BMag = BRed = BRes = BWhi = BYel = ''
 
 
 def Coloramaze():
+    """Enable color support"""
     logger = logging.getLogger('Colors')
     try:
         import colorama
@@ -35,21 +34,23 @@ def Coloramaze():
     else:
         logger.info('Using colorama colors')
         colorama.init(autoreset=True)
-        Colors.FBla = colorama.Fore.BLACK
-        Colors.FBlu = colorama.Fore.BLUE
-        Colors.FCya = colorama.Fore.CYAN
-        Colors.FGre = colorama.Fore.GREEN
-        Colors.FMag = colorama.Fore.MAGENTA
-        Colors.FRed = colorama.Fore.RED
-        Colors.FRes = colorama.Fore.RESET
-        Colors.FWhi = colorama.Fore.WHITE
-        Colors.FYel = colorama.Fore.YELLOW
-        Colors.BBla = colorama.Back.BLACK
-        Colors.BBlu = colorama.Back.BLUE
-        Colors.BCya = colorama.Back.CYAN
-        Colors.BGre = colorama.Back.GREEN
-        Colors.BMag = colorama.Back.MAGENTA
-        Colors.BRed = colorama.Back.RED
-        Colors.BRes = colorama.Back.RESET
-        Colors.BWhi = colorama.Back.WHITE
-        Colors.BYel = colorama.Back.YELLOW
+        global FBla, FBlu, FCya, FGre, FMag, FRed, FRes, FWhi, FYel
+        global BBla, BBlu, BCya, BGre, BMag, BRed, BRes, BWhi, BYel
+        FBla = colorama.Fore.BLACK
+        FBlu = colorama.Fore.BLUE
+        FCya = colorama.Fore.CYAN
+        FGre = colorama.Fore.GREEN
+        FMag = colorama.Fore.MAGENTA
+        FRed = colorama.Fore.RED
+        FRes = colorama.Fore.RESET
+        FWhi = colorama.Fore.WHITE
+        FYel = colorama.Fore.YELLOW
+        BBla = colorama.Back.BLACK
+        BBlu = colorama.Back.BLUE
+        BCya = colorama.Back.CYAN
+        BGre = colorama.Back.GREEN
+        BMag = colorama.Back.MAGENTA
+        BRed = colorama.Back.RED
+        BRes = colorama.Back.RESET
+        BWhi = colorama.Back.WHITE
+        BYel = colorama.Back.YELLOW

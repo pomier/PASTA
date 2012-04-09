@@ -74,7 +74,7 @@ if __name__ == '__main__':
 
     logger = logging.getLogger('PASTA')
     logger.info('Loggin set')
-    
+
     # Colors
     # TODO: check if we want to have colors or not
     Coloramaze()
