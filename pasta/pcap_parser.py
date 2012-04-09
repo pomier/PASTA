@@ -102,16 +102,11 @@ class PcapParser:
                 # Get protocol name if available
                 if p[12]:
                     if sentByClient:
-                        clients_protocol[p[0]] = p[12]
+                        clients_protocol[p[0]] = p[12].decode('string-escape').strip()
                     else:
-                        servers_protocol[p[0]] = p[12]
+                        servers_protocol[p[0]] = p[12].decode('string-escape').strip()
 
                 if self.keep_datagrams:
-                    if p[11]:
-                        ack = int(p[10])
-                    else:
-                        ack = -1
-
                     #Create Datagram objects
                     datagrams[p[0]].append(Datagram(
                         sentByClient,
@@ -119,7 +114,8 @@ class PcapParser:
                         int(p[1]), # seq number
                         int(p[10]), # datagram len
                         int(p[9]), # payload length
-                        ack))
+                        int(p[10]) if p[11] else -1 # datagram acked
+                        ))
                     self.logger.debug("New datagram : %s", datagrams[p[0]][-1])
 
         # Create Connection objects
