@@ -62,7 +62,9 @@ class PcapParser:
                 self.logger.debug("Stream found: %s", stream)
                 streams.append(stream);
 
-        if not len(streams):
+        if len(streams):
+            self.logger.info(str(len(streams))+" connection found")
+        else:
             self.logger.warning("No connection found")
             return []
 
@@ -91,7 +93,7 @@ class PcapParser:
             self.__tshark_error(tsharkP2.returncode, tsharkP2.stderr)
 
         for packet in tsharkP2.stdout:
-            p = packet.strip().split("\t")
+            p = packet.split("\t")
             if len(p) > 12:
                 if p[3]:
                     src = (p[3], int(p[5]))
