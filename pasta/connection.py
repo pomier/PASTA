@@ -22,7 +22,8 @@ class Connection:
     """A SSH connection"""
 
     def __init__(self, datagrams, startTime, duration, clientIP,
-                 serverIP, clientPort, serverPort, clientProtocol, serverProtocol):
+                 serverIP, clientPort, serverPort,
+                 clientProtocol, serverProtocol):
         self.datagrams = datagrams # list of Datagram instances
         self.startTime = startTime # instance of datetime.datetime
         self.duration = duration # instance of datetime.timedelta
@@ -32,10 +33,12 @@ class Connection:
         self.serverPort = serverPort # int
         self.clientProtocol = clientProtocol # string eg. "OpenSSH 5.3"
         self.serverProtocol = serverProtocol # string eg. "OpenSSH 5.2"
-        self.clientSentNbDatagrams = sum(1 for p in self.datagrams if p.sentByClient)
+        self.clientSentNbDatagrams = sum(1 for p in self.datagrams
+                                         if p.sentByClient)
         self.serverSentNbDatagrams = sum(1 for p in self.datagrams
                                          if not p.sentByClient)
-        self.clientSentLen = sum(p.len for p in self.datagrams if p.sentByClient)
+        self.clientSentLen = sum(p.len for p in self.datagrams
+                                 if p.sentByClient)
         self.serverSentLen = sum(p.len for p in self.datagrams
                                  if not p.sentByClient)
         self.idleTime = None # [Task3] e.g. 0.31415 (for 31.14%)
@@ -88,7 +91,7 @@ class Datagram:
         self.seqNb = seqNb #int
         self.len = len # int length of the datagram
         self.payloadLen = payloadLen # int length of the payload
-        self.ack = ack # int : -1 if not ACKed else seqnb of the datagram ACKed.
+        self.ack = ack # int: -1 if not ACKed else seqnb of the datagram ACKed
         self.RTT = None # instance of datetime.timedelta
 
     def __repr__(self):
