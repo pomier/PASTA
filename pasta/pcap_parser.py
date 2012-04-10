@@ -52,11 +52,11 @@ class PcapParser:
         tsharkP1 = subprocess.Popen(
             ["tshark", "-r", fileName, "-Rssh", "-Tfields", "-etcp.stream"],
             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        tsharkP1.wait()
+        (stdout1, stderr1) = tsharkP1.communicate()
         if tsharkP1.returncode:
-            self.__tshark_error(tsharkP1.returncode, tsharkP1.stderr)
+            self.__tshark_error(tsharkP1.returncode, stderr1)
 
-        for stream in tsharkP1.stdout:
+        for stream in stdout1:
             stream = stream.strip()
             if stream and stream not in streams:
                 self.logger.debug("Stream found: %s", stream)
@@ -89,11 +89,11 @@ class PcapParser:
                 "-etcp.ack",
                 "-essh.protocol"],
                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        tsharkP2.wait()
+        (stdout2, stderr2) = tsharkP2.communicate()
         if tsharkP2.returncode:
-            self.__tshark_error(tsharkP2.returncode, tsharkP2.stderr)
+            self.__tshark_error(tsharkP2.returncode, stderr2)
 
-        for packet in tsharkP2.stdout:
+        for packet in stdout2.split("\n"):
             p = packet.split("\t")
             if len(p) > 12:
                 if p[3]:
