@@ -131,7 +131,7 @@ class PcapParser:
                         int(p[1]), # seq number
                         int(p[10]), # datagram len
                         int(p[9]), # payload length
-                        int(p[10]) if p[11] else -1 # datagram acked
+                        int(p[11]) if p[11] else -1 # datagram acked
                         ))
                     self.logger.debug("New datagram: %s", datagrams[p[0]][-1])
 
