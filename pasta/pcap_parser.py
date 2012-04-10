@@ -62,8 +62,8 @@ class PcapParser:
                 self.logger.debug("Stream found: %s", stream)
                 streams.append(stream);
 
-        if len(streams):
-            self.logger.info(str(len(streams))+" connection found")
+        if streams:
+            self.logger.info("%d connections found" % len(streams))
         else:
             self.logger.warning("No connection found")
             return []
@@ -73,7 +73,8 @@ class PcapParser:
                                             for stream in streams])
 
         tsharkP2 = subprocess.Popen([
-                "tshark", "-r", fileName, "-R", tshark_stream_string, "-Tfields",
+                "tshark", "-r", fileName, "-R", tshark_stream_string,
+                "-Tfields",
                 "-etcp.stream",
                 "-etcp.seq",
                 "-eframe.time",
@@ -115,11 +116,12 @@ class PcapParser:
                 sentByClient = clients[p[0]] == src
 
                 # Get protocol name if available
-                if p[12]:
+                protocol = p[12].decode('string-escape').strip()
+                if protocol:
                     if sentByClient:
-                        clients_protocol[p[0]] = p[12].decode('string-escape').strip()
+                        clients_protocol[p[0]] = protocol
                     else:
-                        servers_protocol[p[0]] = p[12].decode('string-escape').strip()
+                        servers_protocol[p[0]] = protocol
 
                 if self.keep_datagrams:
                     #Create Datagram objects
