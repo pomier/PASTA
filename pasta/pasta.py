@@ -85,6 +85,11 @@ if __name__ == '__main__':
     logger.info('PcapParser set')
     connections = pcapParser.parse(args.inputFile)
 
+    # RTT
+    # TODO: check if we want to compute RTTs or not
+    for connection in connections:
+        connection.compute_RTT()
+
     # Printing connections
     logger.info('Printing connections')
     for connection in connections:

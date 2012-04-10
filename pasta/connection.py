@@ -18,14 +18,20 @@
 
 
 
+import logging
 import colors as C
 
 class Connection:
     """A SSH connection"""
 
+    __connectionNb = 0
+
     def __init__(self, datagrams, startTime, duration, clientIP,
                  serverIP, clientPort, serverPort,
                  clientProtocol, serverProtocol):
+        self.__connectionNb = Connection.__connectionNb
+        Connection.__connectionNb += 1
+        self.logger = logging.getLogger('Conection%d' % self.__connectionNb)
         self.datagrams = datagrams # list of Datagram instances
         self.startTime = startTime # instance of datetime.datetime
         self.duration = duration # instance of datetime.timedelta
@@ -97,8 +103,28 @@ class Connection:
         # FIXME on fait un RTT moyen, ca serait bcp plus simple non ?
         #       A voir si ya une grosse difference du "Idle" avec une moyenne
         #       simple, ou un RTT flottant...
-        pass # TODO
-
+        self.logger.info('Computing RTTs')
+        datagramAcksSeqNb = {True: {}, False: {}}
+        # computing the datagrams acking other datagrams
+        self.logger.debug('Computing acking tree')
+        for datagram in self.datagrams:
+            if datagram.ack > -1:
+                datagramAcksSeqNb[not datagram.sentByClient][datagram.ack] \
+                        = datagram
+        # computing rough RTTs
+        self.logger.debug('Computing rough RTTs')
+        for datagram in self.datagrams:
+            try:
+                seqNb = min(sNb for sNb
+                            in datagramAcksSeqNb[datagram.sentByClient]
+                            if sNb > datagram.seqNb)
+            except ValueError:
+                # this datagram is never acked
+                continue
+            datagramAcks = datagramAcksSeqNb[datagram.sentByClient][seqNb]
+            datagram.RTT = datagramAcks.time - datagram.time
+        self.logger.warning('Only rough RTTs are computed') # FIXME
+        # TODO: to be continued
 
 
 class Datagram:
