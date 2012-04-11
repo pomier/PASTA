@@ -156,8 +156,10 @@ class PcapParser:
     def __tshark_error(self, code, stderr):
         """Handle an error from tshark call"""
         self.logger.error('Tshark exited with exit status %d' % code)
-        for line in stderr:
-            print line.strip()
+        for line in stderr.split("\n"):
+            line = line.strip()
+            if line:
+                print line
         sys.exit(1)
 
 
