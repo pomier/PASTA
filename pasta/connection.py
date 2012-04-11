@@ -29,9 +29,9 @@ class Connection:
     def __init__(self, datagrams, startTime, duration, clientIP,
                  serverIP, clientPort, serverPort,
                  clientProtocol, serverProtocol):
-        self.__connectionNb = Connection.__connectionNb
+        self.ID = Connection.__connectionNb
         Connection.__connectionNb += 1
-        self.logger = logging.getLogger('Conection%d' % self.__connectionNb)
+        self.logger = logging.getLogger('Conection%d' % self.ID)
         self.datagrams = datagrams # list of Datagram instances
         self.startTime = startTime # instance of datetime.datetime
         self.duration = duration # instance of datetime.timedelta
@@ -50,7 +50,7 @@ class Connection:
         self.serverSentLen = sum(p.totalLen for p in self.datagrams
                                  if not p.sentByClient)
         self.idleTime = None # [Task3] e.g. 0.31415 (for 31.14%)
-        self.connexionType = None # [Task3] e.g. 'shell', 'ssh', 'tunnel'
+        self.connectionType = None # [Task3] e.g. 'shell', 'ssh', 'tunnel'
         #                           [Task4] other things
         # TODO: other things for Task4
 
@@ -75,8 +75,8 @@ class Connection:
             )
         if self.idleTime is not None:
             s += '\nIdle time: %.2f%%' % self.idleTime
-        if self.connexionType is not None:
-            s += '\nConnexion type: %s' % self.connexionType
+        if self.connectionType is not None:
+            s += '\nConnexion type: %s' % self.connectionType
         return s
 
     def summary(self):
@@ -91,8 +91,8 @@ class Connection:
             )
         if self.idleTime is not None:
             s += ', %.2f%% idle' % self.idleTime
-        if self.connexionType is not None:
-            s += ', %s' % self.connexionType
+        if self.connectionType is not None:
+            s += ', %s' % self.connectionType
         return s
 
     def __str__(self):

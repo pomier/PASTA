@@ -22,6 +22,7 @@ if __name__ == '__main__':
     import logging, argparse, sys
     from pcap_parser import PcapParser
     from colors import coloramaze
+    from connection_type import ConnectionType
 
     # TODO: check the right version of Python
 
@@ -89,6 +90,11 @@ if __name__ == '__main__':
     # TODO: check if we want to compute RTTs or not
     for connection in connections:
         connection.compute_RTT()
+
+    # Connection type
+    # TODO: check if we want to compute the connection type
+    for connection in connections:
+        ConnectionType(connection).compute()
 
     # Printing connections
     logger.info('Printing connections')
