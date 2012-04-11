@@ -21,7 +21,7 @@
 if __name__ == '__main__':
     import logging, argparse, sys
     from pcap_parser import PcapParser
-    from colors import Coloramaze
+    from colors import coloramaze
 
     # TODO: check the right version of Python
 
@@ -77,7 +77,7 @@ if __name__ == '__main__':
 
     # Colors
     # TODO: check if we want to have colors or not
-    Coloramaze()
+    coloramaze()
     logger.info('Colors set')
 
     # Pcap parser

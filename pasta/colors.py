@@ -24,7 +24,7 @@ FBla = FBlu = FCya = FGre = FMag = FRed = FRes = FWhi = FYel = ''
 BBla = BBlu = BCya = BGre = BMag = BRed = BRes = BWhi = BYel = ''
 
 
-def Coloramaze():
+def coloramaze():
     """Enable color support"""
     logger = logging.getLogger('Colors')
     try:
