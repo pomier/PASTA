@@ -22,7 +22,7 @@ import logging
 
 class ConnectionType():
 
-    # Configuration constants 
+    # Configuration constants
 
     # To be part of a shell interaction
     shell_max_time_to_reply = 1.5 # max nb of RTTs
@@ -116,7 +116,11 @@ class ConnectionType():
                                if p.sentByClient))
         serverSent = float(sum(p.payloadLen for p in self.connection.datagrams
                                if not p.sentByClient))
-        self.ratio_server_sent = serverSent / (serverSent + clientSent)
+        if serverSent == 0.0:
+            # be sure not to have a division by zero error
+            self.ratio_server_sent = 0.0
+        else:
+            self.ratio_server_sent = serverSent / (serverSent + clientSent)
 
     def compute_time_to_reply(self):
         """Compute the times to reply"""
@@ -130,7 +134,7 @@ class ConnectionType():
                 # may create a reply
                 last_time = datagram.time
             else:
-                if last_time is not None:
+                if last_time is not None and datagram.RTT.total_seconds():
                     # a reply
                     self.time_to_reply.append(
                         (datagram.time - last_time).total_seconds() /
