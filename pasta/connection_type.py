@@ -34,7 +34,7 @@ class ConnectionType():
 
     # To be part of a tunneled connection
     tunnel_min_time_to_reply = 1.5 # min nb of RTTs
-    tunnel_max_time_to_reply = 5 # min nb of RTTs
+    tunnel_max_time_to_reply = 9999999999 # max nb of RTTs
     tunnel_min_replies = 0.5 # min ratio of replies
     tunnel_min_asymetry1 = 0.6 # min asymetry if server sent more
     tunnel_max_asymetry2 = 0.4 # max asymetry if client sent more
@@ -84,6 +84,8 @@ class ConnectionType():
                             >= ConnectionType.scp_min_asymetry1
             possible_tunnel &= self.ratio_server_sent \
                                >= ConnectionType.tunnel_min_asymetry1
+        elif possible_tunnel:
+            self.connection.connectionType = 'tunnel'
         else:
             self.logger.debug('Asymetry: client sent more than server')
             self.logger.debug('Asymetry ratio for scp: %.2f'
@@ -100,10 +102,10 @@ class ConnectionType():
         # choose connection type (order of the conditions is important)
         if possible_shell:
             self.connection.connectionType = 'shell'
-        elif possible_scp:
-            self.connection.connectionType = 'scp'
         elif possible_tunnel:
             self.connection.connectionType = 'tunnel'
+        elif possible_scp:
+            self.connection.connectionType = 'scp'
         else:
             self.logger.warning('Failed to find connection type')
 
