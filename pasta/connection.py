@@ -101,56 +101,59 @@ class Connection:
     def compute_RTT(self):
         """Set an approximate RTT for each datagram in self.datagrams"""
         # Step1: compute RTT for the very last packet being acked
+        # (ignore multiple acks in one)
         self.datagrams.reverse()
-        lastAcking = {True: None, False: None}
+        last_acking = {True: None, False: None}
         for datagram in self.datagrams:
-            if lastAcking[not datagram.sentByClient] is not None:
-                # this lastAcking is acking datagram
-                datagram.RTT = lastAcking[not datagram.sentByClient].time \
+            if last_acking[not datagram.sentByClient] is not None \
+                    and datagram.seqNb \
+                        < last_acking[not datagram.sentByClient].seqNb:
+                # this last_acking is acking datagram
+                datagram.RTT = last_acking[not datagram.sentByClient].time \
                                    - datagram.time
-                lastAcking[not datagram.sentByClient] = None
+                last_acking[not datagram.sentByClient] = None
             if datagram.ack > -1:
-                lastAcking[datagram.sentByClient] = datagram
+                last_acking[datagram.sentByClient] = datagram
         self.datagrams.reverse()
         # Step2: estimate the other RTTs
         # FIXME: we may put an averaging system here (as in TCP)
         #        (i.e. no need for a third loop on datagrams)
-        lastRTT = {True: None, False: None}
-        emptyRTTs = {True: [], False: []}
+        last_RTT = {True: None, False: None}
+        empty_RTTs = {True: [], False: []}
         for datagram in self.datagrams:
             if datagram.RTT is None:
                 # add this datagram to the list to be RTTed
-                emptyRTTs[datagram.sentByClient].append(datagram)
+                empty_RTTs[datagram.sentByClient].append(datagram)
             else:
-                if emptyRTTs[datagram.sentByClient]:
-                    if lastRTT[datagram.sentByClient] is None:
+                if empty_RTTs[datagram.sentByClient]:
+                    if last_RTT[datagram.sentByClient] is None:
                         # if it is the first RTTed packet in this way
                         # just recopy the RTT to the previous ones
-                        for d in emptyRTTs[datagram.sentByClient]:
+                        for d in empty_RTTs[datagram.sentByClient]:
                             d.RTT = datagram.RTT
                     else:
                         # if it is not the first RTTed packet in this way
                         # do a linear interpolation of the RTT
-                        difference = datagram.RTT \
-                                         - lastRTT[datagram.sentByClient]
-                        difference /= 1 + len(emptyRTTs[datagram.sentByClient])
+                        diff= datagram.RTT \
+                                         - last_RTT[datagram.sentByClient]
+                        diff/= 1 + len(empty_RTTs[datagram.sentByClient])
                         i = 1
-                        for d in emptyRTTs[datagram.sentByClient]:
-                            d.RTT = lastRTT[datagram.sentByClient] \
-                                        + i * difference
+                        for d in empty_RTTs[datagram.sentByClient]:
+                            d.RTT = last_RTT[datagram.sentByClient] \
+                                        + i * diff
                             i += 1
                     # empty the list to be RTTed
-                    emptyRTTs[datagram.sentByClient] = []
+                    empty_RTTs[datagram.sentByClient] = []
                 # this packet has been RTTed in the previous step
-                lastRTT[datagram.sentByClient] = datagram.RTT
+                last_RTT[datagram.sentByClient] = datagram.RTT
         # Step2 (cont.): maybe the last datagrams have not been RTTed
         for way in (True, False):
-            if lastRTT[way] is None:
+            if last_RTT[way] is None:
                 # no packet have been RTTed in this way
                 continue
-            for d in emptyRTTs[way]:
+            for d in empty_RTTs[way]:
                 # just recopy the RTT to the previous ones
-                d.RTT = lastRTT[way]
+                d.RTT = last_RTT[way]
 
 
 
