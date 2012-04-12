@@ -45,8 +45,17 @@ class PcapParser:
         start_time = {}
         end_time = {}
 
-        # TODO: Check if tshark is available
         # TODO: Add errors handlers arround int(...) calls
+
+        # Test if tshark is available
+        tshark_test = subprocess.Popen(
+            ["type", "-p", "tshark"],
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        tshark_test.communicate()
+        if tshark_test.returncode:
+            self.logger.error('Tshark is not installed')
+            print 'Tshark is required to use Pasta'
+            sys.exit(1)
 
         # Read the pcap file to get the number of ssh connections streams
         tsharkP1 = subprocess.Popen(
