@@ -76,6 +76,8 @@ if __name__ == '__main__':
     logger = logging.getLogger('PASTA')
     logger.info('Loggin...')
 
+    compute_datagrams = not args.summary # FIXME
+
     # Colors
     # TODO: check if we want to have colors or not
     logger.info('Colors...')
@@ -83,20 +85,20 @@ if __name__ == '__main__':
 
     # Pcap parser
     logger.info('Pcap parsing...')
-    pcapParser = PcapParser(keep_datagrams=not args.summary)
+    pcapParser = PcapParser(keep_datagrams=compute_datagrams)
     connections = pcapParser.parse(args.inputFile)
 
     # RTT
-    # TODO: check if we want to compute RTTs or not
-    logger.info('RTT computations...')
-    for connection in connections:
-        connection.compute_RTT()
+    if compute_datagrams:
+        logger.info('RTT computations...')
+        for connection in connections:
+            connection.compute_RTT()
 
     # Connection type
-    # TODO: check if we want to compute the connection type
-    logger.info('Connection type evaluations...')
-    for connection in connections:
-        ConnectionType(connection).compute()
+    if compute_datagrams:
+        logger.info('Connection type evaluations...')
+        for connection in connections:
+            ConnectionType(connection).compute()
 
     # Printing connections
     logger.info('Printing connections...')
