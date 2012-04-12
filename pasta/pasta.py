@@ -74,30 +74,32 @@ if __name__ == '__main__':
         logging.raiseExceptions = False
 
     logger = logging.getLogger('PASTA')
-    logger.info('Loggin set')
+    logger.info('Loggin...')
 
     # Colors
     # TODO: check if we want to have colors or not
+    logger.info('Colors...')
     coloramaze()
-    logger.info('Colors set')
 
     # Pcap parser
+    logger.info('Pcap parsing...')
     pcapParser = PcapParser(keep_datagrams=not args.summary)
-    logger.info('PcapParser set')
     connections = pcapParser.parse(args.inputFile)
 
     # RTT
     # TODO: check if we want to compute RTTs or not
+    logger.info('RTT computations...')
     for connection in connections:
         connection.compute_RTT()
 
     # Connection type
     # TODO: check if we want to compute the connection type
+    logger.info('Connection type evaluations...')
     for connection in connections:
         ConnectionType(connection).compute()
 
     # Printing connections
-    logger.info('Printing connections')
+    logger.info('Printing connections...')
     for connection in connections:
         if args.summary:
             print connection.summary()
