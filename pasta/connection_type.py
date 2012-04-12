@@ -105,10 +105,10 @@ class ConnectionType():
                                <= ConnectionType.tunnel_max_asymetry2
 
         # choose connection type (order of the conditions is important)
-        if possible_shell:
-            self.connection.connectionType = 'shell'
-        elif possible_scp:
+        if possible_scp:
             self.connection.connectionType = 'scp'
+        elif possible_shell:
+            self.connection.connectionType = 'shell'
         elif possible_tunnel:
             self.connection.connectionType = 'tunnel'
         else:
@@ -132,19 +132,19 @@ class ConnectionType():
     def compute_time_to_reply(self):
         """Compute the times to reply"""
         self.time_to_reply = []
-        last_time = None
+        last_datagram = None
         for datagram in self.connection.datagrams:
             if not datagram.payloadLen:
                 # no payload, skip
                 continue
             if datagram.sentByClient:
                 # may create a reply
-                last_time = datagram.time
+                last_datagram = datagram
             else:
-                if last_time is not None and datagram.RTT.total_seconds():
+                if last_datagram is not None and datagram.RTT.total_seconds():
                     # a reply
                     self.time_to_reply.append(
-                        (datagram.time - last_time).total_seconds() /
-                        datagram.RTT.total_seconds()
+                        (datagram.time - last_datagram.time).total_seconds() /
+                        last_datagram.RTT.total_seconds()
                         )
-                    last_time = None
+                last_datagram = None
