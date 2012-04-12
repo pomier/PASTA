@@ -56,15 +56,17 @@ class Connection:
 
     def __repr__(self):
         s = (
-                'Connection: ' + C.FBlu + '%s' + C.FRes + ':' + C.FCya + '%d'
-                + C.FRes + ' --> ' + C.FBlu + '%s' + C.FRes + ':' + C.FCya
-                + '%d' + C.FRes + '\n'
-                'Start date: %s\n'
-                'Duration: %s\n'
-                'Client: %s\n'
-                'Server: %s\n'
-                'Datagrams sent by client: %d (%d bytes)\n'
-                'Datagrams sent by server: %d (%d bytes)'
+             'Connection: ' + C.FBlu + '%s' + C.FRes + ':' + C.FCya + '%d'
+             + C.FRes + ' --> ' + C.FRed + '%s' + C.FRes + ':' + C.FMag
+             + '%d' + C.FRes + '\n'
+             'Start date: %s\n'
+             'Duration: %s\n'
+             'Client: ' + C.FBlu + '%s' + C.FRes + '\n'
+             'Server: ' + C.FRed + '%s' + C.FRes + '\n'
+             'Datagrams sent by client: ' + C.FBlu + '%d ' + C.FRes + '(' \
+             + C.FBlu + '%d ' + C.FRes + 'bytes)\n'
+             'Datagrams sent by server: ' + C.FRed + '%d ' + C.FRes + '(' \
+             + C.FRed + '%d ' + C.FRes + 'bytes)'
             ) % (
                 self.clientIP, self.clientPort, self.serverIP, self.serverPort,
                 self.startTime.strftime('%b %d, %Y - %H:%M:%S'),
