@@ -48,6 +48,8 @@ if __name__ == '__main__':
     # time elapsed between this check and the real use of the file.
     # As a consequence, the real tests are done when the files are really used.
 
+    compute_datagrams = not args.summary # FIXME
+
     # Logging
     if args.verbose:
         logger = logging.getLogger()
@@ -75,8 +77,6 @@ if __name__ == '__main__':
 
     logger = logging.getLogger('PASTA')
     logger.info('Loggin...')
-
-    compute_datagrams = not args.summary # FIXME
 
     # Colors
     # TODO: check if we want to have colors or not
