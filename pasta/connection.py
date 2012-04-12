@@ -74,7 +74,7 @@ class Connection:
                 self.serverSentNbDatagrams, self.serverSentLen
             )
         if self.idleTime is not None:
-            s += '\nIdle time: %.2f%%' % self.idleTime
+            s += '\nIdle time: %.1f%%' % (self.idleTime * 100)
         if self.connectionType is not None:
             s += '\nConnexion type: %s' % self.connectionType
         return s
@@ -90,7 +90,7 @@ class Connection:
                 str(self.duration) # FIXME better representation nedded!
             )
         if self.idleTime is not None:
-            s += ', %.2f%% idle' % self.idleTime
+            s += ', %.1f%% idle' % (self.idleTime * 100)
         if self.connectionType is not None:
             s += ', %s' % self.connectionType
         return s

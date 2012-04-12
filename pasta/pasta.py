@@ -22,6 +22,7 @@ if __name__ == '__main__':
     import logging, argparse, sys
     from pcap_parser import PcapParser
     from colors import coloramaze
+    from connection_idle import ConnectionIdle
     from connection_type import ConnectionType
 
     # TODO: check the right version of Python
@@ -93,6 +94,12 @@ if __name__ == '__main__':
         logger.info('RTT computations...')
         for connection in connections:
             connection.compute_RTT()
+
+    # Connection idle
+    if compute_datagrams:
+        logger.info('Idle time computations...')
+        for connection in connections:
+            ConnectionIdle(connection).compute()
 
     # Connection type
     if compute_datagrams:
