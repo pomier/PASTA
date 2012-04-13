@@ -30,6 +30,12 @@ if __name__ == '__main__':
         sys.stderr.write('PASTA must be run with Python 2.7\n')
         sys.exit(1)
 
+    # FIXME TODO: depending on the version of argparse, it can work or not
+    # e.g. the options -s and -S are exclusive or not
+    # very odd: on Rogdham's machine, version 1.1 doens't work
+    # but is not the real version 1.1 (probably Debian/Ubuntu) modified it
+    # -> how to detect it efficiently? o_O
+
     # Define an argparse type for range of numbers
     def argparse_numbers(txt):
         """Is txt a valid range of numbers?"""
@@ -65,27 +71,37 @@ if __name__ == '__main__':
     main_options.add_argument('-r', metavar='file.pcap', dest='inputFile',
                         required=True, help='filename to read from')
     main_options.add_argument('-n', metavar='nb', dest='connection_Nb',
-                        type=argparse_numbers, help='procede only these'
-                        ' connections (e.g.: 2,4-6 shows only the second,'
-                        ' fourth, fifth and sixth connections)')
+                              type=argparse_numbers, help='procede only these '
+                              'connections (e.g.: 2,4-6 shows only the second,'
+                              ' fourth, fifth and sixth connections)')
+
     display_options = parser.add_argument_group('Display options')
-    group_summary = parser.add_mutually_exclusive_group()
+    display_options.add_argument('--no-colors', dest='colors',
+                                 action='store_false',
+                                 help='disable colors in the output')
+
+    group_summary = display_options.add_mutually_exclusive_group()
     group_summary.add_argument('-s', '--summary', action='store_true',
                                dest='summary', help='show only a summary of'
                                ' the ssh connections')
     group_summary.add_argument('-S', '--no-summary', action='store_false',
                                dest='no_summary', help='show all the'
                                ' informations of the ssh connections')
-    display_options.add_argument_group(group_summary)
-    display_options.add_argument('--no-colors', dest='colors', action='store_false',
-                        help='disable colors in the output')
+
     logging_options = parser.add_argument_group('Logging options')
-    logging_options.add_argument('-v', '--verbose', dest='verbose', action='count',
-                        help='print logging messages; multiple -v options '
-                             'increase verbosity, maximum is 4')
+    logging_options.add_argument('-v', '--verbose', dest='verbose',
+                                 action='count', help='print logging messages;'
+                                 ' multiple -v options increase verbosity,'
+                                 ' maximum is 4')
     logging_options.add_argument('--logfile', metavar='file', dest='logFile',
                         default=None,
                         help='store logs in a file instead of standard output')
+    help_options = parser.add_argument_group('Help')
+    help_options.add_argument('-h', '--help', dest='help', action='store_true',
+                        help=argparse.SUPPRESS)
+    #help='show this help message and exit')
+
+    print argparse.__version__
 
     if len(sys.argv) == 1:
         # program called without any arguments: show help and exit
@@ -93,6 +109,12 @@ if __name__ == '__main__':
 
     # parse arguments
     args = parser.parse_args()
+
+    # Help flag
+    # FIXME TODO: help doesn't work yet
+    if args.help:
+        # show help and exit
+        parser.exit(message=parser.format_help())
 
     # Security notice:
     # The validity of the files used as input/output is not tested at this
