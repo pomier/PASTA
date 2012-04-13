@@ -45,7 +45,7 @@ class ConnectionIdle():
                     if diff_time \
                             > ConnectionIdle.idle_rtt_threshold * datagram.RTT:
                         time_idle += diff_time # add to the cumulated time
-                    last_datagram = None
+                        last_datagram = None
             else:
                 last_datagram = datagram # datagram sent by the server
         # save the idle time
