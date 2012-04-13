@@ -43,7 +43,7 @@ class ConnectionType():
         self.connection = connection
         self.time_to_reply = []
         self.ratio_server_sent = 0
-        self.logger = logging.getLogger('Conn%dType' % connection.ID)
+        self.logger = logging.getLogger('Conn%dType' % connection.nb)
 
     def compute(self):
         """Find the type of the ssh connection"""

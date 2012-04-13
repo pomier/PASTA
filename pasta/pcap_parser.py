@@ -148,6 +148,7 @@ class PcapParser:
         connections = []
         for k in streams:
             connections.append(Connection(
+                int(k),
                 datagrams[k],
                 start_time[k],
                 end_time[k] - start_time[k], # Duration

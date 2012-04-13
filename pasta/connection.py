@@ -24,14 +24,11 @@ import colors as C
 class Connection:
     """A SSH connection"""
 
-    __connectionNb = 0
-
-    def __init__(self, datagrams, startTime, duration, clientIP,
+    def __init__(self, nb, datagrams, startTime, duration, clientIP,
                  serverIP, clientPort, serverPort,
                  clientProtocol, serverProtocol):
-        self.ID = Connection.__connectionNb
-        Connection.__connectionNb += 1
-        self.logger = logging.getLogger('Conection%d' % self.ID)
+        self.nb = nb
+        self.logger = logging.getLogger('Conection%d' % self.nb)
         self.datagrams = datagrams # list of Datagram instances
         self.startTime = startTime # instance of datetime.datetime
         self.duration = duration # instance of datetime.timedelta
