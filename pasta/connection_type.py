@@ -60,16 +60,20 @@ class ConnectionType():
             replies_shell = sum(1 for t in self.time_to_reply
                                 if t <= ConnectionType.shell_max_time_to_reply)
             replies_tunnel = sum(1 for t in self.time_to_reply
-                                 if ConnectionType.tunnel_min_time_to_reply <= t \
+                                 if ConnectionType.tunnel_min_time_to_reply \
+                                    <= t \
                                     <= ConnectionType.tunnel_max_time_to_reply)
             ratio_shell = float(replies_shell) / float(replies_total)
             ratio_tunnel = float(replies_tunnel) / float(replies_total)
-            self.logger.debug('Replies ratio for shell: %.2f (min %.2f required)'
+            self.logger.debug('Replies ratio for shell: %.2f'
+                              ' (min %.2f required)'
                     % (ratio_shell, ConnectionType.shell_min_replies))
-            self.logger.debug('Replies ratio for tunnel: %.2f (min %.2f required)'
+            self.logger.debug('Replies ratio for tunnel: %.2f'
+                              ' (min %.2f required)'
                     % (ratio_tunnel, ConnectionType.tunnel_min_replies))
             possible_shell &= ratio_shell >= ConnectionType.shell_min_replies
-            possible_tunnel &= ratio_tunnel >= ConnectionType.tunnel_min_replies
+            possible_tunnel &= ratio_tunnel \
+                               >= ConnectionType.tunnel_min_replies
         else:
             self.logger.warning('No replies to get information from')
             possible_shell = False
