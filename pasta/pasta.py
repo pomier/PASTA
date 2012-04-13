@@ -69,13 +69,14 @@ if __name__ == '__main__':
                         ' connections (e.g.: 2,4-6 shows only the second,'
                         ' fourth, fifth and sixth connections)')
     display_options = parser.add_argument_group('Display options')
-    group_summary = display_options.add_mutually_exclusive_group()
+    group_summary = parser.add_mutually_exclusive_group()
     group_summary.add_argument('-s', '--summary', action='store_true',
                                dest='summary', help='show only a summary of'
                                ' the ssh connections')
     group_summary.add_argument('-S', '--no-summary', action='store_false',
                                dest='no_summary', help='show all the'
                                ' informations of the ssh connections')
+    display_options.add_argument_group(group_summary)
     display_options.add_argument('--no-colors', dest='colors', action='store_false',
                         help='disable colors in the output')
     logging_options = parser.add_argument_group('Logging options')
@@ -87,8 +88,8 @@ if __name__ == '__main__':
                         help='store logs in a file instead of standard output')
 
     if len(sys.argv) == 1:
-        # program called without any arguments: show help
-        parser.exit(0, parser.format_help())
+        # program called without any arguments: show help and exit
+        parser.exit(message=parser.format_help())
 
     # parse arguments
     args = parser.parse_args()
