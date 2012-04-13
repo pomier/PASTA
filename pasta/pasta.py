@@ -56,29 +56,33 @@ if __name__ == '__main__':
         '                    |  __/ ___ \\ ___) || |/ ___ \\\n'
         '                    |_| /_/   \_\\____/ |_/_/   \_\\\n'
         '                 PASTA is another SSH traffic analyser', epilog= \
-        'You may want to get an overview of the SSH traffic first:\n'
-        '  %(prog)s -r file.pcap\n'
-        'Then, select some connections and get more precise informations:\n'
-        '  %(prog)s -r file.pcap -n 2,4-6')
-    parser.add_argument('-r', metavar='file.pcap', dest='inputFile',
+        'Examples:\n'
+        '  Get an overview of the SSH traffic:\n'
+        '    %(prog)s -r file.pcap\n'
+        '  Select some connections and get more precise informations:\n'
+        '    %(prog)s -r file.pcap -n 2,4-6', add_help=False)
+    main_options = parser.add_argument_group('Main options')
+    main_options.add_argument('-r', metavar='file.pcap', dest='inputFile',
                         required=True, help='filename to read from')
-    parser.add_argument('-n', metavar='nb', dest='connection_Nb',
+    main_options.add_argument('-n', metavar='nb', dest='connection_Nb',
                         type=argparse_numbers, help='procede only these'
                         ' connections (e.g.: 2,4-6 shows only the second,'
                         ' fourth, fifth and sixth connections)')
-    group_summary = parser.add_mutually_exclusive_group()
+    display_options = parser.add_argument_group('Display options')
+    group_summary = display_options.add_mutually_exclusive_group()
     group_summary.add_argument('-s', '--summary', action='store_true',
                                dest='summary', help='show only a summary of'
                                ' the ssh connections')
     group_summary.add_argument('-S', '--no-summary', action='store_false',
                                dest='no_summary', help='show all the'
                                ' informations of the ssh connections')
-    parser.add_argument('--no-colors', dest='colors', action='store_false',
+    display_options.add_argument('--no-colors', dest='colors', action='store_false',
                         help='disable colors in the output')
-    parser.add_argument('-v', '--verbose', dest='verbose', action='count',
+    logging_options = parser.add_argument_group('Logging options')
+    logging_options.add_argument('-v', '--verbose', dest='verbose', action='count',
                         help='print logging messages; multiple -v options '
                              'increase verbosity, maximum is 4')
-    parser.add_argument('--logfile', metavar='file', dest='logFile',
+    logging_options.add_argument('--logfile', metavar='file', dest='logFile',
                         default=None,
                         help='store logs in a file instead of standard output')
 
