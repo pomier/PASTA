@@ -49,8 +49,13 @@ if __name__ == '__main__':
 
     # Arguments parsing
     parser = argparse.ArgumentParser(
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        description='PASTA is another SSH traffic analyser', epilog= \
+        formatter_class=argparse.RawDescriptionHelpFormatter, description= \
+        '                     ____   _    ____ _____  _\n'
+        '                    |  _ \ / \\  / ___|_   _|/ \\\n'
+        '                    | |_) / _ \\ \___ \\ | | / _ \\\n'
+        '                    |  __/ ___ \\ ___) || |/ ___ \\\n'
+        '                    |_| /_/   \_\\____/ |_/_/   \_\\\n'
+        '                 PASTA is another SSH traffic analyser', epilog= \
         'You may want to get an overview of the SSH traffic first:\n'
         '  %(prog)s -r file.pcap\n'
         'Then, select some connections and get more precise informations:\n'
@@ -79,7 +84,7 @@ if __name__ == '__main__':
 
     if len(sys.argv) == 1:
         # program called without any arguments: show help
-        parser.exit(2, parser.format_help())
+        parser.exit(0, parser.format_help())
 
     # parse arguments
     args = parser.parse_args()
