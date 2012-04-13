@@ -27,7 +27,7 @@ if __name__ == '__main__':
 
     # Check the right version of Python
     if sys.version_info[:2] != (2, 7):
-        print 'PASTA must be run with Python 2.7'
+        sys.stderr.write('PASTA must be run with Python 2.7\n')
         sys.exit(1)
 
     # Define an argparse type for range of numbers
@@ -101,8 +101,8 @@ if __name__ == '__main__':
             try:
                 handler = logging.FileHandler(args.logFile)
             except IOError as e:
-                print 'Error while opening file %s for logging: %s' % (
-                      e.filename, e.strerror)
+                sys.stderr.write('Error while opening file %s for logging: %s\n' % (
+                      e.filename, e.strerror))
                 sys.exit(1)
         handler.setFormatter(formatter)
         logger.addHandler(handler)

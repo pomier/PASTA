@@ -54,7 +54,7 @@ class PcapParser:
         tshark_test.communicate()
         if tshark_test.returncode:
             self.logger.error('Tshark is not installed')
-            print 'Tshark is required to use PASTA'
+            sys.stderr.write('Tshark is required to use PASTA\n')
             sys.exit(1)
 
         # Read the pcap file to get the number of ssh connections streams
@@ -176,7 +176,7 @@ class PcapParser:
         for line in stderr.split("\n"):
             line = line.strip()
             if line:
-                print line
+                sys.stderr.write('%s\n' % line)
         sys.exit(1)
 
 
