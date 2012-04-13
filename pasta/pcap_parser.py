@@ -25,13 +25,13 @@ import logging, subprocess, sys
 class PcapParser:
     """Parser for pcap files"""
 
-    def __init__(self, keep_datagrams = True):
+    def __init__(self, keep_datagrams=True):
         # TODO: Add options
 
         self.keep_datagrams = keep_datagrams # Boolean
         self.logger = logging.getLogger("PcapParser")
 
-    def parse(self, fileName, connections_nb = set()):
+    def parse(self, fileName, connections_nb=set()):
         """Parse the given pcap file and create Connection objects"""
 
         self.logger.info("Start to parse %s", fileName)
@@ -155,7 +155,7 @@ class PcapParser:
         connections = []
         for k in streams_selected:
             connections.append(Connection(
-                streams.index(k)+1, # Connection nb
+                streams.index(k) + 1, # Connection nb
                 datagrams[k],
                 start_time[k],
                 end_time[k] - start_time[k], # Duration

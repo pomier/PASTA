@@ -131,7 +131,6 @@ if __name__ == '__main__':
 
     # Pcap parser
     logger.info('Pcap parsing...')
-    # FIXME: give args.connection_Nb as a parameter somewhere
     pcapParser = PcapParser(keep_datagrams=compute_datagrams)
     connections = pcapParser.parse(args.inputFile, args.connection_Nb)
 
