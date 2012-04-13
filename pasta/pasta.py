@@ -27,14 +27,45 @@ if __name__ == '__main__':
 
     # TODO: check the right version of Python
 
+    def argparse_numbers(txt):
+        """Is txt a valid range of numbers?"""
+        numbers = set()
+        for parts in txt.split(','):
+            edges = parts.split('-')
+            try:
+                if len(edges) == 1:
+                    numbers.add(int(edges[0]))
+                elif len(edges) == 2:
+                    numbers.update(range(int(edges[0]), int(edges[1]) + 1))
+                else:
+                    raise ValueError()
+            except ValueError:
+                raise argparse.ArgumentTypeError('not a valid argument')
+        return numbers
+
     # Arguments parsing
     parser = argparse.ArgumentParser(
-        description = 'PASTA is another SSH traffic analyser',
-        epilog = '' ) #FIXME: epilog
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description='PASTA is another SSH traffic analyser', epilog= \
+        'You may want to get an overview of the SSH traffic first:\n'
+        '  %(prog)s -r file.pcap\n'
+        'Then, select some connections and get more precise informations:\n'
+        '  %(prog)s -r file.pcap -n 2,4-6')
     parser.add_argument('-r', metavar='file.pcap', dest='inputFile',
                         required=True, help='filename to read from')
-    parser.add_argument('-s', '--summary', action='store_true',
-                        help='show only a summary of the ssh connections')
+    parser.add_argument('-n', metavar='nb', dest='connection_Nb',
+                        type=argparse_numbers, help='procede only these'
+                        ' connections (e.g.: 2,4-6 shows only the second,'
+                        ' fourth, fifth and sixth connections)')
+    group_summary = parser.add_mutually_exclusive_group()
+    group_summary.add_argument('-s', '--summary', action='store_true',
+                               dest='summary', help='show only a summary of'
+                               ' the ssh connections')
+    group_summary.add_argument('-S', '--no-summary', action='store_false',
+                               dest='no_summary', help='show all the'
+                               ' informations of the ssh connections')
+    parser.add_argument('--no-colors', dest='colors', action='store_false',
+                        help='disable colors in the output')
     parser.add_argument('-v', '--verbose', dest='verbose', action='count',
                         help='print logging messages; multiple -v options '
                              'increase verbosity, maximum is 4')
@@ -48,9 +79,7 @@ if __name__ == '__main__':
     # point, since it may create a security hole (race condition) due to the
     # time elapsed between this check and the real use of the file.
     # As a consequence, the real tests are done when the files are really used.
-
-    compute_datagrams = not args.summary # FIXME
-
+    
     # Logging
     if args.verbose:
         logger = logging.getLogger()
@@ -77,15 +106,32 @@ if __name__ == '__main__':
         logging.raiseExceptions = False
 
     logger = logging.getLogger('PASTA')
-    logger.info('Loggin...')
+    logger.info('Loggin set')
+
+    if args.connection_Nb is not None:
+        logger.info('Connections to be considered: %s' \
+                    % ', '.join('%d' % n for n in args.connection_Nb))
+    else:
+        logger.info('Connections to be considered: all')
+
+    # Computation of the datagrams
+    compute_datagrams = args.connection_Nb is not None
+    compute_datagrams &= not args.summary
+    compute_datagrams |= not args.no_summary
+    logger.info('Datagrams are %sto be computed' \
+                % ('' if compute_datagrams else 'not '))
 
     # Colors
     # TODO: check if we want to have colors or not
-    logger.info('Colors...')
-    coloramaze()
+    if args.colors:
+        logger.info('Trying to enable colors')
+        coloramaze()
+    else:
+        logger.info('Colors disabled')
 
     # Pcap parser
     logger.info('Pcap parsing...')
+    # FIXME: give args.connection_Nb as a parameter somewhere
     pcapParser = PcapParser(keep_datagrams=compute_datagrams)
     connections = pcapParser.parse(args.inputFile)
 
@@ -110,7 +156,7 @@ if __name__ == '__main__':
     # Printing connections
     logger.info('Printing connections...')
     for connection in connections:
-        if args.summary:
-            print connection.summary()
-        else:
+        if compute_datagrams:
             print '\n%s\n' % connection
+        else:
+            print connection.summary()
