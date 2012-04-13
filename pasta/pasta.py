@@ -122,7 +122,6 @@ if __name__ == '__main__':
                 % ('' if compute_datagrams else 'not '))
 
     # Colors
-    # TODO: check if we want to have colors or not
     if args.colors:
         logger.info('Trying to enable colors')
         coloramaze()
