@@ -111,8 +111,8 @@ class Connection:
                     and datagram.seqNb \
                         < last_acking[not datagram.sentByClient].seqNb:
                 # this last_acking is acking datagram
-                datagram.RTT = last_acking[not datagram.sentByClient].time \
-                                   - datagram.time
+                datagram.RTT = (last_acking[not datagram.sentByClient].time \
+                                   - datagram.time) * 2
                 last_acking[not datagram.sentByClient] = None
             if datagram.ack > -1:
                 last_acking[datagram.sentByClient] = datagram
@@ -186,7 +186,7 @@ class Connection:
                 # this datagram is never acked
                 continue
             datagramAcks = datagramAcksSeqNb[datagram.sentByClient][seqNb]
-            datagram.RTT = datagramAcks.time - datagram.time
+            datagram.RTT = (datagramAcks.time - datagram.time) * 2
         self.logger.warning('Only rough RTTs are computed') # FIXME
         # TODO: to be continued
 
