@@ -28,7 +28,7 @@ class Connection:
                  serverIP, clientPort, serverPort,
                  clientProtocol, serverProtocol):
         self.nb = nb
-        self.logger = logging.getLogger('Conection%d' % self.nb)
+        self.logger = logging.getLogger('Connection%d' % self.nb)
         self.datagrams = datagrams # list of Datagram instances
         self.startTime = startTime # instance of datetime.datetime
         self.duration = duration # instance of datetime.timedelta
