@@ -76,6 +76,12 @@ if __name__ == '__main__':
     parser.add_argument('--logfile', metavar='file', dest='logFile',
                         default=None,
                         help='store logs in a file instead of standard output')
+
+    if len(sys.argv) == 1:
+        # program called without any arguments: show help
+        parser.exit(2, parser.format_help())
+
+    # parse arguments
     args = parser.parse_args()
 
     # Security notice:
