@@ -101,9 +101,7 @@ if __name__ == '__main__':
             try:
                 handler = logging.FileHandler(args.logFile)
             except IOError as e:
-                sys.stderr.write('Error while opening file %s for logging: %s\n' % (
-                      e.filename, e.strerror))
-                sys.exit(1)
+                parser.error('--logfile: %s' % e.strerror.lower())
         handler.setFormatter(formatter)
         logger.addHandler(handler)
     else:
