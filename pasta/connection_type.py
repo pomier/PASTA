@@ -130,7 +130,7 @@ class ConnectionType():
             self.ratio_server_sent = serverSent / (serverSent + clientSent)
 
     def compute_time_to_reply(self):
-        """Compute the times to reply"""
+        """Compute the times for the server to reply"""
         self.time_to_reply = []
         last_datagram = None
         for datagram in self.connection.datagrams:

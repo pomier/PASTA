@@ -85,7 +85,7 @@ class Connection:
         """A one-line summary of the connection"""
         s = (
                 'Connection: ' + C.FBlu + '%s' + C.FRes + ':' + C.FCya + '%d'
-                + C.FRes + ' --> ' + C.FBlu + '%s' + C.FRes + ':' + C.FCya
+                + C.FRes + ' --> ' + C.FRed + '%s' + C.FRes + ':' + C.FMag
                 + '%d' + C.FRes + ', %s'
             ) % (
                 self.clientIP, self.clientPort, self.serverIP, self.serverPort,
