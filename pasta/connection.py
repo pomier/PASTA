@@ -68,7 +68,7 @@ class Connection:
                 self.nb, self.clientIP, self.clientPort,
                 self.serverIP, self.serverPort,
                 self.startTime.strftime('%b %d, %Y - %H:%M:%S'),
-                str(self.duration), # FIXME better representation?
+                str(self.duration)[0:11], # FIXME better representation?
                 self.clientProtocol, self.serverProtocol,
                 self.clientSentNbDatagrams, self.clientSentLen,
                 self.serverSentNbDatagrams, self.serverSentLen
@@ -88,7 +88,7 @@ class Connection:
             ) % (
                 self.nb, self.clientIP, self.clientPort,
                 self.serverIP, self.serverPort,
-                str(self.duration) # FIXME better representation nedded!
+                str(self.duration)[0:11] # FIXME better representation nedded!
             )
         if self.idleTime is not None:
             s += ', %.1f%% idle' % (self.idleTime * 100)
