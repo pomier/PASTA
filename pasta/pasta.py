@@ -25,8 +25,12 @@ if __name__ == '__main__':
     from connection_idle import ConnectionIdle
     from connection_type import ConnectionType
 
-    # TODO: check the right version of Python
+    # Check the right version of Python
+    if sys.version_info[:2] != (2, 7):
+        print 'PASTA must be run with Python 2.7'
+        sys.exit(1)
 
+    # Define an argparse type for range of numbers
     def argparse_numbers(txt):
         """Is txt a valid range of numbers?"""
         numbers = set()
