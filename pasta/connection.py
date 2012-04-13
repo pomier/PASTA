@@ -53,7 +53,7 @@ class Connection:
 
     def __repr__(self):
         s = (
-             'Connection: ' + C.FBlu + '%s' + C.FRes + ':' + C.FCya + '%d'
+             'Connection %d: ' + C.FBlu + '%s' + C.FRes + ':' + C.FCya + '%d'
              + C.FRes + ' --> ' + C.FRed + '%s' + C.FRes + ':' + C.FMag
              + '%d' + C.FRes + '\n'
              'Start date: %s\n'
@@ -65,7 +65,8 @@ class Connection:
              'Datagrams sent by server: ' + C.FRed + '%d ' + C.FRes + '(' \
              + C.FRed + '%d ' + C.FRes + 'bytes)'
             ) % (
-                self.clientIP, self.clientPort, self.serverIP, self.serverPort,
+                self.nb, self.clientIP, self.clientPort,
+                self.serverIP, self.serverPort,
                 self.startTime.strftime('%b %d, %Y - %H:%M:%S'),
                 str(self.duration), # FIXME better representation?
                 self.clientProtocol, self.serverProtocol,
@@ -81,11 +82,12 @@ class Connection:
     def summary(self):
         """A one-line summary of the connection"""
         s = (
-                'Connection: ' + C.FBlu + '%s' + C.FRes + ':' + C.FCya + '%d'
-                + C.FRes + ' --> ' + C.FRed + '%s' + C.FRes + ':' + C.FMag
-                + '%d' + C.FRes + ', %s'
+             'Connection %d: ' + C.FBlu + '%s' + C.FRes + ':' + C.FCya + '%d'
+             + C.FRes + ' --> ' + C.FRed + '%s' + C.FRes + ':' + C.FMag
+             + '%d' + C.FRes + ', %s'
             ) % (
-                self.clientIP, self.clientPort, self.serverIP, self.serverPort,
+                self.nb, self.clientIP, self.clientPort,
+                self.serverIP, self.serverPort,
                 str(self.duration) # FIXME better representation nedded!
             )
         if self.idleTime is not None:

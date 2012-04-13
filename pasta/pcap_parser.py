@@ -31,7 +31,7 @@ class PcapParser:
         self.keep_datagrams = keep_datagrams # Boolean
         self.logger = logging.getLogger("PcapParser")
 
-    def parse(self, fileName):
+    def parse(self, fileName, connections_nb = set()):
         """Parse the given pcap file and create Connection objects"""
 
         self.logger.info("Start to parse %s", fileName)
@@ -77,10 +77,17 @@ class PcapParser:
             self.logger.warning("No connection found")
             return []
 
-        # Read the pcap file to get the packet informations
-        tshark_stream_string = " or ".join(["tcp.stream==" + stream
-                                            for stream in streams])
+        # Select only needed tcp streams
+        if connections_nb:
+            streams_selected = [streams[j-1] for j in connections_nb
+                                if j-1 in range(len(streams))]
+        else:
+            streams_selected = streams
 
+        tshark_stream_string = " or ".join(["tcp.stream==" + stream
+                                            for stream in streams_selected])
+
+        # Read the pcap file to get the packet informations
         tsharkP2 = subprocess.Popen([
                 "tshark", "-r", fileName, "-R", tshark_stream_string,
                 "-Tfields",
@@ -146,9 +153,9 @@ class PcapParser:
 
         # Create Connection objects
         connections = []
-        for k in streams:
+        for k in streams_selected:
             connections.append(Connection(
-                int(k),
+                streams.index(k)+1, # Connection nb
                 datagrams[k],
                 start_time[k],
                 end_time[k] - start_time[k], # Duration
@@ -180,7 +187,7 @@ if __name__ == '__main__':
         level=logging.INFO)
     if len(sys.argv) > 1:
         parser = PcapParser(True)
-        for conn in parser.parse(sys.argv[1]):
+        for conn in parser.parse(sys.argv[1], set([2])):
             print "\n" + str(conn)
     else:
         print "usage: pcap_parser.py file"
