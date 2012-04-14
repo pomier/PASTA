@@ -101,8 +101,6 @@ if __name__ == '__main__':
                         help=argparse.SUPPRESS)
     #help='show this help message and exit')
 
-    print argparse.__version__
-
     if len(sys.argv) == 1:
         # program called without any arguments: show help and exit
         parser.exit(message=parser.format_help())
