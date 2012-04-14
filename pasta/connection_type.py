@@ -36,8 +36,10 @@ class ConnectionType():
     tunnel_min_time_to_reply = 1.5 # min nb of RTTs
     tunnel_max_time_to_reply = 9999999999 # max nb of RTTs
     tunnel_min_replies = 0.5 # min ratio of replies
-    tunnel_min_asymetry1 = 0.8 # min asymetry if server sent more
-    tunnel_max_asymetry2 = 0.2 # max asymetry if client sent more
+    tunnel_min_asymetry1 = 0.55 # min asymetry if server sent more
+    tunnel_max_asymetry2 = 0.45 # max asymetry if client sent more
+    # TODO FIXME: it is almost as if there was nothing to check for tunnel
+    #             so maybe just make it the default case?
 
     def __init__(self, connection):
         self.connection = connection
@@ -93,8 +95,6 @@ class ConnectionType():
                             >= ConnectionType.scp_min_asymetry1
             possible_tunnel &= self.ratio_server_sent \
                                >= ConnectionType.tunnel_min_asymetry1
-        elif possible_tunnel:
-            self.connection.connectionType = 'tunnel'
         else:
             self.logger.debug('Asymetry: client sent more than server')
             self.logger.debug('Asymetry ratio for scp: %.2f'
