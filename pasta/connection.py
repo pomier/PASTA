@@ -157,39 +157,6 @@ class Connection:
                 d.RTT = last_RTT[way]
 
 
-
-    def compute_RTT_2(self):
-        """Set an approximate RTT for each datagram in self.datagrams"""
-
-        # FIXME: this is the old version of the method; remove it!
-
-        # FIXME on fait un RTT moyen, ca serait bcp plus simple non ?
-        #       A voir si ya une grosse difference du "Idle" avec une moyenne
-        #       simple, ou un RTT flottant...
-        self.logger.info('Computing RTTs')
-        datagramAcksSeqNb = {True: {}, False: {}}
-        # computing the datagrams acking other datagrams
-        self.logger.debug('Computing acking tree')
-        for datagram in self.datagrams:
-            if datagram.ack > -1:
-                datagramAcksSeqNb[not datagram.sentByClient][datagram.ack] \
-                        = datagram
-        # computing rough RTTs
-        self.logger.debug('Computing rough RTTs')
-        for datagram in self.datagrams:
-            try:
-                seqNb = min(sNb for sNb
-                            in datagramAcksSeqNb[datagram.sentByClient]
-                            if sNb > datagram.seqNb)
-            except ValueError:
-                # this datagram is never acked
-                continue
-            datagramAcks = datagramAcksSeqNb[datagram.sentByClient][seqNb]
-            datagram.RTT = (datagramAcks.time - datagram.time) * 2
-        self.logger.warning('Only rough RTTs are computed') # FIXME
-        # TODO: to be continued
-
-
 class Datagram:
     """A datagram of a ssh connection"""
 
