@@ -54,7 +54,7 @@ class Connection:
     def __repr__(self):
         s = (
              'Connection %d: ' + C.FBlu + '%s' + C.FRes + ':' + C.FCya + '%d'
-             + C.FRes + ' --> ' + C.FRed + '%s' + C.FRes + ':' + C.FMag
+             + C.FRes + ' --> ' + C.FYel + '%s' + C.FRes + ':' + C.FGre
              + '%d' + C.FRes + '\n'
              'Start date: %s\n'
              'Duration: %s\n'
@@ -62,8 +62,8 @@ class Connection:
              'Server: %s\n'
              'Datagrams sent by client: ' + C.FBlu + '%d ' + C.FRes + '(' \
              + C.FBlu + '%d ' + C.FRes + 'bytes)\n'
-             'Datagrams sent by server: ' + C.FRed + '%d ' + C.FRes + '(' \
-             + C.FRed + '%d ' + C.FRes + 'bytes)'
+             'Datagrams sent by server: ' + C.FYel + '%d ' + C.FRes + '(' \
+             + C.FYel + '%d ' + C.FRes + 'bytes)'
             ) % (
                 self.nb, self.clientIP, self.clientPort,
                 self.serverIP, self.serverPort,
@@ -74,7 +74,7 @@ class Connection:
                     else (C.FBlu + '%s' + C.FRes) % self.clientProtocol,
                 'unknown'
                     if self.serverProtocol is None
-                    else (C.FRed + '%s' + C.FRes) % self.serverProtocol,
+                    else (C.FYel + '%s' + C.FRes) % self.serverProtocol,
                 self.clientSentNbDatagrams, self.clientSentLen,
                 self.serverSentNbDatagrams, self.serverSentLen
             )
@@ -88,7 +88,7 @@ class Connection:
         """A one-line summary of the connection"""
         s = (
              'Connection %d: ' + C.FBlu + '%s' + C.FRes + ':' + C.FCya + '%-5.d'
-             + C.FRes + ' --> ' + C.FRed + '%s' + C.FRes + ':' + C.FMag
+             + C.FRes + ' --> ' + C.FYel + '%s' + C.FRes + ':' + C.FGre
              + '%-5d' + C.FRes + ', %s'
             ) % (
                 self.nb, self.clientIP, self.clientPort,
