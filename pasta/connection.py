@@ -36,8 +36,8 @@ class Connection:
         self.serverIP = serverIP # string e.g. '123.234.13.37'
         self.clientPort = clientPort # int
         self.serverPort = serverPort # int
-        self.clientProtocol = clientProtocol # string eg. "OpenSSH 5.3"
-        self.serverProtocol = serverProtocol # string eg. "OpenSSH 5.2"
+        self.clientProtocol = clientProtocol # None or string eg. "OpenSSH 5.3"
+        self.serverProtocol = serverProtocol # None or string eg. "OpenSSH 5.2"
         self.clientSentNbDatagrams = sum(1 for p in self.datagrams
                                          if p.sentByClient)
         self.serverSentNbDatagrams = sum(1 for p in self.datagrams
