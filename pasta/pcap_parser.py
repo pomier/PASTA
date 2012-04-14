@@ -70,6 +70,8 @@ class PcapParser:
             if stream and stream not in streams:
                 self.logger.debug("Stream found: %s", stream)
                 streams.append(stream);
+                clients_protocol[stream] = None
+                servers_protocol[stream] = None
 
         if streams:
             self.logger.info("%d connections found" % len(streams))

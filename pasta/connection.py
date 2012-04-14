@@ -58,8 +58,8 @@ class Connection:
              + '%d' + C.FRes + '\n'
              'Start date: %s\n'
              'Duration: %s\n'
-             'Client: ' + C.FBlu + '%s' + C.FRes + '\n'
-             'Server: ' + C.FRed + '%s' + C.FRes + '\n'
+             'Client: %s\n'
+             'Server: %s\n'
              'Datagrams sent by client: ' + C.FBlu + '%d ' + C.FRes + '(' \
              + C.FBlu + '%d ' + C.FRes + 'bytes)\n'
              'Datagrams sent by server: ' + C.FRed + '%d ' + C.FRes + '(' \
@@ -69,7 +69,12 @@ class Connection:
                 self.serverIP, self.serverPort,
                 self.startTime.strftime('%b %d, %Y - %H:%M:%S'),
                 str(self.duration)[0:11], # FIXME better representation?
-                self.clientProtocol, self.serverProtocol,
+                'unknown'
+                    if self.clientProtocol is None
+                    else (C.FBlu + '%s' + C.FRes) % self.clientProtocol,
+                'unknown'
+                    if self.serverProtocol is None
+                    else (C.FRed + '%s' + C.FRes) % self.serverProtocol,
                 self.clientSentNbDatagrams, self.clientSentLen,
                 self.serverSentNbDatagrams, self.serverSentLen
             )
