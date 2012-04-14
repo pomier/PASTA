@@ -87,9 +87,9 @@ class Connection:
     def summary(self):
         """A one-line summary of the connection"""
         s = (
-             'Connection %d: ' + C.FBlu + '%s' + C.FRes + ':' + C.FCya + '%d'
+             'Connection %d: ' + C.FBlu + '%s' + C.FRes + ':' + C.FCya + '%-5.d'
              + C.FRes + ' --> ' + C.FRed + '%s' + C.FRes + ':' + C.FMag
-             + '%d' + C.FRes + ', %s'
+             + '%-5d' + C.FRes + ', %s'
             ) % (
                 self.nb, self.clientIP, self.clientPort,
                 self.serverIP, self.serverPort,
