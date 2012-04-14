@@ -94,12 +94,12 @@ if __name__ == '__main__':
                                  ' multiple -v options increase verbosity,'
                                  ' maximum is 4')
     logging_options.add_argument('--logfile', metavar='file', dest='logFile',
-                        default=None,
-                        help='store logs in a file instead of standard output')
+                                 default=None, help='store logs in a file'
+                                 ' instead of standard output')
     help_options = parser.add_argument_group('Help')
-    help_options.add_argument('-h', '--help', dest='help', action='store_true',
-                        help=argparse.SUPPRESS)
-    #help='show this help message and exit')
+    help_options.add_argument('-h', '--help', action='help',
+                              help=argparse.SUPPRESS)
+    #                         help='show this help message and exit')
 
     if len(sys.argv) == 1:
         # program called without any arguments: show help and exit
@@ -107,12 +107,6 @@ if __name__ == '__main__':
 
     # parse arguments
     args = parser.parse_args()
-
-    # Help flag
-    # FIXME TODO: help doesn't work yet
-    if args.help:
-        # show help and exit
-        parser.exit(message=parser.format_help())
 
     # Security notice:
     # The validity of the files used as input/output is not tested at this
