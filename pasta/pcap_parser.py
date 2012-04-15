@@ -107,10 +107,10 @@ class PcapParser:
         if tsharkP2.returncode:
             self.__tshark_error(tsharkP2.returncode, stderr2)
 
-        try:
-            for packet in stdout2.split("\n"):
-                p = packet.split("\t")
-                if len(p) > 12:
+        for packet in stdout2.split("\n"):
+            p = packet.split("\t")
+            if len(p) > 12:
+                try:
                     if p[3]:
                         src = (p[3], int(p[5]))
                     else:
@@ -149,10 +149,11 @@ class PcapParser:
                             int(p[11]) if p[11] else -1 # datagram acked
                             ))
                         self.logger.debug("New datagram: %s", datagrams[p[0]][-1])
-        except ValueError as e:
-            self.logger.error('Parsing tshark output: %s' % e.message)
-            sys.stderr.write('Error while parsing tshark output\n')
-            sys.exit(1)
+                except ValueError as e:
+                    # catch conversions for int, datetime...
+                    self.logger.error('Parsing tshark output: %s' % e.message)
+                    sys.stderr.write('Error while parsing tshark output\n')
+                    sys.exit(1)
 
         # Create Connection objects
         connections = []
