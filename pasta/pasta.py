@@ -98,9 +98,7 @@ if __name__ == '__main__':
                                  ' instead of standard output')
     help_options = parser.add_argument_group('Help')
     help_options.add_argument('-h', '--help', action='help',
-    #                         help=argparse.SUPPRESS)
                               help='show this help message and exit')
-    # FIXME: choose one of the two previous lines
 
     if len(sys.argv) == 1:
         # program called without any arguments: show help and exit
