@@ -33,16 +33,18 @@ class ConnectionIdle():
     def compute(self):
         """Compute the idle time"""
         if not self.connection.duration.total_seconds():
-            # connection is empty anyway
+            # connection is empty anyway (avoid division by zero)
             return
         # starts to count idle times
         time_idle = timedelta() # cumul of the idle times
-        last_datagram = self.connection.datagrams[0] # last datagram
-        for datagram in self.connection.datagrams[1:]:
+        datagrams_iterator = iter(self.connection.datagrams)
+        last_datagram = datagrams_iterator.next() # first datagram
+        for datagram in datagrams_iterator:
             diff_time = datagram.time - last_datagram.time
             if diff_time > ConnectionIdle.idle_rtt_threshold * datagram.RTT:
                 time_idle += diff_time # add to the cumulated time
             last_datagram = datagram
+        # save the idle time
         self.connection.idleTime = time_idle.total_seconds() \
             / self.connection.duration.total_seconds()
 
