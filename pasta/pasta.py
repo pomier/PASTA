@@ -109,6 +109,8 @@ if __name__ == '__main__':
     
     # Logging
     if args.verbose:
+        if args.verbose > 4:
+            parser.error('--verbose: maximum of verbosity is 4')
         logger = logging.getLogger()
         logger.setLevel({
             1: logging.ERROR,
