@@ -30,12 +30,6 @@ if __name__ == '__main__':
         sys.stderr.write('PASTA must be run with Python 2.7\n')
         sys.exit(1)
 
-    # FIXME TODO: depending on the version of argparse, it can work or not
-    # e.g. the options -s and -S are exclusive or not
-    # very odd: on Rogdham's machine, version 1.1 doens't work
-    # but is not the real version 1.1 (probably Debian/Ubuntu) modified it
-    # -> how to detect it efficiently? o_O
-
     # Define an argparse type for range of numbers
     def argparse_numbers(txt):
         """Is txt a valid range of numbers?"""

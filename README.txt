@@ -15,6 +15,24 @@ The PASTA team:
     Romain 'Haradwaith' Pomier
 
 
+REQUIREMENTS
 
+Stand alone program:
+    tshark (mandatory)
+    python v.2.7
+
+Python 2.7 libraries:
+    argparse (mandatory)
+    colorama (optional)
+
+
+KNOWN BUGS
+
+A bug in some modified versions of argparse are making the -s and -S options
+non-exclusive. In that case, if they are used together, it would be as if -s
+is not used.
+
+
+--
 TODO: rest of the file (description of the software, requirements, how
       to use, install, etc) - may be done later
