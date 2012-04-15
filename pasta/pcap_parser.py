@@ -59,7 +59,7 @@ class PcapParser:
 
         # Read the pcap file to get the number of ssh connections streams
         tsharkP1 = subprocess.Popen(
-            ["tshark", "-r", fileName, "-Rssh", "-Tfields", "-etcp.stream"],
+            ["tshark", "-n", "-r", fileName, "-Rssh", "-Tfields", "-etcp.stream"],
             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         (stdout1, stderr1) = tsharkP1.communicate()
         if tsharkP1.returncode:
@@ -91,7 +91,7 @@ class PcapParser:
 
         # Read the pcap file to get the packet informations
         tsharkP2 = subprocess.Popen([
-                "tshark", "-r", fileName, "-R", tshark_stream_string,
+                "tshark", "-n", "-r", fileName, "-R", tshark_stream_string,
                 "-Tfields",
                 "-etcp.stream",
                 "-etcp.seq",
