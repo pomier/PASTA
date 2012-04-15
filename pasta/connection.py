@@ -228,8 +228,12 @@ class Datagram:
 
 if __name__ == '__main__':
 
-    import unittest, random
+    import unittest, random, sys
     from datetime import datetime, timedelta
+
+    if sys.version_info[:2] != (2, 7):
+        sys.stderr.write('PASTA must be run with Python 2.7\n')
+        sys.exit(1)
 
     class TestConnection(unittest.TestCase):
         random.seed(42)
@@ -259,7 +263,7 @@ if __name__ == '__main__':
             return connection
 
         def test_compute_RTT(self):
-            """Test computeRTT"""
+            """General test for computeRTT"""
             connection = self.create_connection()
             connection.compute_RTT()
             for datagram in connection.datagrams:
