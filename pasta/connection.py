@@ -141,7 +141,7 @@ class Connection:
         for datagram in self.datagrams:
             if last_acking[not datagram.sentByClient] is not None \
                     and datagram.seqNb \
-                        < last_acking[not datagram.sentByClient].seqNb:
+                        < last_acking[not datagram.sentByClient].ack:
                 # this last_acking is acking datagram
                 datagram.RTT = (last_acking[not datagram.sentByClient].time \
                                    - datagram.time) * 2
@@ -228,12 +228,50 @@ class Datagram:
 
 if __name__ == '__main__':
 
-    import unittest
+    import unittest, random
+    from datetime import datetime, timedelta
 
     class TestConnection(unittest.TestCase):
-        pass # TODO for computeRTT
+        random.seed(42)
 
-    class TestDatagram(unittest.TestCase):
-        pass # TODO if usefull
+        def create_connection(self, oneway=False):
+            """Create a connection"""
+            now = datetime.now()
+            time = now
+            datagrams = []
+            seqNb = {True: random.randint(0, 10000),
+                     False: random.randint(0, 10000)}
+            for i in range(10000):
+                time += timedelta(0, 0, random.randint(100000, 449999))
+                sentByClient = random.choice((True, False))
+                totalLen = random.randint(10, 100)
+                datagrams.append(Datagram(
+                    sentByClient,
+                    time,
+                    seqNb[sentByClient],
+                    totalLen,
+                    totalLen + 40,
+                    -1 if sentByClient and oneway else seqNb[not sentByClient]
+                    ))
+                seqNb[sentByClient] += totalLen
+            connection = Connection(0, datagrams, now, time - now,
+                    '1.2.3.4', '5.6.7.8', 12345, 22, 'Foo', 'Bar')
+            return connection
+
+        def test_compute_RTT(self):
+            """Test computeRTT"""
+            connection = self.create_connection()
+            connection.compute_RTT()
+            for datagram in connection.datagrams:
+                self.assertGreaterEqual(datagram.RTT.total_seconds(), 0.1)
+                self.assertLessEqual(datagram.RTT.total_seconds(), 0.9)
+
+        def test_compute_RTT_oneway(self):
+            """Test computeRTT in case of no ack in one way"""
+            connection = self.create_connection(True)
+            connection.compute_RTT()
+            for datagram in connection.datagrams:
+                self.assertGreaterEqual(datagram.RTT.total_seconds(), 0.1)
+                self.assertLessEqual(datagram.RTT.total_seconds(), 0.9)
 
     unittest.main()
