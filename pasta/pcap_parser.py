@@ -26,8 +26,6 @@ class PcapParser:
     """Parser for pcap files"""
 
     def __init__(self, keep_datagrams=True):
-        # TODO: Add options
-
         self.keep_datagrams = keep_datagrams # Boolean
         self.logger = logging.getLogger("PcapParser")
 
@@ -44,8 +42,6 @@ class PcapParser:
         servers_protocol = {}
         start_time = {}
         end_time = {}
-
-        # TODO: Add errors handlers arround int(...) calls
 
         # Test if tshark is available
         tshark_test = subprocess.Popen(
@@ -111,47 +107,52 @@ class PcapParser:
         if tsharkP2.returncode:
             self.__tshark_error(tsharkP2.returncode, stderr2)
 
-        for packet in stdout2.split("\n"):
-            p = packet.split("\t")
-            if len(p) > 12:
-                if p[3]:
-                    src = (p[3], int(p[5]))
-                else:
-                    src = (p[4], int(p[5]))
-                if p[6]:
-                    dst = (p[6], int(p[8]))
-                else:
-                    dst = (p[7], int(p[8]))
-                time = datetime.strptime(p[2][:-3], "%b %d, %Y %H:%M:%S.%f")
-                end_time[p[0]] = time # Keep last know time for duration
-
-                if p[0] not in datagrams.keys(): # This is a new connection
-                    datagrams[p[0]] = []
-                    clients[p[0]] = src
-                    servers[p[0]] = dst
-                    start_time[p[0]] = time
-
-                sentByClient = clients[p[0]] == src
-
-                # Get protocol name if available
-                protocol = p[12].decode('string-escape').strip()
-                if protocol:
-                    if sentByClient:
-                        clients_protocol[p[0]] = protocol
+        try:
+            for packet in stdout2.split("\n"):
+                p = packet.split("\t")
+                if len(p) > 12:
+                    if p[3]:
+                        src = (p[3], int(p[5]))
                     else:
-                        servers_protocol[p[0]] = protocol
+                        src = (p[4], int(p[5]))
+                    if p[6]:
+                        dst = (p[6], int(p[8]))
+                    else:
+                        dst = (p[7], int(p[8]))
+                    time = datetime.strptime(p[2][:-3], "%b %d, %Y %H:%M:%S.%f")
+                    end_time[p[0]] = time # Keep last know time for duration
 
-                if self.keep_datagrams:
-                    #Create Datagram objects
-                    datagrams[p[0]].append(Datagram(
-                        sentByClient,
-                        time,
-                        int(p[1]), # seq number
-                        int(p[10]), # datagram len
-                        int(p[9]), # payload length
-                        int(p[11]) if p[11] else -1 # datagram acked
-                        ))
-                    self.logger.debug("New datagram: %s", datagrams[p[0]][-1])
+                    if p[0] not in datagrams.keys(): # This is a new connection
+                        datagrams[p[0]] = []
+                        clients[p[0]] = src
+                        servers[p[0]] = dst
+                        start_time[p[0]] = time
+
+                    sentByClient = clients[p[0]] == src
+
+                    # Get protocol name if available
+                    protocol = p[12].decode('string-escape').strip()
+                    if protocol:
+                        if sentByClient:
+                            clients_protocol[p[0]] = protocol
+                        else:
+                            servers_protocol[p[0]] = protocol
+
+                    if self.keep_datagrams:
+                        #Create Datagram objects
+                        datagrams[p[0]].append(Datagram(
+                            sentByClient,
+                            time,
+                            int(p[1]), # seq number
+                            int(p[10]), # datagram len
+                            int(p[9]), # payload length
+                            int(p[11]) if p[11] else -1 # datagram acked
+                            ))
+                        self.logger.debug("New datagram: %s", datagrams[p[0]][-1])
+        except ValueError as e:
+            self.logger.error('Parsing tshark output: %s' % e.message)
+            sys.stderr.write('Error while parsing tshark output\n')
+            sys.exit(1)
 
         # Create Connection objects
         connections = []
