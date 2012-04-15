@@ -64,7 +64,7 @@ class ConnectionType():
                               ' (max %.2f required)' % (self.ratio_server_sent,
                                   ConnectionType.rscp_max_asymetry))
             if self.ratio_server_sent <= ConnectionType.rscp_max_asymetry:
-                self._type_found('scp (up)')
+                self._type_found('scp (down)')
                 return
 
         # compute time to reply
