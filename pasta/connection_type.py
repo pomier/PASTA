@@ -33,8 +33,8 @@ class ConnectionType():
     rshell_min_replies = 0.6 # min ratio of replies
 
     # To be part of a SCP connection
-    scp_min_asymetry = 0.95 # min asymetry if server sent more
-    rscp_max_asymetry = 0.05 # max asymetry if client sent more
+    scp_up_min_asymetry = 0.95 # min asymetry if server sent more
+    scp_down_max_asymetry = 0.05 # max asymetry if client sent more
 
     def __init__(self, connection):
         self.connection = connection
@@ -49,21 +49,20 @@ class ConnectionType():
         # compute asymetry
         self.compute_asymetry()
 
-        # scp up (True) and scp down (False)
         if self.ratio_server_sent > 0.5:
-            # scp
+            # scp (up)
             self.logger.debug('Asymetry ratio for scp (up): %.2f'
                               ' (min %.2f required)' % (self.ratio_server_sent,
-                                  ConnectionType.scp_min_asymetry))
-            if self.ratio_server_sent >= ConnectionType.scp_min_asymetry:
+                                  ConnectionType.scp_up_min_asymetry))
+            if self.ratio_server_sent >= ConnectionType.scp_up_min_asymetry:
                 self._type_found('scp (up)')
                 return
         else:
-            # reverse scp
+            # scp (down)
             self.logger.debug('Asymetry ratio for scp (down): %.2f'
                               ' (max %.2f required)' % (self.ratio_server_sent,
-                                  ConnectionType.rscp_max_asymetry))
-            if self.ratio_server_sent <= ConnectionType.rscp_max_asymetry:
+                                  ConnectionType.scp_down_max_asymetry))
+            if self.ratio_server_sent <= ConnectionType.scp_down_max_asymetry:
                 self._type_found('scp (down)')
                 return
 
