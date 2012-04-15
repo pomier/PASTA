@@ -46,6 +46,27 @@ class ConnectionType():
         """Find the type of the ssh connection"""
         self.logger.info('Start computation')
 
+        # compute asymetry
+        self.compute_asymetry()
+
+        # scp up (True) and scp down (False)
+        if self.ratio_server_sent > 0.5:
+            # scp
+            self.logger.debug('Asymetry ratio for scp (up): %.2f'
+                              ' (min %.2f required)' % (self.ratio_server_sent,
+                                  ConnectionType.scp_min_asymetry))
+            if self.ratio_server_sent >= ConnectionType.scp_min_asymetry:
+                self._type_found('scp (up)')
+                return
+        else:
+            # reverse scp
+            self.logger.debug('Asymetry ratio for scp (down): %.2f'
+                              ' (max %.2f required)' % (self.ratio_server_sent,
+                                  ConnectionType.rscp_max_asymetry))
+            if self.ratio_server_sent <= ConnectionType.rscp_max_asymetry:
+                self._type_found('scp (up)')
+                return
+
         # compute time to reply
         self.compute_time_to_reply()
 
@@ -55,7 +76,6 @@ class ConnectionType():
                              False: ConnectionType.rshell_max_time_to_reply}
         min_replies = {True: ConnectionType.shell_min_replies,
                        False: ConnectionType.rshell_min_replies}
-        possible = {True: False, False: False} # defaults to False
         for way in (True, False): # for both shell and reverse shell
             if len(self.time_to_reply[way]): # is there replies in this way?
                 # consider only the replies below the threshold
@@ -68,44 +88,16 @@ class ConnectionType():
                                   ' (min %.2f required)'
                         % (name[way], ratio, min_replies[way]))
                 # given the ratio, make the decision
-                possible[way] = ratio >= min_replies[way]
-        # recopy the decisions
-        possible_shell = possible[True]
-        possible_rshell = possible[False]
+                if ratio >= min_replies[way]:
+                    self._type_found(name[way])
+                    return
 
-        # compute asymetry
-        self.compute_asymetry()
+        # default to tunnel
+        self._type_found('tunnel')
 
-        # scp up (True) and scp down (False)
-        if self.ratio_server_sent > 0.5:
-            # scp
-            self.logger.debug('Asymetry ratio for direct scp: %.2f'
-                              ' (min %.2f required)' % (self.ratio_server_sent,
-                                  ConnectionType.scp_min_asymetry))
-            possible_scp = self.ratio_server_sent \
-                            >= ConnectionType.scp_min_asymetry
-            possible_rscp = False
-        else:
-            # reverse scp
-            self.logger.debug('Asymetry ratio for reverse scp: %.2f'
-                              ' (max %.2f required)' % (self.ratio_server_sent,
-                                  ConnectionType.rscp_max_asymetry))
-            possible_rscp = self.ratio_server_sent \
-                            <= ConnectionType.rscp_max_asymetry
-            possible_scp = False
-
-        # choose connection type (order of the conditions is important)
-        if possible_scp:
-            self.connection.connectionType = 'scp (up)'
-        elif possible_rscp:
-            self.connection.connectionType = 'scp (down)'
-        elif possible_shell:
-            self.connection.connectionType = 'shell'
-        elif possible_rshell:
-            self.connection.connectionType = 'reverse shell'
-        else:
-            self.connection.connectionType = 'tunnel'
-
+    def _type_found(self, typeName):
+        """Set the type of the connection when found"""
+        self.connection.connectionType = typeName
         self.logger.info('Computations finished: type is %s'
                 % self.connection.connectionType)
 
