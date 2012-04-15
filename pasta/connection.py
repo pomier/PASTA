@@ -68,7 +68,7 @@ class Connection:
                 self.nb, self.clientIP, self.clientPort,
                 self.serverIP, self.serverPort,
                 self.startTime.strftime('%b %d, %Y - %H:%M:%S'),
-                str(self.duration)[0:11], # FIXME better representation?
+                self.strTD(self.duration),
                 'unknown'
                     if self.clientProtocol is None
                     else (C.FBlu + '%s' + C.FRes) % self.clientProtocol,
@@ -84,16 +84,19 @@ class Connection:
             s += '\nConnexion type: %s' % self.connectionType
         return s
 
+    def __str__(self):
+        return repr(self)
+
     def summary(self):
         """A one-line summary of the connection"""
         s = (
              'Connection %d: ' + C.FBlu + '%s' + C.FRes + ':' + C.FCya + '%-5.d'
              + C.FRes + ' --> ' + C.FYel + '%s' + C.FRes + ':' + C.FGre
-             + '%-5d' + C.FRes + ', %s'
+             + '%-5d' + C.FRes + ' %s'
             ) % (
                 self.nb, self.clientIP, self.clientPort,
                 self.serverIP, self.serverPort,
-                str(self.duration)[0:11] # FIXME better representation nedded!
+                self.strTD(self.duration, short=True)
             )
         if self.idleTime is not None:
             s += ', %.1f%% idle' % (self.idleTime * 100)
@@ -101,8 +104,33 @@ class Connection:
             s += ', %s' % self.connectionType
         return s
 
-    def __str__(self):
-        return repr(self)
+    def strTD(self, td, short=False):
+        """Short representation of a timedelta instanc"""
+        days = td.days
+        hours = td.seconds / 3600
+        mins = (td.seconds % 3600) / 60
+        secs = td.seconds % 60
+        s = ''
+        if days:
+            if short:
+                s += 'about '
+                if hours >= 12:
+                    days += 1
+            s += '%s day%s' % (
+                 ('one', '') if days == 1
+                 else ('%d' % days, 's'))
+            if short:
+                return s
+            s += ', '
+        if hours:
+            s += '%dh%02dm%02ds' % (hours, mins, secs)
+        elif mins:
+            s += '%dm%02ds' % (mins, secs)
+        else:
+            s += '%ds' % secs
+        if not short or not secs:
+            s += ('%.3f' % (float(td.microseconds) / 1000000))[2:]
+        return s
 
     def compute_RTT(self):
         """Set an approximate RTT for each datagram in self.datagrams"""
