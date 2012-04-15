@@ -73,7 +73,7 @@ if __name__ == '__main__':
     main_options.add_argument('-n', metavar='nb', dest='connection_Nb',
                               type=argparse_numbers, help='procede only these '
                               'connections (e.g.: 2,4-6 shows only the second,'
-                              ' fourth, fifth and sixth connections)')
+                              ' fourth, fifth and sixth connections); implies -S')
 
     display_options = parser.add_argument_group('Display options')
     display_options.add_argument('--no-colors', dest='colors',
