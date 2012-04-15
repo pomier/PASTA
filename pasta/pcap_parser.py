@@ -29,7 +29,7 @@ class PcapParser:
         self.keep_datagrams = keep_datagrams # Boolean
         self.logger = logging.getLogger("PcapParser")
 
-    def parse(self, fileName, connections_nb=set()):
+    def parse(self, fileName, connections_nb=None):
         """Parse the given pcap file and create Connection objects"""
 
         self.logger.info("Start to parse %s", fileName)
@@ -76,11 +76,11 @@ class PcapParser:
             return []
 
         # Select only needed tcp streams
-        if connections_nb:
+        if connections_nb is None:
+            streams_selected = streams
+        else:
             streams_selected = [streams[j-1] for j in connections_nb
                                 if j-1 in range(len(streams))]
-        else:
-            streams_selected = streams
 
         tshark_stream_string = " or ".join(["tcp.stream==" + stream
                                             for stream in streams_selected])

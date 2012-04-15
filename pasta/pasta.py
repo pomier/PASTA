@@ -162,7 +162,9 @@ if __name__ == '__main__':
     # Pcap parser
     logger.info('Pcap parsing...')
     pcapParser = PcapParser(keep_datagrams=compute_datagrams)
-    connections = pcapParser.parse(args.inputFile, args.connection_Nb)
+    # if args.connection_Nb is an empty set, ask for all connections
+    connection_Nb = args.connection_Nb if args.connection_Nb else None
+    connections = pcapParser.parse(args.inputFile, connection_Nb)
 
     # RTT
     if compute_datagrams:
