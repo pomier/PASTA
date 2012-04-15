@@ -21,6 +21,35 @@
 import logging
 import colors as C
 
+def strTD(td, short=False):
+    """Better representation of a timedelta instance"""
+    days = td.days
+    hours = td.seconds / 3600
+    mins = (td.seconds % 3600) / 60
+    secs = td.seconds % 60
+    s = ''
+    if days:
+        if short:
+            s += 'about '
+            if hours >= 12:
+                days += 1
+        s += '%s day%s' % (
+             ('one', '') if days == 1
+             else ('%d' % days, 's'))
+        if short:
+            return s
+        s += ', '
+    if hours:
+        s += '%dh%02dm%02ds' % (hours, mins, secs)
+    elif mins:
+        s += '%dm%02ds' % (mins, secs)
+    else:
+        s += '%ds' % secs
+    if not short or not secs:
+        s += ('%.3f' % (float(td.microseconds) / 1000000))[2:]
+    return s
+
+
 class Connection:
     """A SSH connection"""
 
@@ -68,7 +97,7 @@ class Connection:
                 self.nb, self.clientIP, self.clientPort,
                 self.serverIP, self.serverPort,
                 self.startTime.strftime('%b %d, %Y - %H:%M:%S'),
-                self.strTD(self.duration),
+                strTD(self.duration),
                 'unknown'
                     if self.clientProtocol is None
                     else (C.FBlu + '%s' + C.FRes) % self.clientProtocol,
@@ -96,40 +125,12 @@ class Connection:
             ) % (
                 self.nb, self.clientIP, self.clientPort,
                 self.serverIP, self.serverPort,
-                self.strTD(self.duration, short=True)
+                strTD(self.duration, short=True)
             )
         if self.idleTime is not None:
             s += ', %.1f%% idle' % (self.idleTime * 100)
         if self.connectionType is not None:
             s += ', %s' % self.connectionType
-        return s
-
-    def strTD(self, td, short=False):
-        """Better representation of a timedelta instance"""
-        days = td.days
-        hours = td.seconds / 3600
-        mins = (td.seconds % 3600) / 60
-        secs = td.seconds % 60
-        s = ''
-        if days:
-            if short:
-                s += 'about '
-                if hours >= 12:
-                    days += 1
-            s += '%s day%s' % (
-                 ('one', '') if days == 1
-                 else ('%d' % days, 's'))
-            if short:
-                return s
-            s += ', '
-        if hours:
-            s += '%dh%02dm%02ds' % (hours, mins, secs)
-        elif mins:
-            s += '%dm%02ds' % (mins, secs)
-        else:
-            s += '%ds' % secs
-        if not short or not secs:
-            s += ('%.3f' % (float(td.microseconds) / 1000000))[2:]
         return s
 
     def compute_RTT(self):
@@ -209,7 +210,8 @@ class Datagram:
                 'Sequence number: %d\n'
                 'Payload length: %d bytes'
             ) % (
-                'client' if self.sentByClient else 'server',
+                C.FBlu + 'client' + C.FRes if self.sentByClient
+                else C.FYel + 'server' + C.FRes,
                self.time.strftime('%b %d, %Y - %H:%M:%S.%f'),
                self.seqNb,
                self.payloadLen
@@ -217,7 +219,7 @@ class Datagram:
         if self.ack > 0:
             s += '\nSequence number of datagram ACKed: %d' % self.ack
         if self.RTT is not None:
-            s += '\nEstimate RTT: %s' % str(self.RTT) # FIXME better repr?
+            s += '\nEstimate RTT: %s' % strTD(self.RTT)
         return s
         
 
