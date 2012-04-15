@@ -105,7 +105,7 @@ class Connection:
         return s
 
     def strTD(self, td, short=False):
-        """Short representation of a timedelta instanc"""
+        """Better representation of a timedelta instance"""
         days = td.days
         hours = td.seconds / 3600
         mins = (td.seconds % 3600) / 60
