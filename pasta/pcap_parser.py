@@ -20,7 +20,7 @@
 
 from connection import Connection, Datagram
 from datetime import datetime
-import logging, subprocess, sys
+import logging, subprocess, sys, errno
 
 class PcapParser:
     """Parser for pcap files"""
@@ -43,23 +43,16 @@ class PcapParser:
         start_time = {}
         end_time = {}
 
-        # Test if tshark is available
-        tshark_test = subprocess.Popen(
-            ["type", "-p", "tshark"], shell=True,
-            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        tshark_test.communicate()
-        if tshark_test.returncode:
-            self.logger.error('Tshark is not installed')
-            sys.stderr.write('Tshark is required to use PASTA\n')
-            sys.exit(1)
-
         # Read the pcap file to get the number of ssh connections streams
-        tsharkP1 = subprocess.Popen(
-            ["tshark", "-n", "-r", fileName, "-Rssh", "-Tfields", "-etcp.stream"],
-            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        try:
+            tsharkP1 = subprocess.Popen(
+                ["tshark", "-n", "-r", fileName, "-Rssh", "-Tfields", "-etcp.stream"],
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        except OSError as e:
+            self._os_error(e)
         (stdout1, stderr1) = tsharkP1.communicate()
         if tsharkP1.returncode:
-            self.__tshark_error(tsharkP1.returncode, stderr1)
+            self._tshark_error(tsharkP1.returncode, stderr1)
 
         for stream in stdout1:
             stream = stream.strip()
@@ -86,26 +79,29 @@ class PcapParser:
                                             for stream in streams_selected])
 
         # Read the pcap file to get the packet informations
-        tsharkP2 = subprocess.Popen([
-                "tshark", "-n", "-r", fileName, "-R", tshark_stream_string,
-                "-Tfields",
-                "-etcp.stream",
-                "-etcp.seq",
-                "-eframe.time",
-                "-eip.src",
-                "-eipv6.src", # Nothing more elegant than two ip requests ?
-                "-etcp.srcport",
-                "-eip.dst",
-                "-eipv6.dst", # Nothing more elegant than two ip requests ?
-                "-etcp.dstport",
-                "-etcp.len",
-                "-eframe.len",
-                "-etcp.ack",
-                "-essh.protocol"],
-                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        try:
+            tsharkP2 = subprocess.Popen([
+                    "tshark", "-n", "-r", fileName, "-R", tshark_stream_string,
+                    "-Tfields",
+                    "-etcp.stream",
+                    "-etcp.seq",
+                    "-eframe.time",
+                    "-eip.src",
+                    "-eipv6.src", # Nothing more elegant than two ip requests ?
+                    "-etcp.srcport",
+                    "-eip.dst",
+                    "-eipv6.dst", # Nothing more elegant than two ip requests ?
+                    "-etcp.dstport",
+                    "-etcp.len",
+                    "-eframe.len",
+                    "-etcp.ack",
+                    "-essh.protocol"],
+                    stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        except OSError as e:
+            self._os_error(e)
         (stdout2, stderr2) = tsharkP2.communicate()
         if tsharkP2.returncode:
-            self.__tshark_error(tsharkP2.returncode, stderr2)
+            self._tshark_error(tsharkP2.returncode, stderr2)
 
         for packet in stdout2.split("\n"):
             p = packet.split("\t")
@@ -174,7 +170,20 @@ class PcapParser:
         self.logger.info("Parsing %s finished", fileName)
         return connections
 
-    def __tshark_error(self, code, stderr):
+    def _os_error(self, e):
+        """Handle an OSError exception"""
+        self.logger.error('Tshark call raises OSERROR: %s' % e.strerror)
+        errors = {
+            errno.ENOENT: 'Tshark is required to use PASTA',
+            errno.EACCES: 'Permission denied when executing tshark',
+            }
+        if e.errno in errors:
+            sys.stderr.write('%s\n' % errors[e.errno])
+        else:
+            sys.stderr.write('Error while calling tshark: %s\n' % e.strerror)
+        sys.exit(1)
+
+    def _tshark_error(self, code, stderr):
         """Handle an error from tshark call"""
         self.logger.error('Tshark exited with exit status %d' % code)
         for line in stderr.split("\n"):
