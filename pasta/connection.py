@@ -57,7 +57,7 @@ class Connection:
                  serverIP, clientPort, serverPort,
                  clientProtocol, serverProtocol):
         self.nb = nb
-        self.logger = logging.getLogger('Connection%d' % self.nb)
+        self.logger = logging.getLogger('Conn%d' % self.nb)
         self.datagrams = datagrams # list of Datagram instances
         self.startTime = startTime # instance of datetime.datetime
         self.duration = duration # instance of datetime.timedelta
@@ -139,6 +139,7 @@ class Connection:
         # (ignore multiple acks in one)
         self.datagrams.reverse()
         last_acking = {True: None, False: None}
+        has_RTT = {True: False, False: False} # both ways have no RTTs
         for datagram in self.datagrams:
             if last_acking[not datagram.sentByClient] is not None \
                     and datagram.seqNb \
@@ -146,10 +147,25 @@ class Connection:
                 # this last_acking is acking datagram
                 datagram.RTT = (last_acking[not datagram.sentByClient].time \
                                    - datagram.time) * 2
+                has_RTT[datagram.sentByClient] = True
                 last_acking[not datagram.sentByClient] = None
             if datagram.ack > -1:
                 last_acking[datagram.sentByClient] = datagram
         self.datagrams.reverse()
+        # Step1 (bis): if no RTTs in both ways, returns
+        if not has_RTT[True] and not has_RTT[False]:
+            self.logger.warning('Failed to compute RTTs')
+            return
+        # Step1 (ter): if no RTTs in one way, take RTTs from the other way
+        if has_RTT[True] != has_RTT[False]: # xor
+            way = has_RTT[True] # RTTs in datagrams sent by client?
+            last_RTT = None
+            for datagram in self.datagrams:
+                if datagram.sentByClient == way:
+                    last_RTT = datagram.RTT
+                elif last_RTT is not None:
+                    datagram.RTT = last_RTT
+                    last_RTT = None
         # Step2: estimate the other RTTs
         # FIXME: we may put an averaging system here (as in TCP)
         #        (i.e. no need for a third loop on datagrams)
@@ -189,7 +205,6 @@ class Connection:
             for d in empty_RTTs[way]:
                 # just recopy the RTT to the previous ones
                 d.RTT = last_RTT[way]
-        # FIXME: error when no datagrams acked in one way, see unit test
 
 
 class Datagram:
