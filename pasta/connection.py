@@ -99,7 +99,7 @@ class Connection:
                 '-->' if self.sureRoles else C.FMag + '<->' + C.FRes,
                 self.serverIP, self.serverPort,
                 '' if self.sureRoles else C.FMag +
-                    'Not sure whether host 2 is te server' + C.FRes + '\n',
+                    'Not sure whether host 2 is the server' + C.FRes + '\n',
                 self.startTime.strftime('%b %d, %Y - %H:%M:%S'),
                 strTD(self.duration),
                 'Client' if self.sureRoles else 'Host 1',
