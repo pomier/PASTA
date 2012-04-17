@@ -90,16 +90,16 @@ class Connection:
              'Duration: %s\n'
              '%s: %s\n'
              '%s: %s\n'
-             'Datagrams sent by %s: ' + C.FBlu + '%d ' + C.FRes + '(' \
-             + C.FBlu + '%d ' + C.FRes + 'bytes)\n'
-             'Datagrams sent by %s: ' + C.FYel + '%d ' + C.FRes + '(' \
-             + C.FYel + '%d ' + C.FRes + 'bytes)'
+             'Datagrams sent by %s: ' + C.FBlu + '%d ' + C.FRes + '(' +
+                C.FBlu + '%d ' + C.FRes + 'bytes)\n'
+             'Datagrams sent by %s: ' + C.FYel + '%d ' + C.FRes + '(' +
+                C.FYel + '%d ' + C.FRes + 'bytes)'
             ) % (
                 self.nb, self.clientIP, self.clientPort,
                 '-->' if self.sureRoles else C.FMag + '<->' + C.FRes,
                 self.serverIP, self.serverPort,
-                '' if self.sureRoles else
-                C.FMag + 'Not sure that host 2 is the server' + C.FRes + '\n',
+                '' if self.sureRoles else C.FMag +
+                    'Not sure whether host 2 is te server' + C.FRes + '\n',
                 self.startTime.strftime('%b %d, %Y - %H:%M:%S'),
                 strTD(self.duration),
                 'Client' if self.sureRoles else 'Host 1',
@@ -112,7 +112,7 @@ class Connection:
                     else (C.FYel + '%s' + C.FRes) % self.serverProtocol,
                 'client' if self.sureRoles else 'host 1',
                 self.clientSentNbDatagrams, self.clientSentLen,
-                'client' if self.sureRoles else 'host 1',
+                'server' if self.sureRoles else 'host 2',
                 self.serverSentNbDatagrams, self.serverSentLen
             )
         if self.idleTime is not None:
@@ -127,8 +127,8 @@ class Connection:
     def summary(self):
         """A one-line summary of the connection"""
         s = (
-             'Connection %d: ' + C.FBlu + '%s' + C.FRes + ':' + C.FCya + '%-5.d'
-             + C.FRes + ' %s ' + C.FYel + '%s' + C.FRes + ':' + C.FGre
+             'Connection %d: ' + C.FBlu + '%s' + C.FRes + ':' + C.FCya +
+             '%-5.d' + C.FRes + ' %s ' + C.FYel + '%s' + C.FRes + ':' + C.FGre
              + '%-5d' + C.FRes + ' %s'
             ) % (
                 self.nb, self.clientIP, self.clientPort,
