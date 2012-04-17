@@ -39,15 +39,21 @@ class ConnectionIdle():
         time_idle = timedelta() # cumul of the idle times
         datagrams_iterator = iter(self.connection.datagrams)
         last_datagram = datagrams_iterator.next() # first datagram
+        lastS_RTT=last_datagram.RTT
+        lastC_RTT=last_datagram.RTT
         for datagram in datagrams_iterator:
             diff_time = datagram.time - last_datagram.time
-            if diff_time > ConnectionIdle.idle_rtt_threshold * datagram.RTT:
+            if diff_time > ConnectionIdle.idle_rtt_threshold * lastC_RTT \
+                and diff_time > ConnectionIdle.idle_rtt_threshold * lastS_RTT:
                 time_idle += diff_time # add to the cumulated time
+            if datagram.sentByClient:lastC_RTT=datagram.RTT
+            else : lastS_RTT=datagram.RTT
             last_datagram = datagram
         # save the idle time
         self.connection.idleTime = time_idle.total_seconds() \
             / self.connection.duration.total_seconds()
         # FIXME: consider idle at tcp or ssh level?
-        # FIXME: results don't seems to be ok
+        # FIXME: consider case where no paquet from one side hasn't been sent \
+        # for a while : need to "refresh" value ?
 
 # TODO: unit test(s)
