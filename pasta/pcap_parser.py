@@ -42,6 +42,7 @@ class PcapParser:
         servers_protocol = {}
         start_time = {}
         end_time = {}
+        sure_roles = {}
 
         # Read the pcap file to get the number of ssh connections streams
         # FIXME: doesn't detect all ssh connections
@@ -97,7 +98,8 @@ class PcapParser:
                     "-etcp.len",
                     "-eframe.len",
                     "-etcp.ack",
-                    "-essh.protocol"],
+                    "-essh.protocol",
+                    "-etcp.flags.syn"],
                     stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         except OSError as e:
             self._os_error(e)
@@ -107,7 +109,7 @@ class PcapParser:
 
         for packet in stdout2.split("\n"):
             p = packet.split("\t")
-            if len(p) > 12:
+            if len(p) > 13:
                 try:
                     if p[3]:
                         src = (p[3], int(p[5]))
@@ -122,9 +124,22 @@ class PcapParser:
 
                     if p[0] not in datagrams.keys(): # This is a new connection
                         datagrams[p[0]] = []
-                        clients[p[0]] = src
-                        servers[p[0]] = dst
                         start_time[p[0]] = time
+                        if p[13] and p[13] == '1' and not p[11]:
+                            # we are sure that it is the client
+                            clients[p[0]] = src
+                            servers[p[0]] = dst
+                            sure_roles[p[0]] = True
+                        else:
+                            # we are not sure of the roles
+                            sure_roles[p[0]] = False
+                            # assuming lower port number is server
+                            if src[1] > dst[1]:
+                                clients[p[0]] = src
+                                servers[p[0]] = dst
+                            else:
+                                clients[p[0]] = dst
+                                servers[p[0]] = src
 
                     sentByClient = clients[p[0]] == src
 
@@ -162,6 +177,7 @@ class PcapParser:
                 datagrams[k],
                 start_time[k],
                 end_time[k] - start_time[k], # Duration
+                sure_roles[k], # sure of who is client / server?
                 clients[k][0], # Client ip
                 servers[k][0], # Server ip
                 clients[k][1], # Client port
