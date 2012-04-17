@@ -44,9 +44,11 @@ class PcapParser:
         end_time = {}
 
         # Read the pcap file to get the number of ssh connections streams
+        # FIXME: doesn't detect all ssh connections
         try:
             tsharkP1 = subprocess.Popen(
-                ["tshark", "-n", "-r", fileName, "-Rssh", "-Tfields", "-etcp.stream"],
+                ["tshark", "-n", "-r", fileName, "-Rssh",
+                    "-Tfields", "-etcp.stream"],
                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         except OSError as e:
             self._os_error(e)
@@ -136,15 +138,16 @@ class PcapParser:
 
                     if self.keep_datagrams:
                         #Create Datagram objects
-                        datagrams[p[0]].append(Datagram(
+                        new_datagram = Datagram(
                             sentByClient,
                             time,
                             int(p[1]), # seq number
                             int(p[10]), # datagram len
                             int(p[9]), # payload length
                             int(p[11]) if p[11] else -1 # datagram acked
-                            ))
-                        self.logger.debug("New datagram: %s", datagrams[p[0]][-1])
+                            )
+                        datagrams[p[0]].append(new_datagram)
+                        self.logger.debug("New datagram: %s", new_datagram)
                 except ValueError as e:
                     # catch conversions for int, datetime...
                     self.logger.error('Parsing tshark output: %s' % e.message)

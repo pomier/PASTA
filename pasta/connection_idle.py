@@ -47,3 +47,7 @@ class ConnectionIdle():
         # save the idle time
         self.connection.idleTime = time_idle.total_seconds() \
             / self.connection.duration.total_seconds()
+        # FIXME: consider idle at tcp or ssh level?
+        # FIXME: results don't seems to be ok
+
+# TODO: unit test(s)

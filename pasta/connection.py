@@ -189,6 +189,7 @@ class Connection:
             for d in empty_RTTs[way]:
                 # just recopy the RTT to the previous ones
                 d.RTT = last_RTT[way]
+        # FIXME: error when no datagrams acked in one way, see unit test
 
 
 class Datagram:
