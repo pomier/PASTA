@@ -125,14 +125,12 @@ class PcapParser:
                     if p[0] not in datagrams.keys(): # This is a new connection
                         datagrams[p[0]] = []
                         start_time[p[0]] = time
+                        sure_roles[p[0]] = True
                         if p[13] and p[13] == '1' and not p[11]:
                             # we are sure that it is the client
                             clients[p[0]] = src
                             servers[p[0]] = dst
-                            sure_roles[p[0]] = True
                         else:
-                            # we are not sure of the roles
-                            sure_roles[p[0]] = False
                             # assuming lower port number is server
                             if src[1] > dst[1]:
                                 clients[p[0]] = src
@@ -140,6 +138,10 @@ class PcapParser:
                             else:
                                 clients[p[0]] = dst
                                 servers[p[0]] = src
+                            if src[1] == 22 or dst[1] == 22:
+                                # if ssh port not used,
+                                # we are not sure of the roles
+                                sure_roles[p[0]] = False
 
                     sentByClient = clients[p[0]] == src
 
