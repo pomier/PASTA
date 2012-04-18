@@ -50,20 +50,20 @@ class ConnectionType():
         self.compute_asymetry()
 
         if self.ratio_server_sent > 0.5:
-            # scp (up)
-            self.logger.debug('Asymetry ratio for scp (up): %.2f'
+            # scp (down)
+            self.logger.debug('Asymetry ratio for scp (down): %.2f'
                               ' (min %.2f required)' % (self.ratio_server_sent,
                                   ConnectionType.scp_up_min_asymetry))
             if self.ratio_server_sent >= ConnectionType.scp_up_min_asymetry:
-                self._type_found('scp (up)')
+                self._type_found('scp (down)')
                 return
         else:
-            # scp (down)
-            self.logger.debug('Asymetry ratio for scp (down): %.2f'
+            # scp (up)
+            self.logger.debug('Asymetry ratio for scp (up): %.2f'
                               ' (max %.2f required)' % (self.ratio_server_sent,
                                   ConnectionType.scp_down_max_asymetry))
             if self.ratio_server_sent <= ConnectionType.scp_down_max_asymetry:
-                self._type_found('scp (down)')
+                self._type_found('scp (up)')
                 return
 
         # compute time to reply
