@@ -39,23 +39,20 @@ class ConnectionIdle():
         time_idle = timedelta() # cumul of the idle times
         datagrams_iterator = iter(self.connection.datagrams)
         last_datagram = datagrams_iterator.next() # first datagram
-        lastS_time = last_datagram.time
-        lastS_RTT = last_datagram.RTT
-        lastC_time = last_datagram.time
-        lastC_RTT = last_datagram.RTT
+        lastC_time = lastS_time = last_datagram.time
+        lastC_RTT = lastS_RTT = last_datagram.RTT
         for datagram in datagrams_iterator:
             diff_timeC = datagram.time - lastC_time
             diff_timeS = datagram.time - lastS_time
             if diff_timeS > ConnectionIdle.idle_rtt_threshold * lastS_RTT and \
-            diff_timeC > ConnectionIdle.idle_rtt_threshold * lastC_RTT :
+                    diff_timeC > ConnectionIdle.idle_rtt_threshold * lastC_RTT:
                 time_idle += min(diff_timeC,diff_timeS) # add to cumulated time
             if datagram.sentByClient:
                 lastC_RTT = datagram.RTT
                 lastC_time = datagram.time
-            else : 
+            else:
                 lastS_RTT = datagram.RTT
                 lastS_time = datagram.time
-            last_datagram = datagram
         # save the idle time
         self.connection.idleTime = time_idle.total_seconds() \
             / self.connection.duration.total_seconds()
