@@ -41,6 +41,7 @@ class PcapParser:
     def parse(self, fileName, connections_nb=None):
         """Parse the given pcap file and create Connection objects"""
 
+        # TODO: Get partial samples on port 22
         self.logger.info("Start to parse %s", fileName)
         self.fileName = fileName
 
