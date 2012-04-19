@@ -84,7 +84,7 @@ class Connection:
         s = (
              'Connection %d: ' + C.FBlu + '%s' + C.FRes + ':' + C.FCya + '%d'
              + C.FRes + ' --> ' + C.FYel + '%s' + C.FRes + ':' + C.FGre
-             + '%d' + C.FRes + '\n%s'
+             + '%d' + C.FRes + '\n'
              'Start date: %s\n'
              'Duration: %s\n'
              'Client: %s\n'
