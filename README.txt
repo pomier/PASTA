@@ -35,4 +35,5 @@ is not used.
 
 --
 TODO: rest of the file (description of the software, requirements, how
-      to use, install, etc) - may be done later
+      to use, install, explain that some connections can't be detected, etc)
+      - may be done later
