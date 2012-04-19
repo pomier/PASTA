@@ -118,6 +118,7 @@ class Connection:
 
     def summary(self):
         """A one-line summary of the connection"""
+        # FIXME: We don't have the duration in summary mode (show startTime ?)
         s = (
              'Connection %d: ' + C.FBlu + '%s' + C.FRes + ':' + C.FCya +
              '%-5.d' + C.FRes + ' --> ' + C.FYel + '%s' + C.FRes + ':' + C.FGre
