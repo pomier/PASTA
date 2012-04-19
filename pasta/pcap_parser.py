@@ -28,159 +28,198 @@ class PcapParser:
     def __init__(self, keep_datagrams=True):
         self.keep_datagrams = keep_datagrams # Boolean
         self.logger = logging.getLogger("PcapParser")
+        self.streams = []
+        self.datagrams = {}
+        self.clients = {}
+        self.servers = {}
+        self.clients_protocol = {}
+        self.servers_protocol = {}
+        self.start_time = {}
+        self.end_time = {}
+        self.fileName = ""
 
     def parse(self, fileName, connections_nb=None):
         """Parse the given pcap file and create Connection objects"""
 
         self.logger.info("Start to parse %s", fileName)
+        self.fileName = fileName
 
-        streams = []
-        datagrams = {}
-        clients = {}
-        servers = {}
-        clients_protocol = {}
-        servers_protocol = {}
-        start_time = {}
-        end_time = {}
+        ports = self.extract_ports()
 
-        # Read the pcap file to get the number of ssh connections streams
-        # FIXME: doesn't detect all ssh connections
-        try:
-            tsharkP1 = subprocess.Popen(
-                ["tshark", "-n", "-r", fileName, "-Rssh",
-                    "-Tfields", "-etcp.stream"],
-                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        except OSError as e:
-            self._os_error(e)
-        (stdout1, stderr1) = tsharkP1.communicate()
-        if tsharkP1.returncode:
-            self._tshark_error(tsharkP1.returncode, stderr1)
-
-        for stream in stdout1:
-            stream = stream.strip()
-            if stream and stream not in streams:
-                self.logger.debug("Stream found: %s", stream)
-                streams.append(stream);
-                clients_protocol[stream] = None
-                servers_protocol[stream] = None
-
-        if streams:
-            self.logger.info("%d connections found" % len(streams))
-        else:
-            self.logger.warning("No connection found")
-            return []
+        # Get the number of ssh connections streams
+        self.extract_ssh_streams(ports)
 
         # Select only needed tcp streams
-        if connections_nb is None:
-            streams_selected = streams
+        if connections_nb:
+            streams_selected = [self.streams[j-1] for j in connections_nb
+                                if j-1 in range(len(self.streams))]
         else:
-            streams_selected = [streams[j-1] for j in connections_nb
-                                if j-1 in range(len(streams))]
+            streams_selected = self.streams
 
-        tshark_stream_string = " or ".join(["tcp.stream==" + stream
-                                            for stream in streams_selected])
-
-        # Read the pcap file to get the packet informations
-        try:
-            tsharkP2 = subprocess.Popen([
-                "tshark", "-n", "-r", fileName, "-R", tshark_stream_string,
-                "-Tfields",
-                "-etcp.stream",
-                "-etcp.seq",
-                "-eframe.time",
-                "-eip.src",
-                "-eipv6.src", # Nothing more elegant than two ip requests ?
-                "-etcp.srcport",
-                "-eip.dst",
-                "-eipv6.dst", # Nothing more elegant than two ip requests ?
-                "-etcp.dstport",
-                "-etcp.len",
-                "-eframe.len",
-                "-etcp.ack",
-                "-essh.protocol",
-                "-etcp.flags.syn"],
-                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        except OSError as e:
-            self._os_error(e)
-        (stdout2, stderr2) = tsharkP2.communicate()
-        if tsharkP2.returncode:
-            self._tshark_error(tsharkP2.returncode, stderr2)
-
-        for packet in stdout2.split("\n"):
-            p = packet.split("\t")
-            if len(p) > 13:
-                try:
-                    if p[3]:
-                        src = (p[3], int(p[5]))
-                    else:
-                        src = (p[4], int(p[5]))
-                    if p[6]:
-                        dst = (p[6], int(p[8]))
-                    else:
-                        dst = (p[7], int(p[8]))
-                    time = datetime.strptime(p[2][:-3],
-                                             "%b %d, %Y %H:%M:%S.%f")
-                    end_time[p[0]] = time # Keep last know time for duration
-
-                    if p[0] not in datagrams.keys(): # This is a new connection
-                        datagrams[p[0]] = []
-                        start_time[p[0]] = time
-                        if p[13] == '1' and not p[11] or dst[1] == 22:
-                            # If packet is a SYN, or dst use ssh port,
-                            # src is the client
-                            clients[p[0]] = src
-                            servers[p[0]] = dst
-                        else:
-                            # src is the server
-                            clients[p[0]] = dst
-                            servers[p[0]] = src
-
-                    sentByClient = clients[p[0]] == src
-
-                    # Get protocol name if available
-                    protocol = p[12].decode('string-escape').strip()
-                    if protocol:
-                        if sentByClient:
-                            clients_protocol[p[0]] = protocol
-                        else:
-                            servers_protocol[p[0]] = protocol
-
-                    if self.keep_datagrams:
-                        #Create Datagram objects
-                        new_datagram = Datagram(
-                            sentByClient,
-                            time,
-                            int(p[1]), # seq number
-                            int(p[10]), # datagram len
-                            int(p[9]), # payload length
-                            int(p[11]) if p[11] else -1 # datagram acked
-                            )
-                        datagrams[p[0]].append(new_datagram)
-                        self.logger.debug("New datagram: %s", new_datagram)
-                except ValueError as e:
-                    # catch conversions for int, datetime...
-                    self.logger.error('Parsing tshark output: %s' % e.message)
-                    sys.stderr.write('Error while parsing tshark output\n')
-                    sys.exit(1)
+        if self.keep_datagrams:
+            self.extract_datagrams(streams_selected)
 
         # Create Connection objects
         connections = []
         for k in streams_selected:
             connections.append(Connection(
-                streams.index(k) + 1, # Connection nb
-                datagrams[k],
-                start_time[k],
-                end_time[k] - start_time[k], # Duration
-                clients[k][0], # Client ip
-                servers[k][0], # Server ip
-                clients[k][1], # Client port
-                servers[k][1], # Server port
-                clients_protocol[k],
-                servers_protocol[k]))
+                self.streams.index(k) + 1, # Connection nb
+                self.datagrams[k],
+                self.start_time[k],
+                self.end_time[k] - self.start_time[k], # Duration
+                self.clients[k][0], # Client ip
+                self.servers[k][0], # Server ip
+                self.clients[k][1], # Client port
+                self.servers[k][1], # Server port
+                self.clients_protocol[k],
+                self.servers_protocol[k]))
             self.logger.debug("New connection: %s", connections[-1].summary())
 
         self.logger.info("Parsing %s finished", fileName)
         return connections
+
+
+    def extract_ports(self):
+        """Extract the port numbers of tcp conversations"""
+
+        ports = set()
+
+        try:
+            tshark = subprocess.Popen(
+                ["tshark", "-n", "-r", self.fileName, "-qzconv,tcp"],
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        except OSError as e:
+            self._os_error(e)
+        (stdout, stderr) = tshark.communicate()
+        if tshark.returncode:
+            self._tshark_error(tshark.returncode, stderr)
+
+        lines = stdout.split("\n")
+        if len(lines) > 6:
+            for line in lines[5:-2]:
+                line = [a for a in line.split(" ") if a]
+                try:
+                    ports.add(int(line[0].split(":")[-1]))
+                    ports.add(int(line[2].split(":")[-1]))
+                except ValueError as e:
+                    _parse_error(e)
+
+        return ports
+
+
+    def extract_ssh_streams(self, ports):
+        """Decode ports as ssh, and get the packets 'ssh.protocol'"""
+
+        args = [
+            "tshark", "-n", "-r", self.fileName, "-Rssh.protocol",
+            "-Tfields",
+            "-etcp.stream",
+            "-eframe.time",
+            "-eip.src",
+            "-eipv6.src",
+            "-etcp.srcport",
+            "-eip.dst",
+            "-eipv6.dst",
+            "-etcp.dstport",
+            "-essh.protocol"]
+
+        for port in ports:
+            args.append("-dtcp.port==%d,ssh" % port)
+
+        try:
+            tshark = subprocess.Popen(
+                args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        except OSError as e:
+            self._os_error(e)
+        (stdout, stderr) = tshark.communicate()
+        if tshark.returncode:
+            self._tshark_error(tshark.returncode, stderr)
+
+        for p in [l.split("\t") for l in stdout.split("\n")
+                  if len(l.split("\t")) > 8]:
+            try:
+                src = (p[2], int(p[4])) if p[2] else (p[3], int(p[4]))
+                dst = (p[5], int(p[7])) if p[5] else (p[6], int(p[7]))
+
+                if p[0] not in self.datagrams.keys():
+                    # This is a new connection
+                    self.streams.append(p[0])
+                    self.datagrams[p[0]] = []
+                    time = datetime.strptime(
+                        p[1][:-3], "%b %d, %Y %H:%M:%S.%f")
+                    self.start_time[p[0]] = time
+                    self.end_time[p[0]] = time
+
+                    self.clients[p[0]] = dst
+                    self.servers[p[0]] = src
+
+                # Get protocol name if available
+                protocol = p[8].decode('string-escape').strip()
+                if protocol:
+                    if self.clients[p[0]] == src:
+                        self.clients_protocol[p[0]] = protocol
+                    else:
+                        self.servers_protocol[p[0]] = protocol
+            except ValueError as e:
+                # catch conversions for int, datetime...
+                self._parse_error(e)
+
+
+    def extract_datagrams(self, streams):
+        """Get datagrams from streams"""
+
+        if not streams:
+            return
+
+        tshark_stream_string = " or ".join(["tcp.stream==" + stream
+                                            for stream in streams])
+
+        # Read the pcap file to get the packet informations
+        try:
+            tshark = subprocess.Popen([
+                "tshark", "-n", "-r", self.fileName,
+                "-R", tshark_stream_string,
+                "-Tfields",
+                "-etcp.stream",
+                "-etcp.seq",
+                "-eframe.time",
+                "-etcp.len",
+                "-eframe.len",
+                "-etcp.ack",
+                "-eip.src",
+                "-eipv6.src",
+                "-etcp.srcport",
+                ],
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        except OSError as e:
+            self._os_error(e)
+        (stdout, stderr) = tshark.communicate()
+        if tshark.returncode:
+            self._tshark_error(tshark.returncode, stderr)
+
+        for p in [l.split("\t") for l in stdout.split("\n")
+                  if len(l.split("\t")) > 8]:
+            try:
+                src = (p[6], int(p[8])) if p[6] else (p[7], int(p[8]))
+                time = datetime.strptime(p[2][:-3],
+                                         "%b %d, %Y %H:%M:%S.%f")
+                self.end_time[p[0]] = time # Keep last know time for duration
+
+                # create Datagram objects
+                new_datagram = Datagram(
+                    self.clients[p[0]] == src, # sent by client
+                    time,
+                    int(p[1]), # seq number
+                    int(p[4]), # datagram len
+                    int(p[3]), # payload length
+                    int(p[5]) if p[5] else -1 # datagram acked
+                    )
+                self.datagrams[p[0]].append(new_datagram)
+                self.logger.debug("New datagram: %s", new_datagram)
+            except ValueError as e:
+                # catch conversions for int, datetime...
+                self._parse_error(e)
+
 
     def _os_error(self, e):
         """Handle an OSError exception"""
@@ -204,6 +243,11 @@ class PcapParser:
                 sys.stderr.write('%s\n' % line)
         sys.exit(1)
 
+    def _parse_error(self, e):
+        """Handle an conversion error while parsing"""
+        self.logger.error('Parsing tshark output: %s' % e.message)
+        sys.stderr.write('Error while parsing tshark output\n')
+        sys.exit(1)
 
 
 if __name__ == '__main__':
@@ -212,7 +256,7 @@ if __name__ == '__main__':
         level=logging.INFO)
     if len(sys.argv) > 1:
         parser = PcapParser(True)
-        for conn in parser.parse(sys.argv[1], set([2])):
+        for conn in parser.parse(sys.argv[1]):
             print "\n" + str(conn)
     else:
         print "usage: pcap_parser.py file"
