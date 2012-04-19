@@ -42,7 +42,6 @@ class PcapParser:
         servers_protocol = {}
         start_time = {}
         end_time = {}
-        sure_roles = {}
 
         # Read the pcap file to get the number of ssh connections streams
         # FIXME: doesn't detect all ssh connections
@@ -84,23 +83,23 @@ class PcapParser:
         # Read the pcap file to get the packet informations
         try:
             tsharkP2 = subprocess.Popen([
-                    "tshark", "-n", "-r", fileName, "-R", tshark_stream_string,
-                    "-Tfields",
-                    "-etcp.stream",
-                    "-etcp.seq",
-                    "-eframe.time",
-                    "-eip.src",
-                    "-eipv6.src", # Nothing more elegant than two ip requests ?
-                    "-etcp.srcport",
-                    "-eip.dst",
-                    "-eipv6.dst", # Nothing more elegant than two ip requests ?
-                    "-etcp.dstport",
-                    "-etcp.len",
-                    "-eframe.len",
-                    "-etcp.ack",
-                    "-essh.protocol",
-                    "-etcp.flags.syn"],
-                    stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                "tshark", "-n", "-r", fileName, "-R", tshark_stream_string,
+                "-Tfields",
+                "-etcp.stream",
+                "-etcp.seq",
+                "-eframe.time",
+                "-eip.src",
+                "-eipv6.src", # Nothing more elegant than two ip requests ?
+                "-etcp.srcport",
+                "-eip.dst",
+                "-eipv6.dst", # Nothing more elegant than two ip requests ?
+                "-etcp.dstport",
+                "-etcp.len",
+                "-eframe.len",
+                "-etcp.ack",
+                "-essh.protocol",
+                "-etcp.flags.syn"],
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         except OSError as e:
             self._os_error(e)
         (stdout2, stderr2) = tsharkP2.communicate()
@@ -119,29 +118,22 @@ class PcapParser:
                         dst = (p[6], int(p[8]))
                     else:
                         dst = (p[7], int(p[8]))
-                    time = datetime.strptime(p[2][:-3], "%b %d, %Y %H:%M:%S.%f")
+                    time = datetime.strptime(p[2][:-3],
+                                             "%b %d, %Y %H:%M:%S.%f")
                     end_time[p[0]] = time # Keep last know time for duration
 
                     if p[0] not in datagrams.keys(): # This is a new connection
                         datagrams[p[0]] = []
                         start_time[p[0]] = time
-                        sure_roles[p[0]] = True
-                        if p[13] and p[13] == '1' and not p[11]:
-                            # we are sure that it is the client
+                        if p[13] == '1' and not p[11] or dst[1] == 22:
+                            # If packet is a SYN, or dst use ssh port,
+                            # src is the client
                             clients[p[0]] = src
                             servers[p[0]] = dst
                         else:
-                            # assuming lower port number is server
-                            if src[1] > dst[1]:
-                                clients[p[0]] = src
-                                servers[p[0]] = dst
-                            else:
-                                clients[p[0]] = dst
-                                servers[p[0]] = src
-                            if src[1] == 22 or dst[1] == 22:
-                                # if ssh port not used,
-                                # we are not sure of the roles
-                                sure_roles[p[0]] = False
+                            # src is the server
+                            clients[p[0]] = dst
+                            servers[p[0]] = src
 
                     sentByClient = clients[p[0]] == src
 
@@ -179,7 +171,6 @@ class PcapParser:
                 datagrams[k],
                 start_time[k],
                 end_time[k] - start_time[k], # Duration
-                sure_roles[k], # sure of who is client / server?
                 clients[k][0], # Client ip
                 servers[k][0], # Server ip
                 clients[k][1], # Client port

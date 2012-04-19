@@ -53,7 +53,7 @@ def strTD(td, short=False):
 class Connection:
     """A SSH connection"""
 
-    def __init__(self, nb, datagrams, startTime, duration, sureRoles,
+    def __init__(self, nb, datagrams, startTime, duration,
                  clientIP, serverIP, clientPort, serverPort,
                  clientProtocol, serverProtocol):
         self.nb = nb
@@ -61,7 +61,6 @@ class Connection:
         self.datagrams = datagrams # list of Datagram instances
         self.startTime = startTime # instance of datetime.datetime
         self.duration = duration # instance of datetime.timedelta
-        self.sureRoles = sureRoles # sure of who is client / server?
         self.clientIP = clientIP # string e.g. '123.234.0.42'
         self.serverIP = serverIP # string e.g. '123.234.13.37'
         self.clientPort = clientPort # int
@@ -84,35 +83,28 @@ class Connection:
     def __repr__(self):
         s = (
              'Connection %d: ' + C.FBlu + '%s' + C.FRes + ':' + C.FCya + '%d'
-             + C.FRes + ' %s ' + C.FYel + '%s' + C.FRes + ':' + C.FGre
+             + C.FRes + ' --> ' + C.FYel + '%s' + C.FRes + ':' + C.FGre
              + '%d' + C.FRes + '\n%s'
              'Start date: %s\n'
              'Duration: %s\n'
-             '%s: %s\n'
-             '%s: %s\n'
-             'Datagrams sent by %s: ' + C.FBlu + '%d ' + C.FRes + '(' +
+             'Client: %s\n'
+             'Server: %s\n'
+             'Datagrams sent by client: ' + C.FBlu + '%d ' + C.FRes + '(' +
                 C.FBlu + '%d ' + C.FRes + 'bytes)\n'
-             'Datagrams sent by %s: ' + C.FYel + '%d ' + C.FRes + '(' +
+             'Datagrams sent by server: ' + C.FYel + '%d ' + C.FRes + '(' +
                 C.FYel + '%d ' + C.FRes + 'bytes)'
             ) % (
                 self.nb, self.clientIP, self.clientPort,
-                '-->' if self.sureRoles else C.FMag + '<->' + C.FRes,
                 self.serverIP, self.serverPort,
-                '' if self.sureRoles else C.FMag +
-                    'Not sure whether host 2 is the server' + C.FRes + '\n',
                 self.startTime.strftime('%b %d, %Y - %H:%M:%S'),
                 strTD(self.duration),
-                'Client' if self.sureRoles else 'Host 1',
                 'unknown'
                     if self.clientProtocol is None
                     else (C.FBlu + '%s' + C.FRes) % self.clientProtocol,
-                'Server' if self.sureRoles else 'Host 2',
                 'unknown'
                     if self.serverProtocol is None
                     else (C.FYel + '%s' + C.FRes) % self.serverProtocol,
-                'client' if self.sureRoles else 'host 1',
                 self.clientSentNbDatagrams, self.clientSentLen,
-                'server' if self.sureRoles else 'host 2',
                 self.serverSentNbDatagrams, self.serverSentLen
             )
         if self.idleTime is not None:
@@ -128,11 +120,10 @@ class Connection:
         """A one-line summary of the connection"""
         s = (
              'Connection %d: ' + C.FBlu + '%s' + C.FRes + ':' + C.FCya +
-             '%-5.d' + C.FRes + ' %s ' + C.FYel + '%s' + C.FRes + ':' + C.FGre
+             '%-5.d' + C.FRes + ' --> ' + C.FYel + '%s' + C.FRes + ':' + C.FGre
              + '%-5d' + C.FRes + ' %s'
             ) % (
                 self.nb, self.clientIP, self.clientPort,
-                '-->' if self.sureRoles else C.FMag + '<->' + C.FRes,
                 self.serverIP, self.serverPort,
                 strTD(self.duration, short=True)
             )
@@ -285,7 +276,7 @@ if __name__ == '__main__':
                     -1 if sentByClient and oneway else seqNb[not sentByClient]
                     ))
                 seqNb[sentByClient] += totalLen
-            connection = Connection(0, datagrams, now, time - now, True,
+            connection = Connection(0, datagrams, now, time - now,
                     '1.2.3.4', '5.6.7.8', 12345, 22, 'Foo', 'Bar')
             return connection
 
