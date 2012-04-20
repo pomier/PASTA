@@ -48,7 +48,7 @@ class ConnectionIdle():
             diff_timeS = datagram.time - lastS_time
             if diff_timeS > ConnectionIdle.idle_rtt_thld * lastS_RTT and \
                     diff_timeC > ConnectionIdle.idle_rtt_thld * lastC_RTT:
-                time_idle += min(diff_timeC,diff_timeS) # add to cumulated time
+                time_idle += min(diff_timeC, diff_timeS) # add to cumulated time
 
             if datagram.sentByClient:
                 lastC_RTT = datagram.RTT
@@ -66,7 +66,7 @@ class ConnectionIdle():
         """Compute the idle time : 2nd method"""
         if not self.connection.duration.total_seconds():
             # connection is empty anyway (avoid division by zero)
-        	return
+            return
         # starts to count idle times
         time_idle = timedelta() # cumul of the idle times
         datagrams_iterator = iter(self.connection.datagrams)
@@ -74,16 +74,15 @@ class ConnectionIdle():
         
         for datagram in datagrams_iterator:
             diff_time = datagram.time - last_datagram.time
-            if (datagram.sentByClient and not last_datagram.sentByClient) or \
-				(not datagram.sentByClient and last_datagram.sentByClient):
-                    # if there is a packet from the server followed by one of \
+            if datagram.sentByClient != last_datagram.sentByClient:
+                    # if there is a packet from the server followed by one of
                     # the client, or the inverse.
                     if diff_time > \
-                        ConnectionIdle.idle_rtt_thld * last_datagram.RTT :
-                        time_idle+=diff_time
+                        ConnectionIdle.idle_rtt_thld * last_datagram.RTT:
+                        time_idle += diff_time
             else : # the case where two following packets have the same origin.
-                if diff_time > ConnectionIdle.idle_same_origin_thld :
-                    time_idle+=diff_time
+                if diff_time > ConnectionIdle.idle_same_origin_thld:
+                    time_idle += diff_time
             last_datagram = datagram
 
         self.connection.idleTime = time_idle.total_seconds() \

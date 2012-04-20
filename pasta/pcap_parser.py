@@ -103,7 +103,7 @@ class PcapParser:
                     ports.add(int(line[0].split(":")[-1]))
                     ports.add(int(line[2].split(":")[-1]))
                 except ValueError as e:
-                    _parse_error(e)
+                    self._parse_error(e)
 
         return ports
 
@@ -136,8 +136,10 @@ class PcapParser:
         if tshark.returncode:
             self._tshark_error(tshark.returncode, stderr)
 
-        for p in [l.split("\t") for l in stdout.split("\n")
-                  if len(l.split("\t")) > 8]:
+        for p in [l.split("\t") for l in stdout.split("\n")]:
+            if len(p) < 9:
+                continue
+
             try:
                 src = (p[2], int(p[4])) if p[2] else (p[3], int(p[4]))
                 dst = (p[5], int(p[7])) if p[5] else (p[6], int(p[7]))
@@ -198,8 +200,10 @@ class PcapParser:
         if tshark.returncode:
             self._tshark_error(tshark.returncode, stderr)
 
-        for p in [l.split("\t") for l in stdout.split("\n")
-                  if len(l.split("\t")) > 8]:
+        for p in [l.split("\t") for l in stdout.split("\n")]:
+            if len(p) < 9:
+                continue
+
             try:
                 src = (p[6], int(p[8])) if p[6] else (p[7], int(p[8]))
                 time = datetime.strptime(p[2][:-3],
