@@ -61,6 +61,8 @@ class ConnectionIdle():
             / self.connection.duration.total_seconds()
         # FIXME: consider case where no paquet from one side hasn't been sent \
         # for a while : need to "refresh" value ?
+        #
+        # FIXME: consider idle at tcp or ssh level?
 
     def compute2(self):
         """Compute the idle time : 2nd method"""
@@ -73,6 +75,9 @@ class ConnectionIdle():
         last_datagram = datagrams_iterator.next() # first datagram
         
         for datagram in datagrams_iterator:
+            if not datagram.payloadLen:
+                # idle time at ssh level: ignore packets without payload
+                continue
             diff_time = datagram.time - last_datagram.time
             if datagram.sentByClient != last_datagram.sentByClient:
                     # if there is a packet from the server followed by one of
@@ -88,5 +93,4 @@ class ConnectionIdle():
         self.connection.idleTime = time_idle.total_seconds() \
             / self.connection.duration.total_seconds()
 
-# FIXME: consider idle at tcp or ssh level?
 # TODO: unit test(s)
