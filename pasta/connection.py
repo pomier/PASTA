@@ -118,7 +118,6 @@ class Connection:
 
     def summary(self):
         """A one-line summary of the connection"""
-        # FIXME: We don't have the duration in summary mode (show startTime ?)
         s = (
              'Connection %d: ' + C.FBlu + '%s' + C.FRes + ':' + C.FCya +
              '%-5.d' + C.FRes + ' --> ' + C.FYel + '%s' + C.FRes + ':' + C.FGre
@@ -126,7 +125,7 @@ class Connection:
             ) % (
                 self.nb, self.clientIP, self.clientPort,
                 self.serverIP, self.serverPort,
-                strTD(self.duration, short=True)
+                self.startTime.strftime('%m%b%y %H:%M:%S'),
             )
         if self.idleTime is not None:
             s += ', %.1f%% idle' % (self.idleTime * 100)
