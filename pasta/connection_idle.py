@@ -44,6 +44,8 @@ class ConnectionIdle():
         lastC_time = lastS_time = first_datagram.time
         lastC_RTT = lastS_RTT = first_datagram.RTT
         for datagram in datagrams_iterator:
+            if not datagram.payloadLen:
+                continue
             diff_timeC = datagram.time - lastC_time
             diff_timeS = datagram.time - lastS_time
             if diff_timeS > ConnectionIdle.idle_rtt_thld * lastS_RTT and \
@@ -61,9 +63,8 @@ class ConnectionIdle():
             / self.connection.duration.total_seconds()
         # FIXME: consider case where no paquet from one side hasn't been sent \
         # for a while : need to "refresh" value ?
-        #
-        # FIXME: consider idle at tcp or ssh level?
 
+                
     def compute2(self):
         """Compute the idle time : 2nd method"""
         if not self.connection.duration.total_seconds():
@@ -93,4 +94,20 @@ class ConnectionIdle():
         self.connection.idleTime = time_idle.total_seconds() \
             / self.connection.duration.total_seconds()
 
+# FIXME: we need to choose a method (or to do an average of the two ?)
 # TODO: unit test(s)
+
+if __name__ == '__main__':
+    
+    import unittest, random, sys
+    from datetime import datetime, timedelta
+    
+    if sys.version_info[:2] != (2, 7):
+        sys.stderr.write('PASTA must be run with Python 2.7\n')
+        sys.exit(1)
+    
+    class TestConnection(unittest.TestCase):
+        random.seed(42)
+    
+    unittest.main()
+
