@@ -110,7 +110,7 @@ class Connection:
         if self.idleTime is not None:
             s += '\nIdle time: %.1f%%' % (self.idleTime * 100)
         if self.connectionType is not None:
-            s += '\nConnexion type: %s' % self.connectionType
+            s += '\nConnection type: %s' % self.connectionType
         return s
 
     def __str__(self):
