@@ -10,7 +10,7 @@
 AUTHORS
 
 The PASTA team:
-# FIXME : or "The Spaghe-team" ? :D
+# FIXME : or "The Spaghet-team" ? :D
     César 'Mr. Blue' Burini
     Pierre 'Rogdham' Pavlidès
     Romain 'Haradwaith' Pomier
@@ -89,14 +89,14 @@ All the fields given by Pasta about the ssh connections are:
     - the number of datagrams sent by the client, and the number of bytes.
     - the number of datagrams sent by the server, and the number of bytes.
     - the idle time (a percentage representing how busy was the connection).
-    - the connexion type (tunnel, scp (up), scp (down), shell, or reverse shell
+    - the connexion type (tunnel, scp (up/down), shell, or reverse shell).
 
 
-WARNING 
+WARNING
 # FIXME : to correct, depending of the future implementation (keeping 
 uncompleted connections on port 22 ?)
 
-If the beginning of a connection is missing, the program will not be able to 
+If the beginning of a connection is missing, the program will not be able to
 determine if the connection is a ssh one, and will be discarded.
 
 
