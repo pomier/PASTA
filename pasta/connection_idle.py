@@ -18,7 +18,7 @@
 
 
 
-# TODO: add logging? #import logging
+import logging
 from datetime import timedelta
 
 class ConnectionIdle():
@@ -30,11 +30,16 @@ class ConnectionIdle():
 
     def __init__(self, connection):
         self.connection = connection
+        self.logger = logging.getLogger('Conn%dIdle' % connection.nb)
+
 
     def compute(self):
         """Compute the idle time"""
+        self.logger.info('Starting computation')
+
         if not self.connection.duration.total_seconds():
             # connection is empty anyway (avoid division by zero)
+            self.logger.debug('Connection is empty')
             return
         # starts to count idle times
         time_idle = timedelta() # cumul of the idle times
@@ -60,14 +65,18 @@ class ConnectionIdle():
         # save the idle time
         self.connection.idleTime = time_idle.total_seconds() \
             / self.connection.duration.total_seconds()
+        self.logger.info('Computations finished: idle is %.1f%%',self.connection.idleTime * 100)
         # FIXME: consider case where no paquet from one side hasn't been sent \
         # for a while : need to "refresh" value ?
 
                 
     def compute2(self):
         """Compute the idle time: 2nd method"""
+        self.logger.info('Starting computation')
+
         if not self.connection.duration.total_seconds():
             # connection is empty anyway (avoid division by zero)
+            self.logger.debug('Connection is empty')
             return
         # starts to count idle times
         time_idle = timedelta() # cumul of the idle times
@@ -92,6 +101,7 @@ class ConnectionIdle():
 
         self.connection.idleTime = time_idle.total_seconds() \
             / self.connection.duration.total_seconds()
+        self.logger.info('Computations finished: idle is %.1f%%',self.connection.idleTime * 100)
 
 # FIXME: we need to choose a method (or to do an average of the two ?)
 

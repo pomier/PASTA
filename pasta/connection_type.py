@@ -48,7 +48,7 @@ class ConnectionType():
 
     def compute(self):
         """Find the type of the ssh connection"""
-        self.logger.info('Start computation')
+        self.logger.info('Starting computation')
 
         # compute asymetry
         self.compute_asymetry()
