@@ -17,33 +17,37 @@ The PASTA team (also known as the Spaghetteam):
 
 REQUIREMENTS
 
+# FIXME : allowed to give links for downloads ? 
+# FIXME : To put in INSTALLATION section ?
+
 Stand alone program:
-    tshark (mandatory)
-    python v.2.7
+    tshark (mandatory) - Included in Wireshark packaged
+		       - Download page : http://www.wireshark.org/download.html
+    python v.2.7 - Download page : http://www.python.org/getit/releases/2.7/
 
 Python 2.7 libraries:
-    argparse (mandatory)
-    colorama (optional)
+    argparse (mandatory) - Download page : http://pypi.python.org/pypi/argparse
+    colorama (optional) - Download page : http://pypi.python.org/pypi/colorama
 
 
 INSTALLATION
 
-# TODO
+# TODO : complete INSTALLATION section
 
 
 DESCRIPTION
 
 PASTA is another ssh traffic analyser.
 As such, it analyses ssh connection in a capture file. Based on the traffic
-patterns, informations such as idle time or connection type are estimated.
-See the DETAILED DESCRIPTION to get more precise informations.
+patterns, information such as idle time or connection type are estimated.
+See the DETAILED DESCRIPTION to get more precise information.
 
 
 KNOWN BUGS
 
 A bug in some modified versions of argparse are making the -s and -S options
 non-exclusive. In that case, if they are used together, it would be as if -s
-is not used.
+was not used.
 
 
 USAGE
@@ -64,9 +68,9 @@ All the fields given by Pasta about the ssh connections are:
     - the number of datagrams sent by the client, and the number of bytes.
     - the number of datagrams sent by the server, and the number of bytes.
     - the idle time (a percentage representing how busy the connection was).
-    - the connexion type (tunnel, scp (up/down), shell, or reverse shell).
+    - the connection type (tunnel, scp (up/down), shell, or reverse shell).
 
-# FIXME : to complete (with Task4 too)
+# FIXME : complete DETAILED DESCRIPTION section (with Task4 too)
 
 
 WARNING
