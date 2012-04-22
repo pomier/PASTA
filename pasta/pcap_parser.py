@@ -36,14 +36,14 @@ class PcapParser:
         self.servers_protocol = {}
         self.start_time = {}
         self.end_time = {}
-        self.fileName = ""
+        self.file_name = ""
 
-    def parse(self, fileName, connections_nb=None):
+    def parse(self, file_name, connections_nb=None):
         """Parse the given pcap file and create Connection objects"""
 
         # TODO: Get partial samples on port 22
-        self.logger.info("Start to parse %s", fileName)
-        self.fileName = fileName
+        self.logger.info("Start to parse %s", file_name)
+        self.file_name = file_name
 
         ports = self.extract_ports()
 
@@ -76,7 +76,7 @@ class PcapParser:
                 self.servers_protocol[k]))
             self.logger.debug("New connection: %s", connections[-1].summary())
 
-        self.logger.info("Parsing %s finished", fileName)
+        self.logger.info("Parsing %s finished", file_name)
         return connections
 
 
@@ -87,7 +87,7 @@ class PcapParser:
 
         try:
             tshark = subprocess.Popen(
-                ["tshark", "-n", "-r", self.fileName, "-qzconv,tcp"],
+                ["tshark", "-n", "-r", self.file_name, "-qzconv,tcp"],
                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         except OSError as e:
             self._os_error(e)
@@ -112,7 +112,7 @@ class PcapParser:
         """Decode ports as ssh, and get the packets 'ssh.protocol'"""
 
         args = [
-            "tshark", "-n", "-r", self.fileName, "-Rssh.protocol",
+            "tshark", "-n", "-r", self.file_name, "-Rssh.protocol",
             "-Tfields",
             "-etcp.stream",
             "-eframe.time",
@@ -180,7 +180,7 @@ class PcapParser:
         # Read the pcap file to get the packet informations
         try:
             tshark = subprocess.Popen([
-                "tshark", "-n", "-r", self.fileName,
+                "tshark", "-n", "-r", self.file_name,
                 "-R", tshark_stream_string,
                 "-Tfields",
                 "-etcp.stream",

@@ -18,7 +18,7 @@
 
 
 
-import logging
+# TODO: add logging? #import logging
 from datetime import timedelta
 
 class ConnectionIdle():
@@ -80,11 +80,11 @@ class ConnectionIdle():
                 continue
             diff_time = datagram.time - last_datagram.time
             if datagram.sentByClient != last_datagram.sentByClient:
-                    # if there is a packet from the server followed by one of
-                    # the client, or the inverse.
-                    if diff_time > \
-                        ConnectionIdle.idle_rtt_thld * last_datagram.RTT:
-                        time_idle += diff_time
+                # if there is a packet from the server followed by one of
+                # the client, or the inverse.
+                if diff_time > \
+                    ConnectionIdle.idle_rtt_thld * last_datagram.RTT:
+                    time_idle += diff_time
             else : # the case where two following packets have the same origin.
                 if diff_time > ConnectionIdle.idle_same_origin_thld:
                     time_idle += diff_time

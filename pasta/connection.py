@@ -185,9 +185,9 @@ class Connection:
                     else:
                         # if it is not the first RTTed packet in this way
                         # do a linear interpolation of the RTT
-                        diff= datagram.RTT \
+                        diff = datagram.RTT \
                                          - last_RTT[datagram.sentByClient]
-                        diff/= 1 + len(empty_RTTs[datagram.sentByClient])
+                        diff /= 1 + len(empty_RTTs[datagram.sentByClient])
                         i = 1
                         for d in empty_RTTs[datagram.sentByClient]:
                             d.RTT = last_RTT[datagram.sentByClient] \
@@ -263,7 +263,7 @@ if __name__ == '__main__':
             datagrams = []
             seqNb = {True: random.randint(0, 10000),
                      False: random.randint(0, 10000)}
-            for i in range(10000):
+            for _ in range(10000):
                 time += timedelta(0, 0, random.randint(100000, 449999))
                 sentByClient = random.choice((True, False))
                 totalLen = random.randint(10, 100)

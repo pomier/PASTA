@@ -16,6 +16,9 @@
 # You should have received a copy of the GNU General Public License
 # along with PASTA.  If not, see <http://www.gnu.org/licenses/>.
 
+"""
+Parse the arguments and launch PASTA according to them
+"""
 
 
 if __name__ == '__main__':
@@ -64,10 +67,11 @@ if __name__ == '__main__':
     main_options = parser.add_argument_group('Main options')
     main_options.add_argument('-r', metavar='file.pcap', dest='inputFile',
                         required=True, help='filename to read from')
-    main_options.add_argument('-n', metavar='nb', dest='connection_Nb',
+    main_options.add_argument('-n', metavar='nb', dest='connection_nb',
                               type=argparse_numbers, help='procede only these '
                               'connections (e.g.: 2,4-6 shows only the second,'
-                              ' fourth, fifth and sixth connections); implies -S')
+                              ' fourth, fifth and sixth connections);'
+                              ' implies -S')
 
     display_options = parser.add_argument_group('Display options')
     display_options.add_argument('--no-colors', dest='colors',
@@ -126,7 +130,7 @@ if __name__ == '__main__':
             try:
                 handler = logging.FileHandler(args.logFile)
             except IOError as e:
-                parser.error('--logfile: %s' % e.strerror.lower())
+                parser.error('--logfile: %s' % str(e.strerror).lower())
         handler.setFormatter(formatter)
         logger.addHandler(handler)
     else:
@@ -135,14 +139,14 @@ if __name__ == '__main__':
     logger = logging.getLogger('PASTA')
     logger.info('Loggin set')
 
-    if args.connection_Nb is not None:
+    if args.connection_nb is not None:
         logger.info('Connections to be considered: %s' \
-                    % ', '.join('%d' % n for n in args.connection_Nb))
+                    % ', '.join('%d' % n for n in args.connection_nb))
     else:
         logger.info('Connections to be considered: all')
 
     # Computation of the datagrams
-    compute_datagrams = args.connection_Nb is not None
+    compute_datagrams = args.connection_nb is not None
     compute_datagrams &= not args.summary
     compute_datagrams |= not args.no_summary
     logger.info('Datagrams are %sto be computed' \
@@ -157,10 +161,10 @@ if __name__ == '__main__':
 
     # Pcap parser
     logger.info('Pcap parsing...')
-    pcapParser = PcapParser(keep_datagrams=compute_datagrams)
-    # if args.connection_Nb is an empty set, ask for all connections
-    connection_Nb = args.connection_Nb if args.connection_Nb else None
-    connections = pcapParser.parse(args.inputFile, connection_Nb)
+    pcap_parser = PcapParser(keep_datagrams=compute_datagrams)
+    # if args.connection_nb is an empty set, ask for all connections
+    connection_nb = args.connection_nb if args.connection_nb else None
+    connections = pcap_parser.parse(args.inputFile, connection_nb)
 
     # RTT
     if compute_datagrams:

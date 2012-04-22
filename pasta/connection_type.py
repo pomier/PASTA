@@ -16,11 +16,15 @@
 # You should have received a copy of the GNU General Public License
 # along with PASTA.  If not, see <http://www.gnu.org/licenses/>.
 
+"""
+Find the type of a connection based on traffic patterns
+"""
 
 
 import logging
 
 class ConnectionType():
+    """Find the type of a connection based on traffic patterns"""
 
     # Configuration constants
 
@@ -94,23 +98,23 @@ class ConnectionType():
         # default to tunnel
         self._type_found('tunnel')
 
-    def _type_found(self, typeName):
+    def _type_found(self, type_name):
         """Set the type of the connection when found"""
-        self.connection.connectionType = typeName
+        self.connection.connectionType = type_name
         self.logger.info('Computations finished: type is %s'
                 % self.connection.connectionType)
 
     def compute_asymetry(self):
         """Compute the asymetry of the connection"""
-        clientSent = float(sum(p.payloadLen for p in self.connection.datagrams
-                               if p.sentByClient))
-        serverSent = float(sum(p.payloadLen for p in self.connection.datagrams
-                               if not p.sentByClient))
-        if serverSent == 0.0:
+        client_sent = float(sum(p.payloadLen for p in self.connection.datagrams
+                                if p.sentByClient))
+        server_sent = float(sum(p.payloadLen for p in self.connection.datagrams
+                                if not p.sentByClient))
+        if server_sent == 0.0:
             # be sure not to have a division by zero error
             self.ratio_server_sent = 0.0
         else:
-            self.ratio_server_sent = serverSent / (serverSent + clientSent)
+            self.ratio_server_sent = server_sent / (server_sent + client_sent)
 
     def compute_time_to_reply(self):
         """Compute the times to reply"""
