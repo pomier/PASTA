@@ -31,7 +31,6 @@ class ConnectionIdle():
     def __init__(self, connection):
         self.connection = connection
 
-    
     def compute(self):
         """Compute the idle time"""
         if not self.connection.duration.total_seconds():
@@ -66,7 +65,7 @@ class ConnectionIdle():
 
                 
     def compute2(self):
-        """Compute the idle time : 2nd method"""
+        """Compute the idle time: 2nd method"""
         if not self.connection.duration.total_seconds():
             # connection is empty anyway (avoid division by zero)
             return
@@ -74,7 +73,7 @@ class ConnectionIdle():
         time_idle = timedelta() # cumul of the idle times
         datagrams_iterator = iter(self.connection.datagrams)
         last_datagram = datagrams_iterator.next() # first datagram
-        
+
         for datagram in datagrams_iterator:
             if not datagram.payloadLen:
                 # idle time at ssh level: ignore packets without payload
@@ -95,19 +94,16 @@ class ConnectionIdle():
             / self.connection.duration.total_seconds()
 
 # FIXME: we need to choose a method (or to do an average of the two ?)
-# TODO: unit test(s)
 
 if __name__ == '__main__':
-    
-    import unittest, random, sys
-    from datetime import datetime, timedelta
-    
+
+    import unittest, sys
+
     if sys.version_info[:2] != (2, 7):
         sys.stderr.write('PASTA must be run with Python 2.7\n')
         sys.exit(1)
-    
-    class TestConnection(unittest.TestCase):
-        random.seed(42)
-    
-    unittest.main()
 
+    class TestConnection(unittest.TestCase):
+        pass # TODO: unit test(s)
+
+    unittest.main()
