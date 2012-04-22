@@ -77,10 +77,10 @@ if __name__ == '__main__':
     group_summary = display_options.add_mutually_exclusive_group()
     group_summary.add_argument('-s', '--summary', action='store_true',
                                dest='summary', help='show only a summary of'
-                               ' the ssh connections')
+                               ' the ssh connections (fast)')
     group_summary.add_argument('-S', '--no-summary', action='store_false',
                                dest='no_summary', help='show all the'
-                               ' informations of the ssh connections')
+                               ' informations of the ssh connections (slow)')
 
     logging_options = parser.add_argument_group('Logging options')
     logging_options.add_argument('-v', '--verbose', dest='verbose',
