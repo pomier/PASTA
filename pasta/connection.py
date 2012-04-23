@@ -1,3 +1,5 @@
+#!/usr/bin/python2.7
+
 # Copyright (C) 2012 The PASTA team.
 # See the README file for the exhaustive list of authors.
 #
