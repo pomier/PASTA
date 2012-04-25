@@ -24,6 +24,7 @@ import logging
 from datetime import timedelta
 
 class ConnectionIdle():
+    """ Computes the idle time for a connection """
 
     # Configuration constants
     idle_rtt_thld = 5 # nb of RTTs for a packet to become idle
@@ -67,7 +68,8 @@ class ConnectionIdle():
         # save the idle time
         self.connection.idleTime = time_idle.total_seconds() \
             / self.connection.duration.total_seconds()
-        self.logger.info('Computations finished: idle is %.1f%%',self.connection.idleTime * 100)
+        self.logger.info('Computations finished: idle is %.1f%%', \
+                                            self.connection.idleTime * 100)
         # FIXME: consider case where no paquet from one side hasn't been sent \
         # for a while : need to "refresh" value ?
 
@@ -103,7 +105,8 @@ class ConnectionIdle():
 
         self.connection.idleTime = time_idle.total_seconds() \
             / self.connection.duration.total_seconds()
-        self.logger.info('Computations finished: idle is %.1f%%',self.connection.idleTime * 100)
+        self.logger.info('Computations finished: idle is %.1f%%', \
+                                            self.connection.idleTime * 100)
 
 # FIXME: we need to choose a method (or to do an average of the two ?)
 
@@ -116,6 +119,6 @@ if __name__ == '__main__':
         sys.exit(1)
 
     class TestConnection(unittest.TestCase):
-        pass # TODO: unit test(s)
+        pass # TODO: unit test(s) : useful in this case ?
 
     unittest.main()
