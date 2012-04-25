@@ -17,17 +17,13 @@ The PASTA team (also known as the Spaghetteam):
 
 REQUIREMENTS
 
-# FIXME : allowed to give links for downloads ? 
-# FIXME : To put in INSTALLATION section ?
-
 Stand alone program:
-    tshark (mandatory) - Included in Wireshark packaged
-		       - Download page : http://www.wireshark.org/download.html
-    python v.2.7 - Download page : http://www.python.org/getit/releases/2.7/
+    tshark (mandatory)
+    python v.2.7
 
 Python 2.7 libraries:
-    argparse (mandatory) - Download page : http://pypi.python.org/pypi/argparse
-    colorama (optional) - Download page : http://pypi.python.org/pypi/colorama
+    argparse (mandatory)
+    colorama (optional)
 
 
 INSTALLATION
