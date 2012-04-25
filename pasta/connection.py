@@ -207,6 +207,21 @@ class Connection:
             for d in empty_RTTs[way]:
                 # just recopy the RTT to the previous ones
                 d.RTT = last_RTT[way]
+        
+        #self.smooth_RTT()
+
+
+    def smooth_RTT(self):
+        from datetime import datetime, timedelta
+        
+        alpha = 0.125
+        datagrams_iterator = iter(self.datagrams)
+        last_datagram = datagrams_iterator.next()
+        for datagram in datagrams_iterator:
+            datagram.RTT = timedelta(seconds = (1 - alpha) * \
+                                     last_datagram.RTT.total_seconds() + \
+                                     alpha * datagram.RTT.total_seconds())
+            last_datagram = datagram
 
 
 class Datagram:
