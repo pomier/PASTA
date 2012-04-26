@@ -114,7 +114,7 @@ class Connection:
                     else format_protocol(self.clientProtocol, C.FBlu),
                 'unknown'
                     if self.serverProtocol is None
-                    else format_protocol(self.clientProtocol, C.FYel),
+                    else format_protocol(self.serverProtocol, C.FYel),
                 self.clientSentNbDatagrams, self.clientSentLen,
                 self.serverSentNbDatagrams, self.serverSentLen
             )
