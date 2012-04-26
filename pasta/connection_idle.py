@@ -27,22 +27,58 @@ class ConnectionIdle():
     """ Computes the idle time for a connection """
 
     # Configuration constants
+    # FIXME which one are usefull
     idle_rtt_thld = 5 # nb of RTTs for a packet to become idle
     idle_same_origin_thld = timedelta(seconds=0.5) # time between two packets \
                                         # with the same origin to become idle.
+
+    time_interval = timedelta(seconds=2) # seconds
 
     def __init__(self, connection):
         self.connection = connection
         self.logger = logging.getLogger('Conn%dIdle' % connection.nb)
 
-
     def compute(self):
-        """Compute the idle time"""
+        """
+        Compute the idle time
+
+        Simply cut the duration of the connection in intervals of fixed length
+        Idle time is the percentage of intervals with no packets with payload
+        """
+        self.logger.info('Starting computation')
+        if not self.connection.duration.total_seconds():
+            # connection is empty anyway (avoid division by zero)
+            self.logger.warning('Connection is empty')
+            return
+        intervals_total = intervals_idle = 0 # counters
+        position = self.connection.startTime # left limit of the interval
+        for datagram in self.connection.datagrams:
+            if not datagram.payloadLen:
+                # idle time at ssh level: ignore packets without payload
+                continue
+            if datagram.time < position:
+                continue # already got one packet in the interval
+            while datagram.time >= position:
+                # this interval is idle, move to the next one
+                intervals_idle += 1
+                intervals_total += 1
+                position += self.time_interval
+            # in fact, the last one was not idle but busy
+            intervals_idle -= 1
+            self.logger.debug('Busy interval: %s - %s' % \
+                    (position, position + self.time_interval))
+        self.logger.debug('Idle intervals: %d/%d' % \
+                (intervals_idle, intervals_total))
+        self.connection.idleTime = intervals_idle / float(intervals_total)
+
+
+    def compute_1(self):
+        """Compute the idle time: 1rst method"""
         self.logger.info('Starting computation')
 
         if not self.connection.duration.total_seconds():
             # connection is empty anyway (avoid division by zero)
-            self.logger.debug('Connection is empty')
+            self.logger.warning('Connection is empty')
             return
         # starts to count idle times
         time_idle = timedelta() # cumul of the idle times
@@ -80,7 +116,7 @@ class ConnectionIdle():
 
         if not self.connection.duration.total_seconds():
             # connection is empty anyway (avoid division by zero)
-            self.logger.debug('Connection is empty')
+            self.logger.warning('Connection is empty')
             return
         # starts to count idle times
         time_idle = timedelta() # cumul of the idle times
