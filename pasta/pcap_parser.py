@@ -161,10 +161,17 @@ class PcapParser:
                 # Get protocol name if available
                 protocol = p[8].decode('string-escape').strip()
                 if protocol:
+                    # see RFC 4253 part 4.2
+                    protocol = protocol.split(' ', 1)
+                    (_, ssh_version, soft_version) = protocol[0].split('-')
+                    comment = None if len(protocol) == 1 else protocol[1]
+                    infos = {'ssh_version': ssh_version,
+                            'software_version': soft_version,
+                            'comment': comment}
                     if self.clients[p[0]] == src:
-                        self.clients_protocol[p[0]] = protocol
+                        self.clients_protocol[p[0]] = infos
                     else:
-                        self.servers_protocol[p[0]] = protocol
+                        self.servers_protocol[p[0]] = infos
             except ValueError as e:
                 # catch conversions for int, datetime...
                 self._parse_error(e)

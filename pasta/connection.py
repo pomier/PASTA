@@ -83,6 +83,15 @@ class Connection:
         # TODO: other things for Task4
 
     def __repr__(self):
+        def format_protocol(protocol, color):
+            """Format the protocol for printing"""
+            s = 'ssh version %s, software version %s' % (
+                    color + protocol['ssh_version'] + C.FRes,
+                    color + protocol['software_version'] + C.FRes
+                    )
+            if protocol['comment'] is not None:
+                s += ', comment: %s' % (color + protocol['comment'] + C.FRes)
+            return s
         s = (
              'Connection %d: ' + C.FBlu + '%s' + C.FRes + ':' + C.FCya + '%d'
              + C.FRes + ' --> ' + C.FYel + '%s' + C.FRes + ':' + C.FGre
@@ -102,10 +111,10 @@ class Connection:
                 strTD(self.duration),
                 'unknown'
                     if self.clientProtocol is None
-                    else (C.FBlu + '%s' + C.FRes) % self.clientProtocol,
+                    else format_protocol(self.clientProtocol, C.FBlu),
                 'unknown'
                     if self.serverProtocol is None
-                    else (C.FYel + '%s' + C.FRes) % self.serverProtocol,
+                    else format_protocol(self.clientProtocol, C.FYel),
                 self.clientSentNbDatagrams, self.clientSentLen,
                 self.serverSentNbDatagrams, self.serverSentLen
             )
