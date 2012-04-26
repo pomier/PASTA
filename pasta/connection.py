@@ -212,16 +212,21 @@ class Connection:
 
 
     def smooth_RTT(self):
+        """Smooth the RTTs"""
+        # FIXME: fusion (way be done inside)
         from datetime import datetime, timedelta
+        # ^^^ FIXME imports: put on top of the file + remove from the unit test
         
         alpha = 0.125
-        datagrams_iterator = iter(self.datagrams)
-        last_datagram = datagrams_iterator.next()
-        for datagram in datagrams_iterator:
-            datagram.RTT = timedelta(seconds = (1 - alpha) * \
-                                     last_datagram.RTT.total_seconds() + \
-                                     alpha * datagram.RTT.total_seconds())
-            last_datagram = datagram
+        last_rtt = {True: None, False: None}
+        for datagram in self.datagrams:
+            way = datagram.sentByClient
+            if last_rtt[way] is None:
+                last_rtt[way] = datagram.RTT.total_seconds()
+            else:
+                last_rtt[way] = (1 - alpha) * last_rtt[way] + \
+                        alpha * datagram.RTT.total_seconds()
+                datagram.RTT = timedelta(seconds = last_rtt[way])
 
 
 class Datagram:
