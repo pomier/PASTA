@@ -67,8 +67,12 @@ class Connection:
         self.serverIP = serverIP # string e.g. '123.234.13.37'
         self.clientPort = clientPort # int
         self.serverPort = serverPort # int
-        self.clientProtocol = clientProtocol # None or string eg. "OpenSSH 5.3"
-        self.serverProtocol = serverProtocol # None or string eg. "OpenSSH 5.2"
+        # client and server protocol: None or dict with key-value pairs:
+        # - 'ssh_version': e.g. '2.0'
+        # - 'software_version': e.g. 'OpenSSH_5.5p1'
+        # - 'comment': None if no comment else the comment; e.g. 'Trisquel-5.5'
+        self.clientProtocol = clientProtocol
+        self.serverProtocol = serverProtocol
         self.clientSentNbDatagrams = sum(1 for p in self.datagrams
                                          if p.sentByClient)
         self.serverSentNbDatagrams = sum(1 for p in self.datagrams
