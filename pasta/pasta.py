@@ -29,6 +29,7 @@ if __name__ == '__main__':
     from colors import coloramaze
     from connection_idle import ConnectionIdle
     from connection_type import ConnectionType
+    from stepping_stone_detection_onoff import SteppingStoneDetectionOnOff
 
     # Check the right version of Python
     if sys.version_info[:2] != (2, 7):
@@ -193,3 +194,16 @@ if __name__ == '__main__':
             print '\n%s\n' % connection
         else:
             print connection.summary()
+
+    # FIXME: add arguments, make things more beautiful
+    if compute_datagrams:
+        ssdoo = SteppingStoneDetectionOnOff(connections)
+        ssdoo.compute()
+        matches = ssdoo.get_matches()
+        print 'Stepping stones detected (on-off method):'
+        if matches:
+            for c1, c2 in matches:
+                print '    %d <-> %d' % (c1.nb, c2.nb)
+        else:
+            print '    none'
+
