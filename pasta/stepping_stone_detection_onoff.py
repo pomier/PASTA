@@ -42,7 +42,7 @@ class SteppingStoneDetectionOnOff:
     GAMMA = 0.45
     # for the second restriction of matches
     MINCSC = 2
-    GAMAPRIME = 0.02
+    GAMMAPRIME = 0.02
 
     def __init__(self, connections):
         self.connections = connections
@@ -70,7 +70,6 @@ class SteppingStoneDetectionOnOff:
 
     def get_matches(self):
         """Return the matches between connections"""
-        # self.matches.sort(key=lambda c: (c[0].nb, c[1].nb)) # FIXME useless?
         return self.matches
 
     def compute_off(self):
@@ -124,4 +123,14 @@ class SteppingStoneDetectionOnOff:
 
     def second_check(self):
         """4.3 Refinements"""
-        pass # TODO
+        self.matches = [(c1, c2)
+                for (c1, c2) in self.matches
+                if self.consecutive[c1, c2] >= self.MINCSC
+                ]
+        self.matches = [(c1, c2)
+                for (c1, c2) in self.matches
+                if self.consecutive[c1, c2] >= self.GAMMAPRIME *
+                    min(len(self.off[c1]), len(self.off[c2]))
+                ]
+
+# TODO unittests
