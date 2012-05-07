@@ -32,7 +32,7 @@ from plugin import Plugin
 
 
 class SteppingStoneDetectionServerSide(Plugin):
-    
+
     # TODO: doc
 
     DESCRIPTION = '' # TODO
@@ -98,9 +98,9 @@ class SteppingStoneDetectionServerSideConnection:
             if first and datagram.sentByClient :
                 last_datagram = datagram
                 first = False
-        
+
         compt = 0.
-        
+
         for i in range(len(RTTs)) :
             if (abs(RTTs[i] - IATs[i]) / RTTs[i]) <= percentage_close:
                 compt += 1
@@ -109,15 +109,15 @@ class SteppingStoneDetectionServerSideConnection:
         if compt / len(RTTs) >= percentage_similarity:
             return True
         #plt.axis([0,len(IATs),0,0.4])
-        
+
         #plt.plot(IATs,"ro")
         #plt.plot(RTTs,"bo")
-        
+
         #plt.show()
-        
-        
+
+
         return False
-    
+
     def closest_group(self, payload, groups):
         closest = None
         for group in groups:
@@ -127,20 +127,17 @@ class SteppingStoneDetectionServerSideConnection:
                     (closest is None or abs(group - payload) < closest):
                 closest = group
         return closest
-    
+
     def update_average_possible(self, closest, groups):
         prov_average = sum(groups[closest]) / len(groups[closest])
         for group in groups:
             if abs(group - prov_average) < 5:
                 return False
         return True
-    
-    
+
     def is_PS_modally_distributed(self):
         payloads = [datagram.payloadLen for datagram in self.datagrams]
-        
         groups = {}
-        
         for payload in payloads:
             closest = self.closest_group(payload, groups)
             if closest == None:
@@ -159,18 +156,18 @@ class SteppingStoneDetectionServerSideConnection:
             if 10 * len(groups[group]) > len(payloads):
                 nb += len(groups[group])
         print "n-modulus at %.2f%%" % (float(nb) / len(payloads) * 100)
-        
+
         if nb > 0.98 * len(payloads):
             return True
-        
+
         #plt.axis([0,len(payloads),0,200])
-        
+
         #plt.plot(payloads,"ro")
         #plt.show()
-        
+
         return False
 
 
 if __name__ == '__main__':
     pass
-    #print SteppingStoneDetectionServerSide().compute()
+    #print SteppingStoneDetectionServerSideConnection().compute()
