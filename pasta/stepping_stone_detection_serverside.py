@@ -25,53 +25,43 @@ Detection of stepping stones at the server side.
 Hypothesis that Nagle's algorithm is enabled at the client.
 """
 
-from datetime import timedelta
-import matplotlib.pyplot as plt
-import numpy as np
-import logging 
+#import matplotlib.pyplot as plt
 
 class SteppingStoneDetectionServerSide:
     """
     Detection of stepping stones...
     returns true if stepping stone, false in the other case
     """
-    
-    def __init__(self,connection):
+
+    def __init__(self, connection):
         self.connection = connection
         self.datagrams = [datagram for datagram in self.connection.datagrams \
                           if datagram.sentByClient and datagram.payloadLen ]
-        print "nb packets : "+str(len(self.datagrams))
-    
+        print "nb packets : " + str(len(self.datagrams))
+
     def compute(self):
-        if self.compare_RTT_IAT():
-            #stepping stone detected
-            return True
-        else:
-            if self.is_PS_modally_distributed():
-                #stepping stone detected
-                return True
-            else:
-                #no stepping stone detected
-                return False
-    
+        """Do all the computations"""
+        return self.compare_RTT_IAT() or self.is_PS_modally_distributed()
+
     def compare_RTT_IAT(self):
         """
         compares inter-arrival times between packets from client, and
         RTTserver->client. Returns True if both are nearly equal, and False 
         in the other case.
         """
+        # FIXME: these two values should be constants of the class
         percentage_similarity = 0.8
         percentage_close = 0.15
         RTTs = [datagram.RTT.total_seconds() for datagram in self.datagrams]
-        RTTs = RTTs[1:len(RTTs)]
-        IATs=[]
+        RTTs = RTTs[1:]
+        IATs = []
         first = True
         for datagram in self.connection.datagrams:
             if not datagram.payloadLen:
-                # idle time at ssh level: ignore packets without payload
-                continue
+                continue # ignore packets without payload
             if not first and datagram.sentByClient :
-                IATs.append((datagram.time - last_datagram.time).total_seconds())
+                IATs.append(\
+                        (datagram.time - last_datagram.time).total_seconds())
                 last_datagram = datagram
             if first and datagram.sentByClient :
                 last_datagram = datagram
@@ -80,10 +70,11 @@ class SteppingStoneDetectionServerSide:
         compt = 0.
         
         for i in range(len(RTTs)) :
-            if (abs(RTTs[i]-IATs[i])/RTTs[i]) <= percentage_close:
-                compt+=1
-        print "similarity between IATs & RTTs: "+str(compt/len(RTTs)*100)+"%"
-        if compt/len(RTTs)>= percentage_similarity :
+            if (abs(RTTs[i] - IATs[i]) / RTTs[i]) <= percentage_close:
+                compt += 1
+        print "similarity between IATs & RTTs: %.2f%%" \
+                % (float(compt) / len(RTTs) * 100) 
+        if compt / len(RTTs) >= percentage_similarity:
             return True
         #plt.axis([0,len(IATs),0,0.4])
         
@@ -96,17 +87,19 @@ class SteppingStoneDetectionServerSide:
         return False
     
     def closest_group(self, payload, groups):
-        closest = 10000
+        closest = None
         for group in groups:
-            if abs(group - payload) < 5 and abs(group - payload) < closest:
+            # FIXME: what does the 5 value comes from? if it comes from
+            # some experiments, just put it as a constants of the class
+            if abs(group - payload) < 5 and \
+                    (closest is None or abs(group - payload) < closest):
                 closest = group
-        if closest == 10000 : return None
         return closest
     
-    def update_average_possible(self,closest,groups):
-        prov_average = sum(groups[closest])/len(groups[closest])
+    def update_average_possible(self, closest, groups):
+        prov_average = sum(groups[closest]) / len(groups[closest])
         for group in groups:
-            if abs(group - prov_average)<5:
+            if abs(group - prov_average) < 5:
                 return False
         return True
     
@@ -119,21 +112,23 @@ class SteppingStoneDetectionServerSide:
         for payload in payloads:
             closest = self.closest_group(payload, groups)
             if closest == None:
-                groups[payload]=[payload]
+                groups[payload] = [payload]
             else :
                 groups[closest].append(payload)
-                if self.update_average_possible(closest,groups):
-                    groups[sum(groups[closest])/len(groups[closest])] = \
+                if self.update_average_possible(closest, groups):
+                    groups[sum(groups[closest]) / len(groups[closest])] = \
                         groups[closest]
                     del groups[closest]
         #print groups
-        nb = 0.
+        nb = 0
         for group in groups :
-            if len(groups[group])*1.0/len(payloads) > 0.1 :
+            # FIXME: what does the 10 value comes from? if it comes from
+            # some experiments, just put it as a constants of the class
+            if 10 * len(groups[group]) > len(payloads):
                 nb += len(groups[group])
-        print "n-modulus at "+str(nb/len(payloads)*100)+"%"
+        print "n-modulus at %.2f%%" % (float(nb) / len(payloads) * 100)
         
-        if nb/len(payloads) > 0.98 : 
+        if nb > 0.98 * len(payloads):
             return True
         
         #plt.axis([0,len(payloads),0,200])
@@ -146,5 +141,4 @@ class SteppingStoneDetectionServerSide:
 
 if __name__ == '__main__':
     pass
-#test = SteppingStoneDetectionServerSide()
-#print test.compute()
+    #print SteppingStoneDetectionServerSide().compute()
