@@ -26,10 +26,11 @@ Parse the arguments and launch PASTA according to them
 if __name__ == '__main__':
     import logging, argparse, sys
     from pcap_parser import PcapParser
-    from colors import coloramaze
+    import colors as C
     from connection_idle import ConnectionIdle
     from connection_type import ConnectionType
     from stepping_stone_detection_onoff import SteppingStoneDetectionOnOff
+    from stepping_stone_detection_serverside import SteppingStoneDetectionServerSide
 
     # Check the right version of Python
     if sys.version_info[:2] != (2, 7):
@@ -158,7 +159,7 @@ if __name__ == '__main__':
     # Colors
     if args.colors:
         logger.info('Trying to enable colors')
-        coloramaze()
+        C.coloramaze()
     else:
         logger.info('Colors disabled')
 
@@ -195,15 +196,12 @@ if __name__ == '__main__':
         else:
             print connection.summary()
 
-    # FIXME: add arguments, make things more beautiful
+    # FIXME: add arguments, make things more beautiful, add logger calls
     if compute_datagrams and connections:
-        ssdoo = SteppingStoneDetectionOnOff(connections)
-        ssdoo.compute()
-        matches = ssdoo.get_matches()
-        print 'Stepping stones detected (on-off method):'
-        if matches:
-            for c1, c2 in matches:
-                print '    %d <-> %d' % (c1.nb, c2.nb)
-        else:
-            print '    none'
-
+        print '\n'
+        for pluging_class in (SteppingStoneDetectionOnOff,\
+                SteppingStoneDetectionServerSide):
+            print C.BYel + C.FBla + pluging_class.__name__ + C.BRes + C.FRes
+            p = pluging_class(connections)
+            p.compute()
+            print p.result() + '\n'

@@ -25,14 +25,19 @@ by Yin Zhang and Vern Paxson
 """
 
 
+from plugin import Plugin
 from datetime import timedelta
 
-class SteppingStoneDetectionOnOff:
+# TODO: logging calls
+
+class SteppingStoneDetectionOnOff(Plugin):
     """
     Detection of stepping stonnes based on the paper
         Detecting Stepping Stones
     by Yin Zhang and Vern Paxson
     """
+
+    DESCRIPTION = 'Detects connections being part of a stepping stone chain'
 
     # Control parameters (names from the paper), values are choosen from 5.6
     # for the initial computations
@@ -45,7 +50,7 @@ class SteppingStoneDetectionOnOff:
     GAMMAPRIME = 0.02
 
     def __init__(self, connections):
-        self.connections = connections
+        Plugin.__init__(self, connections)
         self.off = {}
         self.correlated = {}
         self.consecutive = {}
@@ -68,9 +73,16 @@ class SteppingStoneDetectionOnOff:
         # Second restriction of matches
         self.second_check()
 
-    def get_matches(self):
-        """Return the matches between connections"""
-        return self.matches
+    def result(self):
+        """Return the result of the computations"""
+        # FIXME: result output
+        s = 'Stepping stones detected (on-off method):'
+        if self.matches:
+            for c1, c2 in self.matches:
+                s += '\n    %d <-> %d' % (c1.nb, c2.nb)
+        else:
+            s += '\n    none'
+        return s
 
     def compute_off(self):
         """Find the off periods for each connection"""

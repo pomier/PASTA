@@ -19,15 +19,47 @@
 # along with PASTA.  If not, see <http://www.gnu.org/licenses/>.
 
 
-# FIXME : complete doc and comments+clean code
+# FIXME : complete doc and comments + clean code
+# FIXME remove all print calls (move them to logging calls?)
+
 """
 Detection of stepping stones at the server side.
 Hypothesis that Nagle's algorithm is enabled at the client.
 """
 
+from plugin import Plugin
 #import matplotlib.pyplot as plt
 
-class SteppingStoneDetectionServerSide:
+
+class SteppingStoneDetectionServerSide(Plugin):
+    
+    # TODO: doc
+
+    DESCRIPTION = '' # TODO
+
+    def __init__(self, connections):
+        Plugin.__init__(self, connections)
+        self.is_stepping_stone = {}
+
+    def compute(self):
+        """Do all the computations"""
+        for connection in self.connections:
+            ssdssc = SteppingStoneDetectionServerSideConnection(connection)
+            self.is_stepping_stone[connection] = ssdssc.is_stepping_stone()
+
+    def result(self):
+        """Return the result of the computations as a string"""
+        # FIXME: result output
+        s = 'Stepping stones detected (server-side connection method):'
+        stepping_stones = [c.nb for c in self.connections if self.is_stepping_stone[c]]
+        if stepping_stones:
+            s += '\n    ' + ', '.join(stepping_stones)
+        else:
+            s += '\n    none'
+        return s
+
+
+class SteppingStoneDetectionServerSideConnection:
     """
     Detection of stepping stones...
     returns true if stepping stone, false in the other case
@@ -39,8 +71,8 @@ class SteppingStoneDetectionServerSide:
                           if datagram.sentByClient and datagram.payloadLen ]
         print "nb packets : " + str(len(self.datagrams))
 
-    def compute(self):
-        """Do all the computations"""
+    def is_stepping_stone(self):
+        """Is the connection part of a stepping stone chain?"""
         return self.compare_RTT_IAT() or self.is_PS_modally_distributed()
 
     def compare_RTT_IAT(self):
