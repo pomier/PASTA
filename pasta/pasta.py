@@ -196,7 +196,7 @@ if __name__ == '__main__':
             print connection.summary()
 
     # FIXME: add arguments, make things more beautiful
-    if compute_datagrams:
+    if compute_datagrams and connections:
         ssdoo = SteppingStoneDetectionOnOff(connections)
         ssdoo.compute()
         matches = ssdoo.get_matches()
