@@ -23,6 +23,7 @@ Stand alone program:
 
 Python 2.7 libraries:
     argparse (mandatory)
+    yapsy (kind of mandatory)
     colorama (optional)
 
 
