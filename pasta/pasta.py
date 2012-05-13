@@ -24,18 +24,12 @@ Parse the arguments and launch PASTA according to them
 
 
 if __name__ == '__main__':
-    import logging, argparse, sys
-    from pcap_parser import PcapParser
-    import colors as C
-    from connection_idle import ConnectionIdle
-    from connection_type import ConnectionType
-    from stepping_stone_detection_onoff import SteppingStoneDetectionOnOff
-    from stepping_stone_detection_serverside import SteppingStoneDetectionServerSide
-
+    import sys
     # Check the right version of Python
     if sys.version_info[:2] != (2, 7):
         sys.stderr.write('PASTA must be run with Python 2.7\n')
         sys.exit(1)
+
 
     # Define an argparse type for range of numbers
     def argparse_numbers(txt):
@@ -55,6 +49,7 @@ if __name__ == '__main__':
         return numbers
 
     # Arguments parsing
+    import argparse
     parser = argparse.ArgumentParser(
         formatter_class=argparse.RawDescriptionHelpFormatter, description= \
         '                     ____   _    ____ _____  _\n'
@@ -90,6 +85,10 @@ if __name__ == '__main__':
                                dest='no_summary', help='show all the'
                                ' informations of the ssh connections (slow)')
 
+    plugins_options = parser.add_argument_group('Plugins options')
+    plugins_options.add_argument('--no-plugins', action='store_false',
+                               dest='plugins', help='disactivate all plugins')
+
     logging_options = parser.add_argument_group('Logging options')
     logging_options.add_argument('-v', '--verbose', dest='verbose',
                                  action='count', help='print logging messages;'
@@ -114,8 +113,10 @@ if __name__ == '__main__':
     # point, since it may create a security hole (race condition) due to the
     # time elapsed between this check and the real use of the file.
     # As a consequence, the real tests are done when the files are really used.
-    
+
+
     # Logging
+    import logging
     if args.verbose:
         if args.verbose > 4:
             parser.error('--verbose: maximum of verbosity is 4')
@@ -149,6 +150,7 @@ if __name__ == '__main__':
     else:
         logger.info('Connections to be considered: all')
 
+
     # Computation of the datagrams
     compute_datagrams = args.connection_nb is not None
     compute_datagrams &= not args.summary
@@ -156,19 +158,47 @@ if __name__ == '__main__':
     logger.info('Datagrams are %sto be computed' \
                 % ('' if compute_datagrams else 'not '))
 
+
     # Colors
+    import colors as C
     if args.colors:
         logger.info('Trying to enable colors')
         C.coloramaze()
     else:
         logger.info('Colors disabled')
 
+
+    # Loading plugins
+    if args.plugins:
+        logger.info('Loading plugins...')
+        try:
+            from yapsy.PluginManager import PluginManager
+        except ImportError:
+            parser.exit(status=3, message='PASTA plugins require yapsy.\n'
+                'You may try [sudo] easy_install-2.7 yapsy\n'
+                'Or use the option --no-plugins to disable the plugins\n')
+        from plugin import PluginConnectionsAnalyser
+        plugin_manager = PluginManager(
+                categories_filter={
+                    'ConnectionsAnalyser': PluginConnectionsAnalyser
+                    },
+                directories_list = ['plugins'], plugin_info_ext='plugin')
+        logger.info('%d plugins found' % plugin_manager.locatePlugins())
+        def loading(plugin):
+            logger.info('Loading plugin %s v.%s'
+                    % (plugin.name, plugin.version))
+        plugin_manager.loadPlugins(loading)
+    else:
+        logger.info('Plugins disabled')
+
     # Pcap parser
     logger.info('Pcap parsing...')
+    from pcap_parser import PcapParser
     pcap_parser = PcapParser(keep_datagrams=compute_datagrams)
     # if args.connection_nb is an empty set, ask for all connections
     connection_nb = args.connection_nb if args.connection_nb else None
     connections = pcap_parser.parse(args.inputFile, connection_nb)
+
 
     # RTT
     if compute_datagrams:
@@ -176,17 +206,22 @@ if __name__ == '__main__':
         for connection in connections:
             connection.compute_RTT()
 
+
     # Connection idle
     if compute_datagrams:
         logger.info('Idle time computations...')
+        from connection_idle import ConnectionIdle
         for connection in connections:
             ConnectionIdle(connection).compute()
+
 
     # Connection type
     if compute_datagrams:
         logger.info('Connection type evaluations...')
+        from connection_type import ConnectionType
         for connection in connections:
             ConnectionType(connection).compute()
+
 
     # Printing connections
     logger.info('Printing connections...')
@@ -196,12 +231,41 @@ if __name__ == '__main__':
         else:
             print connection.summary()
 
-    # FIXME: add arguments, make things more beautiful, add logger calls
-    if compute_datagrams and connections:
-        print '\n'
-        for pluging_class in (SteppingStoneDetectionOnOff,\
-                SteppingStoneDetectionServerSide):
-            print C.BYel + C.FBla + pluging_class.__name__ + C.BRes + C.FRes
-            p = pluging_class(connections)
-            p.compute()
-            print p.result() + '\n'
+
+    # ConnectionsAnalyser plugins
+    if args.plugins and compute_datagrams:
+        logger.info('Analyse connections (plugins)')
+        for plugin in plugin_manager.getPluginsOfCategory("ConnectionsAnalyser"):
+            plugin_object = plugin.plugin_object
+            logger.info('Using plugin %s' % plugin.name)
+            logger.debug('Activate to the plugin')
+            try:
+                plugin_object.activate()
+            except Exception as e:
+                logger.error('Plugin crash: %s' % e.message)
+                continue # go to the next plugin
+            logger.debug('Give the connections to the plugin')
+            try:
+                plugin_object.load_connections(connections)
+            except Exception as e:
+                logger.error('Plugin crash: %s' % e.message)
+                continue # go to the next plugin
+            logger.debug('Launch the analyse of the connections by the plugin')
+            plugin_object.analyse()
+            try:
+                plugin_object.analyse()
+            except Exception as e:
+                logger.error('Plugin crash: %s' % e.message)
+                continue # go to the next plugin
+            logger.debug('Print the result of the analyse of the plugin')
+            try:
+                print plugin_object.result()
+            except Exception as e:
+                logger.error('Plugin crash: %s' % e.message)
+                continue # go to the next plugin
+            logger.debug('Deactivate to the plugin')
+            try:
+                plugin_object.deactivate()
+            except Exception as e:
+                logger.error('Plugin crash: %s' % e.message)
+                continue # go to the next plugin

@@ -20,21 +20,34 @@
 
 """
 How plugins interract with PASTA
+The plugins should inherit some classes of this file
 """
 
-class Plugin:
-    """Plugins should inherit this class"""
+from yapsy.IPlugin import IPlugin
 
-    DESCRIPTION = '' # Description Name
+class PluginConnectionsAnalyser(IPlugin):
+    """Plugin which analyse connections"""
 
-    def __init__(self, connections):
-        """The constructor receives the connections"""
-        self.connections = connections
+    def __init__(self):
+        """Do not change this method, use activate instead"""
+        IPlugin.__init__(self)
 
-    def compute(self):
-        """Do all the computations"""
+    def activate(self):
+        """Activation of the plugin"""
+        IPlugin.activate(self)
+
+    def deactivate(self):
+        """Deactivation of the plugin"""
+        IPlugin.deactivate(self)
+
+    def load_connections(self, connections):
+        """Get all the connections"""
+        pass
+
+    def analyse(self):
+        """Analyse the connections"""
         pass
 
     def result(self):
-        """Return the result of the computations as a string"""
+        """Return the result of the analyse as a string"""
         return ''

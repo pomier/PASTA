@@ -25,19 +25,18 @@ by Yin Zhang and Vern Paxson
 """
 
 
-from plugin import Plugin
+from plugin import PluginConnectionsAnalyser
 from datetime import timedelta
 
 # TODO: logging calls
 
-class SteppingStoneDetectionOnOff(Plugin):
+class SteppingStoneDetectionOnOff(PluginConnectionsAnalyser):
     """
     Detection of stepping stonnes based on the paper
         Detecting Stepping Stones
     by Yin Zhang and Vern Paxson
     """
 
-    DESCRIPTION = 'Detects connections being part of a stepping stone chain'
 
     # Control parameters (names from the paper), values are choosen from 5.6
     # for the initial computations
@@ -49,8 +48,8 @@ class SteppingStoneDetectionOnOff(Plugin):
     MINCSC = 2
     GAMMAPRIME = 0.02
 
-    def __init__(self, connections):
-        Plugin.__init__(self, connections)
+    def load_connections(self, connections):
+        self.connections = connections
         self.off = {}
         self.correlated = {}
         self.consecutive = {}
@@ -63,8 +62,8 @@ class SteppingStoneDetectionOnOff(Plugin):
             for c2 in iterator:
                 self.matches.append((c1, c2))
 
-    def compute(self):
-        """Do all the computations"""
+    def analyse(self):
+        """Analyse the connections"""
         # Initial computations
         self.compute_off()
         self.compute_coincidences()
@@ -74,9 +73,9 @@ class SteppingStoneDetectionOnOff(Plugin):
         self.second_check()
 
     def result(self):
-        """Return the result of the computations"""
+        """Return the result of the analyse as a string"""
         # FIXME: result output
-        s = 'Stepping stones detected (on-off method):'
+        s = 'Stepping stone chains detected (on-off method):'
         if self.matches:
             for c1, c2 in self.matches:
                 s += '\n    %d <-> %d' % (c1.nb, c2.nb)
