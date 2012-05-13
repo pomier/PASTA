@@ -235,37 +235,21 @@ if __name__ == '__main__':
     # ConnectionsAnalyser plugins
     if args.plugins and compute_datagrams:
         logger.info('Analyse connections (plugins)')
-        for plugin in plugin_manager.getPluginsOfCategory("ConnectionsAnalyser"):
+        for plugin in \
+                plugin_manager.getPluginsOfCategory("ConnectionsAnalyser"):
             plugin_object = plugin.plugin_object
             logger.info('Using plugin %s' % plugin.name)
-            logger.debug('Activate to the plugin')
             try:
+                logger.debug('Activate to the plugin')
                 plugin_object.activate()
-            except Exception as e:
-                logger.error('Plugin crash: %s' % e.message)
-                continue # go to the next plugin
-            logger.debug('Give the connections to the plugin')
-            try:
+                logger.debug('Give the connections to the plugin')
                 plugin_object.load_connections(connections)
-            except Exception as e:
-                logger.error('Plugin crash: %s' % e.message)
-                continue # go to the next plugin
-            logger.debug('Launch the analyse of the connections by the plugin')
-            plugin_object.analyse()
-            try:
+                logger.debug('Launch the analyse of the connections'
+                        'by the plugin')
                 plugin_object.analyse()
-            except Exception as e:
-                logger.error('Plugin crash: %s' % e.message)
-                continue # go to the next plugin
-            logger.debug('Print the result of the analyse of the plugin')
-            try:
+                logger.debug('Print the result of the analyse of the plugin')
                 print plugin_object.result()
-            except Exception as e:
-                logger.error('Plugin crash: %s' % e.message)
-                continue # go to the next plugin
-            logger.debug('Deactivate to the plugin')
-            try:
+                logger.debug('Deactivate to the plugin')
                 plugin_object.deactivate()
             except Exception as e:
                 logger.error('Plugin crash: %s' % e.message)
-                continue # go to the next plugin
