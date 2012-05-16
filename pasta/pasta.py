@@ -182,7 +182,7 @@ if __name__ == '__main__':
                 categories_filter={
                     'ConnectionsAnalyser': PluginConnectionsAnalyser
                     },
-                directories_list = ['plugins'], plugin_info_ext='plugin')
+                directories_list = ['src/plugins'], plugin_info_ext='plugin')
         logger.info('%d plugins found' % plugin_manager.locatePlugins())
         def loading(plugin):
             logger.info('Loading plugin %s v.%s'
@@ -245,7 +245,7 @@ if __name__ == '__main__':
                 logger.debug('Give the connections to the plugin')
                 plugin_object.load_connections(connections)
                 logger.debug('Launch the analyse of the connections'
-                        'by the plugin')
+                        ' by the plugin')
                 plugin_object.analyse()
                 logger.debug('Print the result of the analyse of the plugin')
                 print plugin_object.result()
