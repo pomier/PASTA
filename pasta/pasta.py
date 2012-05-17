@@ -24,7 +24,12 @@ Parse the arguments and launch PASTA according to them
 
 
 if __name__ == '__main__':
-    import sys
+    import sys, argparse, logging, os
+    import colors as C
+    from plugin import PluginConnectionsAnalyser
+    from pcap_parser import PcapParser
+    from connection_idle import ConnectionIdle
+    from connection_type import ConnectionType
     # Check the right version of Python
     if sys.version_info[:2] != (2, 7):
         sys.stderr.write('PASTA must be run with Python 2.7\n')
@@ -49,7 +54,6 @@ if __name__ == '__main__':
         return numbers
 
     # Arguments parsing
-    import argparse
     parser = argparse.ArgumentParser(
         formatter_class=argparse.RawDescriptionHelpFormatter, description= \
         '                     ____   _    ____ _____  _\n'
@@ -116,7 +120,6 @@ if __name__ == '__main__':
 
 
     # Logging
-    import logging
     if args.verbose:
         if args.verbose > 4:
             parser.error('--verbose: maximum of verbosity is 4')
@@ -160,7 +163,6 @@ if __name__ == '__main__':
 
 
     # Colors
-    import colors as C
     if args.colors:
         logger.info('Trying to enable colors')
         C.coloramaze()
@@ -177,12 +179,13 @@ if __name__ == '__main__':
             parser.exit(status=3, message='PASTA plugins require yapsy.\n'
                 'You may try [sudo] easy_install-2.7 yapsy\n'
                 'Or use the option --no-plugins to disable the plugins\n')
-        from plugin import PluginConnectionsAnalyser
         plugin_manager = PluginManager(
                 categories_filter={
                     'ConnectionsAnalyser': PluginConnectionsAnalyser
                     },
-                directories_list = ['src/plugins'], plugin_info_ext='plugin')
+                directories_list = [os.path.join(os.path.dirname(sys.argv[0]),
+                        'plugins')],
+                plugin_info_ext='plugin')
         logger.info('%d plugins found' % plugin_manager.locatePlugins())
         def loading(plugin):
             logger.info('Loading plugin %s v.%s'
@@ -193,7 +196,6 @@ if __name__ == '__main__':
 
     # Pcap parser
     logger.info('Pcap parsing...')
-    from pcap_parser import PcapParser
     pcap_parser = PcapParser(keep_datagrams=compute_datagrams)
     # if args.connection_nb is an empty set, ask for all connections
     connection_nb = args.connection_nb if args.connection_nb else None
@@ -210,7 +212,6 @@ if __name__ == '__main__':
     # Connection idle
     if compute_datagrams:
         logger.info('Idle time computations...')
-        from connection_idle import ConnectionIdle
         for connection in connections:
             ConnectionIdle(connection).compute()
 
@@ -218,7 +219,6 @@ if __name__ == '__main__':
     # Connection type
     if compute_datagrams:
         logger.info('Connection type evaluations...')
-        from connection_type import ConnectionType
         for connection in connections:
             ConnectionType(connection).compute()
 
