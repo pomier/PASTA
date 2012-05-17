@@ -35,6 +35,27 @@ if __name__ == '__main__':
         sys.stderr.write('PASTA must be run with Python 2.7\n')
         sys.exit(1)
 
+    # Load the plugins on demand
+    def load_plugins(parser):
+        plugins = []
+        # import yapsy if needed
+        try:
+            from yapsy.PluginManager import PluginManager
+        except ImportError:
+            parser.exit(status=3, message='PASTA plugins require yapsy.\n'
+                'You may try [sudo] easy_install-2.7 yapsy\n'
+                'Or use the option --no-plugins to disable the plugins\n')
+        # create the plugin manager
+        plugin_manager = PluginManager(
+                categories_filter={
+                    'ConnectionsAnalyser': PluginConnectionsAnalyser
+                    },
+                directories_list = [os.path.join(os.path.dirname(sys.argv[0]),
+                        'plugins')],
+                plugin_info_ext='plugin')
+        plugin_manager.locatePlugins()
+        plugin_manager.loadPlugins(plugins.append)
+        return plugin_manager, plugins
 
     # Define an argparse type for range of numbers
     def argparse_numbers(txt):
@@ -57,16 +78,18 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         formatter_class=argparse.RawDescriptionHelpFormatter, description= \
         '                     ____   _    ____ _____  _\n'
-        '                    |  _ \ / \\  / ___|_   _|/ \\\n'
-        '                    | |_) / _ \\ \___ \\ | | / _ \\\n'
-        '                    |  __/ ___ \\ ___) || |/ ___ \\\n'
-        '                    |_| /_/   \_\\____/ |_/_/   \_\\\n'
+        '                    |  _ \ / \  / ___|_   _|/ \\\n'
+        '                    | |_) / _ \ \___ \ | | / _ \\\n'
+        '                    |  __/ ___ \ ___) || |/ ___ \\\n'
+        '                    |_| /_/   \_\____/ |_/_/   \_\\\n'
         '                 PASTA is another SSH traffic analyser', epilog= \
         'Examples:\n'
         '  Get an overview of the SSH traffic:\n'
         '    %(prog)s -r file.pcap\n'
         '  Select some connections and get more precise informations:\n'
         '    %(prog)s -r file.pcap -n 2,4-6', add_help=False)
+    parser_list_plugins = argparse.ArgumentParser(add_help=False)
+
     main_options = parser.add_argument_group('Main options')
     main_options.add_argument('-r', metavar='file.pcap', dest='inputFile',
                         required=True, help='filename to read from')
@@ -92,6 +115,10 @@ if __name__ == '__main__':
     plugins_options = parser.add_argument_group('Plugins options')
     plugins_options.add_argument('--no-plugins', action='store_false',
                                dest='plugins', help='disactivate all plugins')
+    plugins_options.add_argument('--list-plugins', action='store_true',
+                               dest='list_plugins', help='list the plugins')
+    parser_list_plugins.add_argument('--list-plugins', action='store_true',
+                               dest='list_plugins', help='list the plugins')
 
     logging_options = parser.add_argument_group('Logging options')
     logging_options.add_argument('-v', '--verbose', dest='verbose',
@@ -110,7 +137,25 @@ if __name__ == '__main__':
         parser.exit(message=parser.format_help())
 
     # parse arguments
-    args = parser.parse_args()
+    # first, only --list-plugins (avoid -r to be required)
+    args, remaining = parser_list_plugins.parse_known_args()
+    if args.list_plugins:
+        # TODO: really disable loggin here (next line is not enough)
+        logging.raiseExceptions = False
+        # we just want to print the list of plugins
+        _, plugins = load_plugins(parser)
+        if len(plugins) == 0:
+            print 'No plugin detected.'
+        if len(plugins) == 1:
+            print 'One plugin detected:'
+        else:
+            print '%s plugins detected:' % len(plugins)
+        for plugin in plugins:
+            print '\n%s v.%s' % (plugin.name, plugin.version)
+            print '  %s' % '\n  '.join(plugin.description.split('\n'))
+        sys.exit(0)
+    # then, the remaining
+    args = parser.parse_args(remaining)
 
     # Security notice:
     # The validity of the files used as input/output is not tested at this
@@ -142,6 +187,7 @@ if __name__ == '__main__':
         handler.setFormatter(formatter)
         logger.addHandler(handler)
     else:
+        # TODO: really disable loggin here (next line is not enough)
         logging.raiseExceptions = False
 
     logger = logging.getLogger('PASTA')
@@ -171,26 +217,12 @@ if __name__ == '__main__':
 
 
     # Loading plugins
-    if args.plugins:
+    if args.plugins or args.list_plugins:
         logger.info('Loading plugins...')
-        try:
-            from yapsy.PluginManager import PluginManager
-        except ImportError:
-            parser.exit(status=3, message='PASTA plugins require yapsy.\n'
-                'You may try [sudo] easy_install-2.7 yapsy\n'
-                'Or use the option --no-plugins to disable the plugins\n')
-        plugin_manager = PluginManager(
-                categories_filter={
-                    'ConnectionsAnalyser': PluginConnectionsAnalyser
-                    },
-                directories_list = [os.path.join(os.path.dirname(sys.argv[0]),
-                        'plugins')],
-                plugin_info_ext='plugin')
-        logger.info('%d plugins found' % plugin_manager.locatePlugins())
-        def loading(plugin):
+        plugin_manager, plugins = load_plugins(parser)
+        for plugin in plugins:
             logger.info('Loading plugin %s v.%s'
                     % (plugin.name, plugin.version))
-        plugin_manager.loadPlugins(loading)
     else:
         logger.info('Plugins disabled')
 
