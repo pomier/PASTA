@@ -26,10 +26,10 @@ Parse the arguments and launch PASTA according to them
 if __name__ == '__main__':
     import sys, argparse, logging, os
     import colors as C
-    from plugin import PluginConnectionsAnalyser
     from pcap_parser import PcapParser
     from connection_idle import ConnectionIdle
     from connection_type import ConnectionType
+
     # Check the right version of Python
     if sys.version_info[:2] != (2, 7):
         sys.stderr.write('PASTA must be run with Python 2.7\n')
@@ -40,6 +40,7 @@ if __name__ == '__main__':
         plugins = []
         # import yapsy if needed
         try:
+            from plugin import PluginConnectionsAnalyser
             from yapsy.PluginManager import PluginManager
         except ImportError:
             parser.exit(status=3, message='PASTA plugins require yapsy.\n'
