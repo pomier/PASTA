@@ -98,6 +98,9 @@ if __name__ == '__main__':
                               'connections (e.g.: 2,4-6 shows only the second,'
                               ' fourth, fifth and sixth connections);'
                               ' implies -S')
+    main_options.add_argument('--tshark', metavar='cmd', dest='tshark_cmd',
+                                 default='tshark', help='specify the tshark'
+                                 ' binary to call')
 
     display_options = parser.add_argument_group('Display options')
     display_options.add_argument('--no-colors', dest='colors',
@@ -228,7 +231,8 @@ if __name__ == '__main__':
 
     # Pcap parser
     logger.info('Pcap parsing...')
-    pcap_parser = PcapParser(keep_datagrams=compute_datagrams)
+    pcap_parser = PcapParser(keep_datagrams=compute_datagrams,
+            tshark_cmd=args.tshark_cmd)
     # if args.connection_nb is an empty set, ask for all connections
     connection_nb = args.connection_nb if args.connection_nb else None
     connections = pcap_parser.parse(args.inputFile, connection_nb)

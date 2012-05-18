@@ -27,8 +27,9 @@ import logging, subprocess, sys, errno
 class PcapParser:
     """Parser for pcap files"""
 
-    def __init__(self, keep_datagrams=True):
+    def __init__(self, keep_datagrams=True, tshark_cmd='tshark'):
         self.keep_datagrams = keep_datagrams # Boolean
+        self.tshark_cmd = tshark_cmd
         self.logger = logging.getLogger("PcapParser")
         self.streams = []
         self.datagrams = {}
@@ -89,7 +90,7 @@ class PcapParser:
 
         try:
             tshark = subprocess.Popen(
-                ["tshark", "-n", "-r", self.file_name, "-qzconv,tcp"],
+                [self.tshark_cmd, "-n", "-r", self.file_name, "-qzconv,tcp"],
                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         except OSError as e:
             self._os_error(e)
@@ -114,7 +115,7 @@ class PcapParser:
         """Decode ports as ssh, and get the packets 'ssh.protocol'"""
 
         args = [
-            "tshark", "-n", "-r", self.file_name, "-Rssh.protocol",
+            self.tshark_cmd, "-n", "-r", self.file_name, "-Rssh.protocol",
             "-Tfields",
             "-etcp.stream",
             "-eframe.time",
@@ -239,8 +240,11 @@ class PcapParser:
         """Handle an OSError exception"""
         self.logger.error('Tshark call raises OSERROR: %s' % e.strerror)
         errors = {
-            errno.ENOENT: 'Tshark is required to use PASTA',
-            errno.EACCES: 'Permission denied when executing tshark',
+            errno.ENOENT: 'Tshark is required to use PASTA\n'
+                'The tshark binary used was %s; to change it, use the'
+                ' --tshark option.' % self.tshark_cmd,
+            errno.EACCES: 'Permission denied when executing tshark\n'
+                'Make sure you can execute %s' % self.tshark_cmd,
             }
         if e.errno in errors:
             sys.stderr.write('%s\n' % errors[e.errno])
