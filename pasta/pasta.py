@@ -140,8 +140,8 @@ if __name__ == '__main__':
     # first, only --list-plugins (avoid -r to be required)
     args, remaining = parser_list_plugins.parse_known_args()
     if args.list_plugins:
-        # TODO: really disable loggin here (next line is not enough)
-        logging.raiseExceptions = False
+        # disable loggin
+        logging.disable(logging.ERROR)
         # we just want to print the list of plugins
         _, plugins = load_plugins(parser)
         if len(plugins) == 0:
@@ -187,8 +187,8 @@ if __name__ == '__main__':
         handler.setFormatter(formatter)
         logger.addHandler(handler)
     else:
-        # TODO: really disable loggin here (next line is not enough)
-        logging.raiseExceptions = False
+        # disable loggin
+        logging.disable(logging.ERROR)
 
     logger = logging.getLogger('PASTA')
     logger.info('Loggin set')
