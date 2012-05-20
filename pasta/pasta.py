@@ -286,7 +286,7 @@ if __name__ == '__main__':
                 plugin_object.analyse()
                 logger.debug('Print the result of the analyse of the plugin')
                 print '%s\n' % plugin_object.result()
-                logger.debug('Deactivate to the plugin')
+                logger.debug('Desactivate to the plugin')
                 plugin_object.deactivate()
             except Exception as e:
                 logger.error('Plugin crash: %s' % e.message)

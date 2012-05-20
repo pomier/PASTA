@@ -19,7 +19,7 @@
 # along with PASTA.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-Detection of stepping stonnes based on the paper
+Detection of stepping stones based on the paper
     Detecting Stepping Stones
 by Yin Zhang and Vern Paxson
 """
@@ -32,7 +32,7 @@ from datetime import timedelta
 
 class SteppingStoneDetectionOnOff(PluginConnectionsAnalyser):
     """
-    Detection of stepping stonnes based on the paper
+    Detection of stepping stones based on the paper
         Detecting Stepping Stones
     by Yin Zhang and Vern Paxson
     """

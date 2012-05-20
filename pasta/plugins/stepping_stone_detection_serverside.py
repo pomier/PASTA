@@ -23,38 +23,51 @@
 # FIXME remove all print calls (move them to logging calls?)
 
 """
-    Detection of stepping stones at the server side.
-    Hypothesis that Nagle's algorithm is enabled at the client.
+Detection of stepping stones at the server side based on the paper
+    Stepping Stone Detection at The Server Side
+by Ruei-Min Lin, Yi-Chun Chou, and Kuan-Ta Chen
+It is assumed that Nagle's algorithm is enabled at the client.
 """
-
+import logging
 from plugin import PluginConnectionsAnalyser
-from math import sqrt
-import matplotlib.pyplot as plt
 
 class SteppingStoneDetectionServerSide(PluginConnectionsAnalyser):
     
-    # TODO: doc
-    
-    DESCRIPTION = '' # TODO
-    
+    """
+    Detection of stepping stones at the server side based on the paper
+        Stepping Stone Detection at The Server Side
+    by Ruei-Min Lin, Yi-Chun Chou, and Kuan-Ta Chen
+    It is assumed that Nagle's algorithm is enabled at the client.
+    """
+   
     def load_connections(self, connections):
         self.connections = connections
         self.is_stepping_stone = {}
+        self.logger = logging.getLogger('SSD-ServerSide')
+
     
     def analyse(self):
         """Do all the computations"""
+        self.logger.info('Starting computation')
+
         for connection in self.connections:
-            ssdssc = SteppingStoneDetectionServerSideConnection(connection)
-            self.is_stepping_stone[connection] = ssdssc.is_stepping_stone()
-    
+            if len(connection.datagrams)>20:
+                ssdssc = SteppingStoneDetectionServerSideConnection(connection,\
+                    self.logger)
+                self.is_stepping_stone[connection] = ssdssc.is_stepping_stone()
+                self.logger.info('Is stepping stone : '+ \
+                                 str(self.is_stepping_stone[connection]))
+            else :
+                self.logger.info('Not enough datagrams in connection')
+
     def result(self):
         """Return the result of the computations as a string"""
-        # FIXME: result output
         s = 'Stepping stones detected (server-side connection method):'
         stepping_stones = [c.nb for c in self.connections if \
                            self.is_stepping_stone[c]]
+        stepping_stones = map(str,stepping_stones)
         if stepping_stones:
-            s += '\n    ' + ''.join(str(stepping_stones))
+            s += '\n    ' + ', '.join(stepping_stones)
         else:
             s += '\n    none'
         return s
@@ -62,20 +75,20 @@ class SteppingStoneDetectionServerSide(PluginConnectionsAnalyser):
 
 class SteppingStoneDetectionServerSideConnection:
     """
-        Detection of stepping stones...
-        returns true if stepping stone, false in the other case
-        """
+    Detection of stepping stones at the serverside for a connection.
+    Returns True if a stepping stone is found, False in the other case.
+    """
     
-    IAT_RTT_SIMILAR = 0.01
+    IAT_RTT_DIFFERENT = 0.01
     CLOSE_ENOUGH = 0.5
     IN_GROUP = 3
     N_MOD_DIST = 0.98
     
-    def __init__(self, connection):
+    def __init__(self, connection, logger):
+        self.logger = logger
         self.connection = connection
         self.datagrams = [datagram for datagram in self.connection.datagrams \
                           if datagram.sentByClient and datagram.payloadLen ]
-    #print "nb packets : " + str(len(self.datagrams))
     
     def is_stepping_stone(self):
         """Is the connection part of a stepping stone chain?"""
@@ -83,23 +96,23 @@ class SteppingStoneDetectionServerSideConnection:
     
     def compare_RTT_IAT(self):
         """
-            compares inter-arrival times between packets from client, and
-            RTTserver->client. Returns True if both are nearly equal, and False 
-            in the other case.
-            """
-        # FIXME: these two values should be constants of the class
-        #percentage_similarity = 0.01
-        #thld_close = 0.5
+        Compares inter-arrival times between packets from client, and
+        RTTserver->client. Returns True if both are very different, and False 
+        in the other case.
+        """
+
+        # creation of the RTTs list.
         RTTs = [datagram.RTT.total_seconds() for datagram in self.datagrams]
         RTTs = RTTs[1:]
         IATs = []
         first = True
+        # creation of the IATs list.
         for datagram in self.connection.datagrams:
             if not datagram.payloadLen:
                 continue # ignore packets without payload
             if not first and datagram.sentByClient :
                 IATs.append(\
-                            (datagram.time - last_datagram.time).total_seconds())
+                        (datagram.time - last_datagram.time).total_seconds())
                 last_datagram = datagram
             if first and datagram.sentByClient :
                 last_datagram = datagram
@@ -107,46 +120,36 @@ class SteppingStoneDetectionServerSideConnection:
         
         compt = 0.
         
+        # for each value, if the value of IAT is close enough to the one of the 
+        # RTT, increment the value of compt.
         for i in range(len(RTTs)) :
-            #print "valeurs : "+str(RTTs[i])+"   "+str(IATs[i])
-            #print "diff : " +str(RTTs[i] - IATs[i])
-            #print " / : " +str(abs((RTTs[i] - IATs[i])/RTTs[i]))
             if abs((RTTs[i] - IATs[i])/RTTs[i]) <= self.CLOSE_ENOUGH:
                 compt += 1
-        #print "similarity between IATs & RTTs: %.2f%%" \
-            #% (float(compt) / len(RTTs) * 100) 
         
-        #average_RTT = sum(RTTs)/len(RTTs)
-        #average_IAT = sum(IATs)/len(IATs)
-        #pcc_u = sum([ (RTTs[i] - average_RTT)*(IATs[i] - average_IAT) \
-        # for i in range(len(RTTs))])
-        #pcc_d = sqrt(sum([(rtt - average_RTT)**2 for rtt in RTTs])) * \
-        #sqrt(sum([(iat - average_IAT)**2 for iat in IATs]))
-        #print abs(pcc_u/pcc_d)
+        self.logger.info('Similarity between IATs & RTTs: %.2f%%' \
+            % (float(compt) / len(RTTs) * 100)) 
         
-        if compt / len(RTTs) <= self.IAT_RTT_SIMILAR:
-            return True
-        #plt.axis([0,len(IATs),0,0.4])
-        
-        #plt.plot(IATs,"ro")
-        #plt.plot(RTTs,"bo")
-        
-        #plt.show()
-        
+        # returns True if IATs & RTTs are different enough.
+        if compt / len(RTTs) <= self.IAT_RTT_DIFFERENT:
+            return True        
         
         return False
     
     def closest_group(self, payload, groups):
+        """
+        Returns the closest group for a certain payload.
+        """
         closest = None
         for group in groups:
-            # FIXME: what does the 5 value comes from? if it comes from
-            # some experiments, just put it as a constants of the class
             if abs(group - payload) <= self.IN_GROUP and \
                 (closest is None or abs(group - payload) < closest):
                     closest = group
         return closest
     
     def update_average_possible(self, closest, groups):
+        """
+        Checks if the value of the group can be updated (no superposition).
+        """
         prov_average = sum(groups[closest]) / len(groups[closest])
         for group in groups:
             if abs(group - prov_average) <= self.IN_GROUP:
@@ -154,8 +157,10 @@ class SteppingStoneDetectionServerSideConnection:
         return True
     
     def is_PS_modally_distributed(self):
+        """
+        Checks if the distribution is n-modally distributed.
+        """
         payloads = [datagram.payloadLen for datagram in self.datagrams]
-        #payloads = [185,120,125,185,125,125,180,185,125,175,180,180,180,180]
         groups = {}
         for payload in payloads:
             closest = self.closest_group(payload, groups)
@@ -169,23 +174,18 @@ class SteppingStoneDetectionServerSideConnection:
                     del groups[closest]
         nb = 0
         for group in groups :
-            # FIXME: what does the 10 value comes from? if it comes from
-            # some experiments, just put it as a constants of the class
             if 10 * len(groups[group]) > len(payloads):
                 nb += len(groups[group])
-        #print "n-modulus at %.2f%%" % (float(nb) / len(payloads) * 100)
+        
+        self.logger.info( 'n-modulus at %.2f%%' % (float(nb) / \
+                                                len(payloads) * 100 ))
         
         if nb > self.N_MOD_DIST * len(payloads):
             return True
-        
-        #plt.axis([0,len(payloads),0,max(payloads)+10])
-        
-        #plt.plot(payloads,"ro")
-        #plt.show()
-        
+                
         return False
 
 
 if __name__ == '__main__':
     pass
-#print SteppingStoneDetectionServerSideConnection().compute()
+    #print SteppingStoneDetectionServerSideConnection().compute()
