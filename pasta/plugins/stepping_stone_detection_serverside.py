@@ -78,11 +78,14 @@ class SteppingStoneDetectionServerSideConnection:
     Detection of stepping stones at the serverside for a connection.
     Returns True if a stepping stone is found, False in the other case.
     """
-    
+
     IAT_RTT_DIFFERENT = 0.01
     CLOSE_ENOUGH = 0.5
-    IN_GROUP = 3
     N_MOD_DIST = 0.98
+    MIN_SIZE = 0.1
+    
+    IN_GROUP = 3
+
     
     def __init__(self, connection, logger):
         self.logger = logger
@@ -174,7 +177,7 @@ class SteppingStoneDetectionServerSideConnection:
                     del groups[closest]
         nb = 0
         for group in groups :
-            if 10 * len(groups[group]) > len(payloads):
+            if len(groups[group]) > len(payloads) * self.MIN_SIZE :
                 nb += len(groups[group])
         
         self.logger.info( 'n-modulus at %.2f%%' % (float(nb) / \
