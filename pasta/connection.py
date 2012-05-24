@@ -83,8 +83,6 @@ class Connection:
                                  if not p.sentByClient)
         self.idleTime = None # [Task3] e.g. 0.31415 (for 31.14%)
         self.connectionType = None # [Task3] e.g. 'shell', 'ssh', 'tunnel'
-        #                           [Task4] other things
-        # TODO: other things for Task4
 
     def __repr__(self):
         def format_protocol(protocol, color):
@@ -292,7 +290,12 @@ if __name__ == '__main__':
         random.seed(42)
 
         def create_connection(self, oneway=False):
-            """Create a connection"""
+            """
+            Create a connection
+
+            10000 packets
+            RTT between 0.1 and 0.9sec
+            """
             now = datetime.now()
             time = now
             datagrams = []

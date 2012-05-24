@@ -277,7 +277,7 @@ if __name__ == '__main__':
             plugin_object = plugin.plugin_object
             logger.info('Using plugin %s' % plugin.name)
             try:
-                logger.debug('Activate to the plugin')
+                logger.debug('Activate the plugin')
                 plugin_object.activate()
                 logger.debug('Give the connections to the plugin')
                 plugin_object.load_connections(connections)
@@ -286,7 +286,7 @@ if __name__ == '__main__':
                 plugin_object.analyse()
                 logger.debug('Print the result of the analyse of the plugin')
                 print '%s\n' % plugin_object.result()
-                logger.debug('Deactivate to the plugin')
+                logger.debug('Deactivate the plugin')
                 plugin_object.deactivate()
             except Exception as e:
                 logger.error('Plugin crash: %s' % e.message)
