@@ -138,3 +138,90 @@ class ConnectionType():
                     )
             last_datagram[way] = None
             last_datagram[not way] = datagram
+
+
+if __name__ == '__main__':
+
+    import unittest, random, sys
+    from datetime import datetime, timedelta
+
+    if sys.version_info[:2] != (2, 7):
+        sys.stderr.write('PASTA must be run with Python 2.7\n')
+        sys.exit(1)
+
+    # make sure we have the same test cases each time
+    random.seed(42)
+
+    class FakeDatagram():
+
+        def __init__(self, way, payloadLen, time):
+            self.sentByClient = way
+            self.payloadLen = payloadLen
+            self.time = time
+            self.RTT = timedelta(microseconds=random.randint(500000, 900000))
+
+    class FakeConnection():
+        def __init__(self):
+            self.datagrams = []
+            self.nb = random.randint(0, 100000)
+
+        def fake_shell(self, way):
+            """Fake a shell connection"""
+            time = datetime.now()
+            for _ in xrange(10):
+                time += timedelta(microseconds=random.randint(100000, 10000000))
+                self.datagrams.append(FakeDatagram(
+                    way,
+                    random.choice((32, 48)),
+                    time))
+                time += timedelta(microseconds=random.randint(100000, 449999))
+                self.datagrams.append(FakeDatagram(
+                    not way,
+                    random.randint(0, 48),
+                    time))
+
+        def fake_scp(self, way):
+            """Fake a scp connection"""
+            time = datetime.now()
+            for _ in xrange(1000):
+                time += timedelta(microseconds=random.randint(100000, 449999))
+                self.datagrams.append(FakeDatagram(
+                    way,
+                    random.randint(48, 1024),
+                    time))
+                time += timedelta(microseconds=random.randint(100000, 449999))
+                self.datagrams.append(FakeDatagram(
+                    not way,
+                    0,
+                    time))
+
+    class TestConnectionType(unittest.TestCase):
+
+        def setUp(self):
+            self.connection = FakeConnection()
+
+        def test_shell_connection(self):
+            """Test a shell connection"""
+            self.connection.fake_shell(True)
+            ConnectionType(self.connection).compute()
+            self.assertEqual(self.connection.connectionType, 'shell')
+
+        def test_reverse_shell_connection(self):
+            """Test a reverse shell connection"""
+            self.connection.fake_shell(False)
+            ConnectionType(self.connection).compute()
+            self.assertEqual(self.connection.connectionType, 'reverse shell')
+
+        def test_scp_up_connection(self):
+            """Test a scp (up) connection"""
+            self.connection.fake_scp(True)
+            ConnectionType(self.connection).compute()
+            self.assertEqual(self.connection.connectionType, 'scp (up)')
+
+        def test_scp_down_connection(self):
+            """Test a scp (down) connection"""
+            self.connection.fake_scp(False)
+            ConnectionType(self.connection).compute()
+            self.assertEqual(self.connection.connectionType, 'scp (down)')
+
+    unittest.main()

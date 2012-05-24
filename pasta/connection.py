@@ -301,21 +301,22 @@ if __name__ == '__main__':
             datagrams = []
             seqNb = {True: random.randint(0, 10000),
                      False: random.randint(0, 10000)}
-            for _ in range(10000):
-                time += timedelta(0, 0, random.randint(100000, 449999))
+            for _ in xrange(10000):
+                time += timedelta(microseconds=random.randint(100000, 449999))
                 sentByClient = random.choice((True, False))
-                totalLen = random.randint(10, 100)
+                payloadLen = random.randint(10, 100)
+                totalLen = payloadLen + 40
                 datagrams.append(Datagram(
                     sentByClient,
                     time,
                     seqNb[sentByClient],
+                    payloadLen,
                     totalLen,
-                    totalLen + 40,
                     -1 if sentByClient and oneway else seqNb[not sentByClient]
                     ))
                 seqNb[sentByClient] += totalLen
             connection = Connection(0, datagrams, now, time - now,
-                    '1.2.3.4', '5.6.7.8', 12345, 22, 'Foo', 'Bar')
+                    '1.2.3.4', '5.6.7.8', 12345, 22, None, None)
             return connection
 
         def test_compute_RTT(self):
