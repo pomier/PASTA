@@ -26,7 +26,11 @@ Find the type of a connection based on traffic patterns
 import logging
 
 class ConnectionType():
-    """Find the type of a connection based on traffic patterns"""
+    """
+    Find the type of a connection based on traffic patterns
+
+    Uses: sentByClient, RTT, payloadLen, time
+    """
 
     # Configuration constants
 
@@ -153,7 +157,6 @@ if __name__ == '__main__':
     random.seed(42)
 
     class FakeDatagram():
-
         def __init__(self, way, payloadLen, time):
             self.sentByClient = way
             self.payloadLen = payloadLen
@@ -168,7 +171,7 @@ if __name__ == '__main__':
         def fake_shell(self, way):
             """Fake a shell connection"""
             time = datetime.now()
-            for _ in xrange(10):
+            for _ in xrange(1000):
                 time += timedelta(microseconds=random.randint(100000, 10000000))
                 self.datagrams.append(FakeDatagram(
                     way,

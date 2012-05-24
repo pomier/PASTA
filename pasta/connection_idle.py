@@ -25,7 +25,11 @@ import logging
 from datetime import timedelta
 
 class ConnectionIdle():
-    """Computes the idle time for a connection"""
+    """
+    Computes the idle time for a connection
+
+    Uses: payloadLen, time
+    """
 
     # Configuration constant
     time_interval = timedelta(seconds=2)
@@ -70,13 +74,47 @@ class ConnectionIdle():
 
 if __name__ == '__main__':
 
-    import unittest, sys
+    import unittest, random, sys
+    from datetime import datetime, timedelta
 
     if sys.version_info[:2] != (2, 7):
         sys.stderr.write('PASTA must be run with Python 2.7\n')
         sys.exit(1)
 
-    class TestConnection(unittest.TestCase):
-        pass # TODO: unit test(s) : useful in this case ?
+    # make sure we have the same test cases each time
+    random.seed(42)
+
+    class FakeDatagram():
+        def __init__(self, time):
+            self.payloadLen = random.choice((0, 32, 42, 1024))
+            self.time = time
+
+    class FakeConnection():
+        def __init__(self):
+            self.datagrams = []
+            self.duration = timedelta(seconds=random.randint(10, 1000))
+            self.startTime = datetime.now()
+            self.nb = random.randint(0, 100000)
+
+        def fake_random(self):
+            """Fake a random connection"""
+            time = self.startTime
+            for _ in xrange(1000):
+                time += timedelta(microseconds=random.randint(100000, 10000000))
+                self.datagrams.append(FakeDatagram(time))
+
+    class TestConnectionType(unittest.TestCase):
+
+        def setUp(self):
+            self.connection = FakeConnection()
+            self.connection.fake_random()
+
+        def test_idle_range(self):
+            """Check that 0 <= idle <= 1"""
+            ConnectionIdle(self.connection).compute()
+            self.assertGreaterEqual(self.connection.idleTime, 0)
+            self.assertLessEqual(self.connection.idleTime, 1)
+
+        # there is not much to test anyway, since the idle time is subjective
 
     unittest.main()
