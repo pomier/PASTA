@@ -37,21 +37,21 @@ class PcapParser:
         self.servers = {}
         self.clients_protocol = {}
         self.servers_protocol = {}
+        self.ssh_streams = {}
         self.start_time = {}
         self.end_time = {}
         self.file_name = ""
 
-    def parse(self, file_name, connections_nb=None):
+    def parse(self, file_name, connections_nb=None, only_ssh=True):
         """Parse the given pcap file and create Connection objects"""
 
-        # TODO: Get partial samples on port 22
         self.logger.info("Start to parse %s", file_name)
         self.file_name = file_name
 
         ports = self.extract_ports()
 
-        # Get the number of ssh connections streams
-        self.extract_ssh_streams(ports)
+        # get infos about the streams
+        self.extract_streams(ports, only_ssh)
 
         # Select only needed tcp streams
         if connections_nb:
@@ -76,7 +76,8 @@ class PcapParser:
                 self.clients[k][1], # Client port
                 self.servers[k][1], # Server port
                 self.clients_protocol[k],
-                self.servers_protocol[k]))
+                self.servers_protocol[k],
+                self.ssh_streams[k]))
             self.logger.debug("New connection: %s", connections[-1].summary())
 
         self.logger.info("Parsing %s finished", file_name)
@@ -111,11 +112,12 @@ class PcapParser:
         return ports
 
 
-    def extract_ssh_streams(self, ports):
+    def extract_streams(self, ports, only_ssh):
         """Decode ports as ssh, and get the packets 'ssh.protocol'"""
 
         args = [
-            self.tshark_cmd, "-n", "-r", self.file_name, "-Rssh.protocol",
+            self.tshark_cmd, "-n", "-r", self.file_name,
+            "-Rssh.protocol" if only_ssh else "-Rtcp",
             "-Tfields",
             "-etcp.stream",
             "-eframe.time",
@@ -125,7 +127,8 @@ class PcapParser:
             "-eip.dst",
             "-eipv6.dst",
             "-etcp.dstport",
-            "-essh.protocol"]
+            "-essh.protocol",
+            "-essh.message_code"]
 
         for port in ports:
             args.append("-dtcp.port==%d,ssh" % port)
@@ -140,7 +143,7 @@ class PcapParser:
             self._tshark_error(tshark.returncode, stderr)
 
         for p in [l.split("\t") for l in stdout.split("\n")]:
-            if len(p) < 9:
+            if len(p) < 10:
                 continue
 
             try:
@@ -155,9 +158,15 @@ class PcapParser:
                         p[1][:-3], "%b %d, %Y %H:%M:%S.%f")
                     self.start_time[p[0]] = time
                     self.end_time[p[0]] = time
-
                     self.clients[p[0]] = dst
                     self.servers[p[0]] = src
+                    self.clients_protocol[p[0]] = None
+                    self.servers_protocol[p[0]] = None
+                    self.ssh_streams[p[0]] = False
+
+                # if datagram detected as ssh, the sream is a ssh connection
+                if p[9]:
+                    self.ssh_streams[p[0]] = True
 
                 # Get protocol name if available
                 protocol = p[8].decode('string-escape').strip()

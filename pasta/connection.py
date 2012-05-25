@@ -57,7 +57,7 @@ class Connection:
 
     def __init__(self, nb, datagrams, startTime, duration,
                  clientIP, serverIP, clientPort, serverPort,
-                 clientProtocol, serverProtocol):
+                 clientProtocol, serverProtocol, is_ssh):
         self.nb = nb
         self.logger = logging.getLogger('Conn%d' % self.nb)
         self.datagrams = datagrams # list of Datagram instances
@@ -81,6 +81,7 @@ class Connection:
                                  if p.sentByClient)
         self.serverSentLen = sum(p.totalLen for p in self.datagrams
                                  if not p.sentByClient)
+        self.ssh = is_ssh
         self.idleTime = None # [Task3] e.g. 0.31415 (for 31.14%)
         self.connectionType = None # [Task3] e.g. 'shell', 'ssh', 'tunnel'
 
@@ -97,7 +98,7 @@ class Connection:
         s = (
              'Connection %d: ' + C.FBlu + '%s' + C.FRes + ':' + C.FCya + '%d'
              + C.FRes + ' --> ' + C.FYel + '%s' + C.FRes + ':' + C.FGre
-             + '%d' + C.FRes + '\n'
+             + '%d' + C.FRes + '\n%s'
              'Start date: %s\n'
              'Duration: %s\n'
              'Client: %s\n'
@@ -109,6 +110,8 @@ class Connection:
             ) % (
                 self.nb, self.clientIP, self.clientPort,
                 self.serverIP, self.serverPort,
+                '' if self.ssh else C.FMag +
+                    'Not detected as a ssh connection' + C.FRes + '\n',
                 self.startTime.strftime('%b %d, %Y - %H:%M:%S'),
                 strTD(self.duration),
                 'unknown'
@@ -132,10 +135,11 @@ class Connection:
     def summary(self):
         """A one-line summary of the connection"""
         s = (
-             'Connection %d: ' + C.FBlu + '%s' + C.FRes + ':' + C.FCya +
-             '%-5.d' + C.FRes + ' --> ' + C.FYel + '%s' + C.FRes + ':' + C.FGre
+             '%s Connection %-3d: ' + C.FBlu + '%16s' + C.FRes + ':' + C.FCya +
+             '%-5.d' + C.FRes + ' --> ' + C.FYel + '%16s' + C.FRes + ':' + C.FGre
              + '%-5d' + C.FRes + ' %s'
             ) % (
+                ' ' if self.ssh else C.FMag + '?' + C.FRes,
                 self.nb, self.clientIP, self.clientPort,
                 self.serverIP, self.serverPort,
                 self.startTime.strftime('%m%b%y %H:%M:%S'),
@@ -316,7 +320,7 @@ if __name__ == '__main__':
                     ))
                 seqNb[sentByClient] += totalLen
             connection = Connection(0, datagrams, now, time - now,
-                    '1.2.3.4', '5.6.7.8', 12345, 22, None, None)
+                    '1.2.3.4', '5.6.7.8', 12345, 22, None, None, True)
             return connection
 
         def test_compute_RTT(self):

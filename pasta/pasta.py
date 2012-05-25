@@ -88,7 +88,11 @@ if __name__ == '__main__':
         '  Get an overview of the SSH traffic:\n'
         '    %(prog)s -r file.pcap\n'
         '  Select some connections and get more precise informations:\n'
-        '    %(prog)s -r file.pcap -n 2,4-6', add_help=False)
+        '    %(prog)s -r file.pcap -n 2,4-6\n'
+        '  See if there is other interesting connections:\n'
+        '    %(prog)s -r file.pcap -a\n'
+        '  Use some plugin to see links between ssh and non-ssh connections:\n'
+        '    %(prog)s -r file.pcap -aS', add_help=False)
     parser_list_plugins = argparse.ArgumentParser(add_help=False)
 
     main_options = parser.add_argument_group('Main options')
@@ -99,6 +103,9 @@ if __name__ == '__main__':
                               'connections (e.g.: 2,4-6 shows only the second,'
                               ' fourth, fifth and sixth connections);'
                               ' implies -S')
+    main_options.add_argument('-a', '--all', dest='ssh_only',
+                              action='store_false', help='keep connections '
+                              'which do not look like ssh (slower)')
     main_options.add_argument('--tshark', metavar='cmd', dest='tshark_cmd',
                                  default='tshark', help='specify the tshark'
                                  ' binary to call')
@@ -111,18 +118,18 @@ if __name__ == '__main__':
     group_summary = display_options.add_mutually_exclusive_group()
     group_summary.add_argument('-s', '--summary', action='store_true',
                                dest='summary', help='show only a summary of'
-                               ' the ssh connections (fast)')
+                               ' the ssh connections (faster)')
     group_summary.add_argument('-S', '--no-summary', action='store_false',
                                dest='no_summary', help='show all the'
-                               ' informations of the ssh connections (slow)')
+                               ' informations of the ssh connections (slower)')
 
     plugins_options = parser.add_argument_group('Plugins options')
-    plugins_options.add_argument('--no-plugins', action='store_false',
-                               dest='plugins', help='disactivate all plugins')
-    plugins_options.add_argument('--list-plugins', action='store_true',
-                               dest='list_plugins', help='list the plugins')
     parser_list_plugins.add_argument('--list-plugins', action='store_true',
                                dest='list_plugins', help='list the plugins')
+    plugins_options.add_argument('--list-plugins', action='store_true',
+                               dest='list_plugins', help='list the plugins')
+    plugins_options.add_argument('--no-plugins', action='store_false',
+                               dest='plugins', help='disactivate all plugins')
 
     logging_options = parser.add_argument_group('Logging options')
     logging_options.add_argument('-v', '--verbose', dest='verbose',
@@ -236,7 +243,7 @@ if __name__ == '__main__':
             tshark_cmd=args.tshark_cmd)
     # if args.connection_nb is an empty set, ask for all connections
     connection_nb = args.connection_nb if args.connection_nb else None
-    connections = pcap_parser.parse(args.inputFile, connection_nb)
+    connections = pcap_parser.parse(args.inputFile, connection_nb, args.ssh_only)
 
 
     # RTT
