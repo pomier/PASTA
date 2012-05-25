@@ -164,7 +164,7 @@ class PcapParser:
                     self.servers_protocol[p[0]] = None
                     self.ssh_streams[p[0]] = False
 
-                # if datagram detected as ssh, the sream is a ssh connection
+                # if datagram detected as ssh, the stream is a ssh connection
                 if p[9]:
                     self.ssh_streams[p[0]] = True
 

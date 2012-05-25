@@ -75,9 +75,32 @@ if __name__ == '__main__':
                 raise argparse.ArgumentTypeError('not a valid argument')
         return numbers
 
+    # Usage
+    class PastaFormatter(argparse.RawDescriptionHelpFormatter):
+        def _format_usage(self, usage, actions, groups, prefix):
+            if prefix is None:
+                prefix = 'usage: '
+            # remove --list-plugins and -h
+            new_actions = []
+            for action in actions:
+                for suppress in ('--list-plugins', '-h'):
+                    if suppress in action.option_strings:
+                        break
+                else:
+                    new_actions.append(action)
+            # auto-generate usage
+            usage = argparse.RawDescriptionHelpFormatter._format_usage\
+                    (self, usage, new_actions, groups, prefix)
+            usage = usage.rstrip()
+            # add --list-plugins and -h
+            usage += '\n%s%s --list-plugins' % (' ' * len(prefix), self._prog)
+            usage += '\n%s%s --help' % (' ' * len(prefix), self._prog)
+            usage += '\n\n'
+            return usage
+
     # Arguments parsing
     parser = argparse.ArgumentParser(
-        formatter_class=argparse.RawDescriptionHelpFormatter, description= \
+        formatter_class=PastaFormatter, description= \
         '                     ____   _    ____ _____  _\n'
         '                    |  _ \ / \  / ___|_   _|/ \\\n'
         '                    | |_) / _ \ \___ \ | | / _ \\\n'
