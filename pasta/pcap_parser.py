@@ -115,6 +115,8 @@ class PcapParser:
     def extract_streams(self, ports, only_ssh):
         """Decode ports as ssh, and get the packets 'ssh.protocol'"""
 
+        # FIXME: in case of not only_ssh, redundant with extract_datagrams
+
         args = [
             self.tshark_cmd, "-n", "-r", self.file_name,
             "-Rssh.protocol" if only_ssh else "-Rtcp",
@@ -165,7 +167,7 @@ class PcapParser:
                     self.ssh_streams[p[0]] = False
 
                 # if datagram detected as ssh, the stream is a ssh connection
-                if p[9]:
+                if p[9] or only_ssh:
                     self.ssh_streams[p[0]] = True
 
                 # Get protocol name if available
