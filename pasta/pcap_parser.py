@@ -149,8 +149,8 @@ class PcapParser:
                 continue
 
             try:
-                src = (p[2], int(p[4])) if p[2] else (p[3], int(p[4]))
-                dst = (p[5], int(p[7])) if p[5] else (p[6], int(p[7]))
+                src = (p[2] if p[2] else p[3], int(p[4]))
+                dst = (p[5] if p[5] else p[6], int(p[7]))
 
                 if p[0] not in self.datagrams.keys():
                     # This is a new connection
@@ -160,11 +160,13 @@ class PcapParser:
                         p[1][:-3], "%b %d, %Y %H:%M:%S.%f")
                     self.start_time[p[0]] = time
                     self.end_time[p[0]] = time
-                    self.clients[p[0]] = dst
-                    self.servers[p[0]] = src
                     self.clients_protocol[p[0]] = None
                     self.servers_protocol[p[0]] = None
                     self.ssh_streams[p[0]] = False
+                    # assume the first packet of the connection
+                    # is send by the client
+                    self.clients[p[0]] = src
+                    self.servers[p[0]] = dst
 
                 # if datagram detected as ssh, the stream is a ssh connection
                 if p[9] or only_ssh:
@@ -173,6 +175,11 @@ class PcapParser:
                 # Get protocol name if available
                 protocol = p[8].decode('string-escape').strip()
                 if protocol:
+                    # if first time we see a protocol and we don't know who is
+                    # the client/server, set them
+                    if p[0] not in self.servers_protocol:
+                        self.clients[p[0]] = dst
+                        self.servers[p[0]] = src
                     # see RFC 4253 part 4.2
                     protocol = protocol.split(' ', 1)
                     (_, ssh_version, soft_version) = protocol[0].split('-')
