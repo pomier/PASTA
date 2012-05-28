@@ -177,7 +177,7 @@ class PcapParser:
                 if protocol:
                     # if first time we see a protocol and we don't know who is
                     # the client/server, set them
-                    if p[0] not in self.servers_protocol:
+                    if self.servers_protocol[p[0]] is None:
                         self.clients[p[0]] = dst
                         self.servers[p[0]] = src
                     # see RFC 4253 part 4.2
