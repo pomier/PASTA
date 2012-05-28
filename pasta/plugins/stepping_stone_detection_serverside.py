@@ -30,6 +30,7 @@ It is assumed that Nagle's algorithm is enabled at the client.
 """
 import logging
 from plugin import PluginConnectionsAnalyser
+#import matplotlib.pyplot as plt
 
 class SteppingStoneDetectionServerSide(PluginConnectionsAnalyser):
     
@@ -50,15 +51,17 @@ class SteppingStoneDetectionServerSide(PluginConnectionsAnalyser):
         """Do all the computations"""
         self.logger.info('Starting computation')
 
-        for connection in self.connections:
-            if len(connection.datagrams)>20:
-                ssdssc = SteppingStoneDetectionServerSideConnection(connection,\
+        for c in self.connections:
+            self.logger.debug('Starting computation for connect. '+str(c.nb))
+            if len(c.datagrams)>20:
+                ssdssc = SteppingStoneDetectionServerSideConnection(c,\
                     self.logger)
-                self.is_stepping_stone[connection] = ssdssc.is_stepping_stone()
-                self.logger.info('Is stepping stone : '+ \
-                                 str(self.is_stepping_stone[connection]))
+                self.is_stepping_stone[c] = ssdssc.is_stepping_stone()
+                self.logger.debug('Is stepping stone : '+ \
+                                 str(self.is_stepping_stone[c]))
             else :
-                self.logger.info('Not enough datagrams in connection')
+                self.logger.debug('Not enough datagrams in connection')
+                self.is_stepping_stone[c] = False
 
     def result(self):
         """Return the result of the computations as a string"""
@@ -95,20 +98,27 @@ class SteppingStoneDetectionServerSideConnection:
     
     def is_stepping_stone(self):
         """Is the connection part of a stepping stone chain?"""
-        return self.compare_RTT_IAT() or self.is_PS_modally_distributed()
-    
+        prov = self.compare_RTT_IAT()
+        if prov is not None :
+            return prov or self.is_PS_modally_distributed()
+        else : return False
+        
     def compare_RTT_IAT(self):
         """
         Compares inter-arrival times between packets from client, and
         RTTserver->client. Returns True if both are very different, and False 
         in the other case.
         """
-
+        self.logger.debug('Computation of RTT & IAT similarity')
         # creation of the RTTs list.
         RTTs = [datagram.RTT.total_seconds() for datagram in self.datagrams]
         RTTs = RTTs[1:]
         IATs = []
         first = True
+        if len(RTTs)<20 : 
+            self.logger.debug('Not enough useful datagrams to make calculation')
+            return None
+        
         # creation of the IATs list.
         for datagram in self.connection.datagrams:
             if not datagram.payloadLen:
@@ -123,15 +133,23 @@ class SteppingStoneDetectionServerSideConnection:
         
         compt = 0.
         
+        #plt.axis([0,len(IATs),0,1])
+        
+        #plt.plot(IATs,"ro")
+        #plt.plot(RTTs,"bo")
+        
+        #plt.show()
+        
         # for each value, if the value of IAT is close enough to the one of the 
         # RTT, increment the value of compt.
         for i in range(len(RTTs)) :
-            if abs((RTTs[i] - IATs[i])/RTTs[i]) <= self.CLOSE_ENOUGH:
+            if RTTs[i] != 0 and abs((RTTs[i] - IATs[i])/RTTs[i]) \
+                                                        <= self.CLOSE_ENOUGH:
                 compt += 1
         
-        self.logger.info('Similarity between IATs & RTTs: %.2f%%' \
-            % (float(compt) / len(RTTs) * 100)) 
-        
+        self.logger.debug('Similarity between IATs & RTTs: %.2f%%' \
+                  % (float(compt) / len(RTTs) * 100)) 
+                    
         # returns True if IATs & RTTs are different enough.
         if compt / len(RTTs) <= self.IAT_RTT_DIFFERENT:
             return True        
@@ -163,6 +181,8 @@ class SteppingStoneDetectionServerSideConnection:
         """
         Checks if the distribution is n-modally distributed.
         """
+        self.logger.debug('Checking if n-modulus distribution.')
+
         payloads = [datagram.payloadLen for datagram in self.datagrams]
         groups = {}
         for payload in payloads:
@@ -180,7 +200,7 @@ class SteppingStoneDetectionServerSideConnection:
             if len(groups[group]) > len(payloads) * self.MIN_SIZE :
                 nb += len(groups[group])
         
-        self.logger.info( 'n-modulus at %.2f%%' % (float(nb) / \
+        self.logger.debug( 'n-modulus at %.2f%%' % (float(nb) / \
                                                 len(payloads) * 100 ))
         
         if nb > self.N_MOD_DIST * len(payloads):
@@ -191,4 +211,3 @@ class SteppingStoneDetectionServerSideConnection:
 
 if __name__ == '__main__':
     pass
-    #print SteppingStoneDetectionServerSideConnection().compute()
