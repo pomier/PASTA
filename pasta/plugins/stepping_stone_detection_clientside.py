@@ -52,6 +52,7 @@ class SteppingStoneDetectionClientSide(PluginConnectionsAnalyser):
             # Low pass filter
 #            kernel = [1]
 #            low_pass = self.convolve(RTT, kernel)
+#            low_pass = RTT
 #            plt.plot(range(len(low_pass)), low_pass)
 #        plt.show()
 
@@ -144,6 +145,7 @@ class SteppingStoneDetectionClientSide(PluginConnectionsAnalyser):
         """
 
         jumps = 0
+        max_jumps = 0
 
         if len(rtt) < 6:
             return jumps
@@ -164,12 +166,12 @@ class SteppingStoneDetectionClientSide(PluginConnectionsAnalyser):
                 diff *= -1
             if diff > threshold:
                 if up:
-#                    print "New Host at %d" % (i-3)
                     jumps += 1
-                else:
-#                    print "Lost Host at %d" % (i-3)
-                    jumps += -1
-        return jumps
+                    if jumps > max_jumps:
+                        max_jumps = jumps
+                elif jumps > 0:
+                    jumps -= 1
+        return max_jumps
                 
     def compute_threshold(self, rtt):
         number = 0
