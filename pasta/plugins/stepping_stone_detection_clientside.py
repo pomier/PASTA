@@ -27,7 +27,7 @@
 # Terminal Sessions, by Jianhua Yang and Shou-Hsuan Stephen Huang
 
 from plugin import PluginConnectionsAnalyser
-#import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 
 class SteppingStoneDetectionClientSide(PluginConnectionsAnalyser):
     """
@@ -47,21 +47,21 @@ class SteppingStoneDetectionClientSide(PluginConnectionsAnalyser):
         """Do all the computations"""
         # TODO
         for connection in self.connections:
-            RTT = self.compute_matching(connection)
+            (time, RTT) = self.compute_matching(connection)
             self.hosts.append((connection, self.count_jumps(RTT)))
             # Low pass filter
-#            kernel = [1]
-#            low_pass = self.convolve(RTT, kernel)
-#            low_pass = RTT
-#            plt.plot(range(len(low_pass)), low_pass)
-#        plt.show()
+            kernel = [1]
+            #low_pass = self.convolve(RTT, kernel)
+            low_pass = RTT
+            plt.plot(range(len(low_pass)), low_pass)
+        plt.show()
 
     def result(self):
         """Return the result of the computations as a string"""
         # TODO
         s = 'Stepping stone chains detected (client method):\n'
         for r in self.hosts:
-            s += "#%d : Chain of %d hosts detected\n" % (r[0].nb+1, r[1])
+            s += "#%d : Chain of %d hosts detected\n" % (r[0].nb, r[1])
         return s
 
     def compute_matching(self, connection):
@@ -72,6 +72,7 @@ class SteppingStoneDetectionClientSide(PluginConnectionsAnalyser):
         previousSendPacket = None
         sendQ = []
         RTT = []
+        time = []
         time0 = None
 
         for p in connection.datagrams:
@@ -92,10 +93,11 @@ class SteppingStoneDetectionClientSide(PluginConnectionsAnalyser):
                 q = sendQ.pop(0) if len(sendQ) else None
                 if q and q.ack <= p.seqNb and q.seqNb < p.ack:
                     # Packets p and q are matched
-                    if (p.time - q.time).total_seconds() < 0.5:
+                    if (p.time - q.time).total_seconds() < 1:
                         RTT.append((p.time - q.time).total_seconds() * 2)
+                        time.append((p.time - time0).total_seconds())
 
-        return RTT
+        return (time, RTT)
 
 #    def clean(self, curve):
 #        result = []
