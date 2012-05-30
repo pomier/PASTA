@@ -277,10 +277,10 @@ if __name__ == '__main__':
 
 
     # Connection idle
-    if compute_datagrams:
-        logger.info('Idle time computations...')
-        for connection in connections:
-            ConnectionIdle(connection).compute()
+    #if compute_datagrams:
+    #   logger.info('Idle time computations...')
+    #    for connection in connections:
+    #       ConnectionIdle(connection).compute()
 
 
     # Connection type

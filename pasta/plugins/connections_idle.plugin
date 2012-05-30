@@ -18,10 +18,10 @@
 
 
 [Core]
-Name = Stepping Stone Detection ServerSide
-Module = stepping_stone_detection_serverside
+Name = Connections Idle
+Module = connections_idle
 
 [Documentation]
 Author = the PASTA team
 Version = 1
-Description = Detects connections at the server side using a proxy.
+Description = Calculates the Idle time for a connection.
