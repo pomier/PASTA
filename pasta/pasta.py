@@ -27,8 +27,6 @@ if __name__ == '__main__':
     import sys, argparse, logging, os
     import colors as C
     from pcap_parser import PcapParser
-    from connection_idle import ConnectionIdle
-    from connection_type import ConnectionType
 
     # Check the right version of Python
     if sys.version_info[:2] != (2, 7):
@@ -36,11 +34,11 @@ if __name__ == '__main__':
         sys.exit(1)
 
     # Load the plugins on demand
-    def load_plugins(parser):
-        plugins = []
+    def load_plugins(parser, logger=None):
         # import yapsy if needed
         try:
-            from plugin import PluginConnectionsAnalyser
+            from plugins import SingleConnectionAnalyser, \
+                    InterConnectionsAnalyser
             from yapsy.PluginManager import PluginManager
         except ImportError:
             parser.exit(status=3, message='PASTA plugins require yapsy.\n'
@@ -49,14 +47,19 @@ if __name__ == '__main__':
         # create the plugin manager
         plugin_manager = PluginManager(
                 categories_filter={
-                    'ConnectionsAnalyser': PluginConnectionsAnalyser
+                        'SingleConnectionAnalyser': SingleConnectionAnalyser,
+                        'InterConnectionsAnalyser': InterConnectionsAnalyser
                     },
                 directories_list = [os.path.join(os.path.dirname(sys.argv[0]),
                         'plugins')],
                 plugin_info_ext='plugin')
         plugin_manager.locatePlugins()
-        plugin_manager.loadPlugins(plugins.append)
-        return plugin_manager, plugins
+        def load_plugin(plugin):
+            if logger is not None:
+                logger.info('...plugin %s v.%s'
+                        % (plugin.name, plugin.version))
+        plugin_manager.loadPlugins(load_plugin)
+        return plugin_manager
 
     # Define an argparse type for range of numbers
     def argparse_numbers(txt):
@@ -177,16 +180,21 @@ if __name__ == '__main__':
         # disable loggin
         logging.disable(logging.ERROR)
         # we just want to print the list of plugins
-        _, plugins = load_plugins(parser)
-        if len(plugins) == 0:
-            print 'No plugin detected.'
-        if len(plugins) == 1:
-            print 'One plugin detected:'
-        else:
-            print '%s plugins detected:' % len(plugins)
-        for plugin in plugins:
-            print '\n%s v.%s' % (plugin.name, plugin.version)
-            print '  %s' % '\n  '.join(plugin.description.split('\n'))
+        plugin_manager = load_plugins(parser)
+        for category in plugin_manager.getCategories():
+            print ''
+            plugins = plugin_manager.getPluginsOfCategory(category)
+            if len(plugins) == 0:
+                print 'No plugin detected in category %s.' % category
+            if len(plugins) == 1:
+                print 'One plugin detected in category %s:' % category
+            else:
+                print '%s plugins detected in category %s:' \
+                    % (len(plugins), category)
+            for plugin in plugins:
+                print '\n  %s v.%s' % (plugin.name, plugin.version)
+                print '    %s' % '\n    '.join(plugin.description.split('\n'))
+            print ''
         sys.exit(0)
     # then, the remaining
     args = parser.parse_args(remaining)
@@ -253,10 +261,7 @@ if __name__ == '__main__':
     # Loading plugins
     if args.plugins or args.list_plugins:
         logger.info('Loading plugins...')
-        plugin_manager, plugins = load_plugins(parser)
-        for plugin in plugins:
-            logger.info('Loading plugin %s v.%s'
-                    % (plugin.name, plugin.version))
+        plugin_manager = load_plugins(parser, logger)
     else:
         logger.info('Plugins disabled')
 
@@ -266,7 +271,8 @@ if __name__ == '__main__':
             tshark_cmd=args.tshark_cmd)
     # if args.connection_nb is an empty set, ask for all connections
     connection_nb = args.connection_nb if args.connection_nb else None
-    connections = pcap_parser.parse(args.inputFile, connection_nb, args.ssh_only)
+    connections = pcap_parser.parse(args.inputFile, connection_nb,
+            args.ssh_only)
 
 
     # RTT
@@ -276,47 +282,60 @@ if __name__ == '__main__':
             connection.compute_RTT()
 
 
-    # Connection idle
-    #if compute_datagrams:
-    #   logger.info('Idle time computations...')
-    #    for connection in connections:
-    #       ConnectionIdle(connection).compute()
-
-
-    # Connection type
-    if compute_datagrams:
-        logger.info('Connection type evaluations...')
-        for connection in connections:
-            ConnectionType(connection).compute()
-
-
     # Printing connections
     logger.info('Printing connections...')
     for connection in connections:
-        if compute_datagrams:
-            print '\n%s\n' % connection
-        else:
+        if not compute_datagrams:
             print connection.summary()
+            break
+        print connection
+        # SingleConnectionAnalyser plugins
+        if args.plugins:
+            logger.info('Analyse connection %d (plugins)', connection.nb)
+            for plugin in plugin_manager.getPluginsOfCategory\
+                    ("SingleConnectionAnalyser"):
+                plugin_object = plugin.plugin_object
+                logger.info('Using plugin %s' % plugin.name)
+                try:
+                    logger.debug('Activate the plugin')
+                    plugin_object.activate()
+                    logger.debug('Launch the analyse of the connection'
+                            ' by the plugin')
+                    plugin_object.analyse(connection)
+                    logger.debug('Print the result of the analyse'
+                        'by the plugin')
+                    print plugin_object.result_repr()
+                    logger.debug('Deactivate the plugin')
+                    plugin_object.deactivate()
+                except Exception as e:
+                    if e.message:
+                        logger.error('Plugin crash: %s, %s' %
+                                (e.__class__.__name__, e.message))
+                    else:
+                        logger.error('Plugin crash: %s' % e.__class__.__name__)
+        print
 
-
-    # ConnectionsAnalyser plugins
+    # InterConnectionsAnalyser plugins
     if args.plugins and compute_datagrams:
-        logger.info('Analyse connections (plugins)')
-        for plugin in \
-                plugin_manager.getPluginsOfCategory("ConnectionsAnalyser"):
+        print
+        logger.info('Analyse inter-connections (plugins)')
+        for plugin in plugin_manager.getPluginsOfCategory\
+                ("InterConnectionsAnalyser"):
             plugin_object = plugin.plugin_object
             logger.info('Using plugin %s' % plugin.name)
             try:
                 logger.debug('Activate the plugin')
                 plugin_object.activate()
-                logger.debug('Give the connections to the plugin')
-                plugin_object.load_connections(connections)
                 logger.debug('Launch the analyse of the connections'
                         ' by the plugin')
-                plugin_object.analyse()
-                logger.debug('Print the result of the analyse of the plugin')
-                print '%s\n' % plugin_object.result()
+                plugin_object.analyse(connections)
+                logger.debug('Print the result of the analyse by the plugin')
+                print plugin_object.result_repr() + '\n'
                 logger.debug('Deactivate the plugin')
                 plugin_object.deactivate()
             except Exception as e:
-                logger.error('Plugin crash: %s' % e.message)
+                if e.message:
+                    logger.error('Plugin crash: %s, %s' %
+                            (e.__class__.__name__, e.message))
+                else:
+                    logger.error('Plugin crash: %s' % e.__class__.__name__)

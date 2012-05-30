@@ -19,14 +19,16 @@
 # along with PASTA.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-How plugins interract with PASTA
-The plugins should inherit some classes of this file
+Define plugin interraction with PASTA
+
+The plugins should inherit from a class of this file
 """
 
 from yapsy.IPlugin import IPlugin
 
-class PluginConnectionsAnalyser(IPlugin):
-    """Plugin which analyse connections"""
+
+class SingleConnectionAnalyser(IPlugin):
+    """Plugin which analyse a single connection"""
 
     def __init__(self):
         """Do not change this method, use activate instead"""
@@ -40,14 +42,34 @@ class PluginConnectionsAnalyser(IPlugin):
         """Deactivation of the plugin"""
         IPlugin.deactivate(self)
 
-    def load_connections(self, connections):
-        """Get all the connections"""
-        pass
+    def analyse(self, connection):
+        """Get and analyse the connections"""
+        raise NotImplementedError()
 
-    def analyse(self):
-        """Analyse the connections"""
-        pass
-
-    def result(self):
+    def result_repr(self):
         """Return the result of the analyse as a string"""
-        return ''
+        raise NotImplementedError()
+
+
+class InterConnectionsAnalyser(IPlugin):
+    """Plugin which analyse links between connections"""
+
+    def __init__(self):
+        """Do not change this method, use activate instead"""
+        IPlugin.__init__(self)
+
+    def activate(self):
+        """Activation of the plugin"""
+        IPlugin.activate(self)
+
+    def deactivate(self):
+        """Deactivation of the plugin"""
+        IPlugin.deactivate(self)
+
+    def analyse(self, connections):
+        """Get and analyse the connections"""
+        raise NotImplementedError()
+
+    def result_repr(self):
+        """Return the result of the analyse as a string"""
+        raise NotImplementedError()

@@ -29,6 +29,8 @@
 from plugin import PluginConnectionsAnalyser
 import matplotlib.pyplot as plt
 
+# FIXME: implement the plugin-related stuff
+
 class SteppingStoneDetectionClientSide(PluginConnectionsAnalyser):
     """
     Detection of stepping stones at the client side.

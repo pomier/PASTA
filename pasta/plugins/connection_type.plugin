@@ -18,10 +18,10 @@
 
 
 [Core]
-Name = Stepping Stone Detection OnOff
-Module = stepping_stone_detection_onoff
+Name = Connection type
+Module = connection_type
 
 [Documentation]
 Author = the PASTA team
 Version = 1
-Description = Detects connections being part of a stepping stone chain #FIXME
+Description = Find the type of the connection (shell, scp, tunnel, etc)

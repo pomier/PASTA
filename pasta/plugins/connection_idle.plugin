@@ -18,10 +18,10 @@
 
 
 [Core]
-Name = Connections Idle
-Module = connections_idle
+Name = Connection idle
+Module = connection_idle
 
 [Documentation]
 Author = the PASTA team
 Version = 1
-Description = Calculates the Idle time for a connection.
+Description = Compute the idle time of a connection

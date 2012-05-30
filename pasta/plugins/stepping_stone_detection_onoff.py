@@ -25,18 +25,17 @@ by Yin Zhang and Vern Paxson
 """
 
 
-from plugin import PluginConnectionsAnalyser
+from plugins import InterConnectionsAnalyser
 from datetime import timedelta
 
 # TODO: logging calls
 
-class SteppingStoneDetectionOnOff(PluginConnectionsAnalyser):
+class SteppingStoneDetectionOnOff(InterConnectionsAnalyser):
     """
     Detection of stepping stones based on the paper
         Detecting Stepping Stones
     by Yin Zhang and Vern Paxson
     """
-
 
     # Control parameters (names from the paper), values are choosen from 5.6
     # for the initial computations
@@ -48,7 +47,9 @@ class SteppingStoneDetectionOnOff(PluginConnectionsAnalyser):
     MINCSC = 2
     GAMMAPRIME = 0.02
 
-    def load_connections(self, connections):
+    def analyse(self, connections):
+        """Analyse the connections"""
+        # Init
         self.connections = connections
         self.off = {}
         self.correlated = {}
@@ -61,9 +62,6 @@ class SteppingStoneDetectionOnOff(PluginConnectionsAnalyser):
                 pass
             for c2 in iterator:
                 self.matches.append((c1, c2))
-
-    def analyse(self):
-        """Analyse the connections"""
         # Initial computations
         self.compute_off()
         self.compute_coincidences()
@@ -71,17 +69,6 @@ class SteppingStoneDetectionOnOff(PluginConnectionsAnalyser):
         self.first_check()
         # Second restriction of matches
         self.second_check()
-
-    def result(self):
-        """Return the result of the analyse as a string"""
-        # FIXME: result output
-        s = 'Stepping stone chains detected (on-off method):'
-        if self.matches:
-            for c1, c2 in self.matches:
-                s += '\n    %d <-> %d' % (c1.nb, c2.nb)
-        else:
-            s += '\n    none'
-        return s
 
     def compute_off(self):
         """Find the off periods for each connection"""
@@ -143,5 +130,16 @@ class SteppingStoneDetectionOnOff(PluginConnectionsAnalyser):
                 if self.consecutive[c1, c2] >= self.GAMMAPRIME *
                     min(len(self.off[c1]), len(self.off[c2]))
                 ]
+
+    def result_repr(self):
+        """Return the result of the analyse as a string"""
+        # FIXME: result output
+        s = 'Stepping stone chains detected (on-off method):'
+        if self.matches:
+            for c1, c2 in self.matches:
+                s += '\n    %d <-> %d' % (c1.nb, c2.nb)
+        else:
+            s += '\n    none'
+        return s
 
 # TODO unittests

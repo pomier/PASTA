@@ -123,10 +123,6 @@ class Connection:
                 self.clientSentNbDatagrams, self.clientSentLen,
                 self.serverSentNbDatagrams, self.serverSentLen
             )
-        if self.idleTime is not None:
-            s += '\nIdle time: %.1f%%' % (self.idleTime * 100)
-        if self.connectionType is not None:
-            s += '\nConnection type: %s' % self.connectionType
         return s
 
     def __str__(self):
@@ -136,18 +132,14 @@ class Connection:
         """A one-line summary of the connection"""
         s = (
              '%s Connection %-3d: ' + C.FBlu + '%16s' + C.FRes + ':' + C.FCya +
-             '%-5.d' + C.FRes + ' --> ' + C.FYel + '%16s' + C.FRes + ':' + C.FGre
-             + '%-5d' + C.FRes + ' %s'
+             '%-5.d' + C.FRes + ' --> ' + C.FYel + '%16s' + C.FRes + ':' +
+             C.FGre + '%-5d' + C.FRes + ' %s'
             ) % (
                 ' ' if self.ssh else C.FMag + '?' + C.FRes,
                 self.nb, self.clientIP, self.clientPort,
                 self.serverIP, self.serverPort,
                 self.startTime.strftime('%m%b%y %H:%M:%S'),
             )
-        if self.idleTime is not None:
-            s += ', %.1f%% idle' % (self.idleTime * 100)
-        if self.connectionType is not None:
-            s += ', %s' % self.connectionType
         return s
 
     def compute_RTT(self):

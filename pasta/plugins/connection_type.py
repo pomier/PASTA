@@ -25,6 +25,9 @@ Find the type of a connection based on traffic patterns
 
 import logging
 
+
+# FIXME: implement the plugin-related stuff
+
 class ConnectionType():
     """
     Find the type of a connection based on traffic patterns
@@ -47,6 +50,7 @@ class ConnectionType():
     scp_down_max_asymetry = 0.05 # max asymetry if client sent more
 
     def __init__(self, connection):
+        # FIXME: plugin implementation: delete this method
         self.connection = connection
         self.time_to_reply = {True: [], False: []}
         self.ratio_server_sent = 0
@@ -143,6 +147,9 @@ class ConnectionType():
             last_datagram[way] = None
             last_datagram[not way] = datagram
 
+    def result_repr(self):
+        """Return the result of the analyse as a string"""
+        return 'Connection type: %s' % self.connectionType
 
 if __name__ == '__main__':
 

@@ -23,39 +23,9 @@
 
 import logging
 from datetime import timedelta
-from plugin import PluginConnectionsAnalyser
+from plugins import SingleConnectionAnalyser
 
-class ConnectionsIdle(PluginConnectionsAnalyser):
-    
-    """
-    Computes the idle time for all connections.
-    """
-    
-    def load_connections(self, connections):
-        self.connections = connections
-        self.idletimes = []
-        self.logger = logging.getLogger('ConnIdle')
-    
-    
-    def analyse(self):
-        """Do all the computations"""
-        self.logger.info('Starting computation')
-        
-        for c in self.connections:
-                conn_idle = IdleConnection(c)
-                self.idletimes.append(conn_idle.compute())
-    
-    
-    def result(self):
-        """Return the result of the computations as a string"""
-        s = 'Idle times:'
-        for i in range(len(self.idletimes)):
-            s += '\nConnection #' + str(i+1) + ' : %.1f%%' \
-                                                    % (self.idletimes[i] * 100)
-        return s
-
-
-class IdleConnection:
+class ConnectionIdle(SingleConnectionAnalyser):
     """
     Computes the idle time for a connection
 
@@ -65,17 +35,19 @@ class IdleConnection:
     # Configuration constant
     time_interval = timedelta(seconds=2)
 
-    def __init__(self, connection):
-        self.connection = connection
-        self.logger = logging.getLogger('Conn%dIdle' % connection.nb)
+    def activate(self):
+        """Activation of the plugin"""
+        SingleConnectionAnalyser.activate(self)
+        self.logger = logging.getLogger('Conn%dIdle')
 
-    def compute(self):
+    def analyse(self, connection):
         """
         Compute the idle time
 
         Simply cut the duration of the connection in intervals of fixed length
         Idle time is the percentage of intervals with no packets with payload
         """
+        self.connection = connection
         self.logger.info('Starting computation')
         if not self.connection.duration.total_seconds():
             # connection is empty anyway (avoid division by zero)
@@ -100,8 +72,64 @@ class IdleConnection:
                     (position, position + self.time_interval))
         self.logger.debug('Idle intervals: %d/%d' % \
                 (intervals_idle, intervals_total))
-        return intervals_idle / float(intervals_total)
+        self.idleTime = intervals_idle / float(intervals_total)
+
+    def result_repr(self):
+        """Return the result of the analyse as a string"""
+        return 'Idle time: %.1f%%' % (self.idleTime * 100)
 
 
 if __name__ == '__main__':
-    pass
+
+    import unittest, random, sys
+    from datetime import datetime, timedelta
+
+    if sys.version_info[:2] != (2, 7):
+        sys.stderr.write('PASTA must be run with Python 2.7\n')
+        sys.exit(1)
+
+    # make sure we have the same test cases each time
+    random.seed(42)
+
+    class FakeDatagram():
+        def __init__(self, time):
+            self.payloadLen = random.choice((0, 32, 42, 1024))
+            self.time = time
+
+    class FakeConnection():
+        def __init__(self):
+            self.datagrams = []
+            self.duration = timedelta(seconds=random.randint(10, 1000))
+            self.startTime = datetime.now()
+            self.nb = random.randint(0, 100000)
+
+        def fake_random(self):
+            """Fake a random connection"""
+            time = self.startTime
+            for _ in xrange(1000):
+                time += timedelta(microseconds=random.randint(100000, 10000000))
+                self.datagrams.append(FakeDatagram(time))
+
+    class TestConnectionType(unittest.TestCase):
+
+        def setUp(self):
+            """Done before every test"""
+            self.connection = FakeConnection()
+            self.connection.fake_random()
+            self.connection_idle = ConnectionIdle()
+            self.connection_idle.activate()
+
+        def tearDown(self):
+            """Done after every test"""
+            self.connection_idle.deactivate()
+
+
+        def test_idle_range(self):
+            """Check that 0 <= idle <= 1"""
+            self.connection_idle.analyse(self.connection)
+            self.assertGreaterEqual(self.connection_idle.idleTime, 0)
+            self.assertLessEqual(self.connection_idle.idleTime, 1)
+
+        # there is not much to test anyway, since the idle time is subjective
+
+    unittest.main()

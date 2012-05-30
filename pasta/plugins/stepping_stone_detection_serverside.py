@@ -32,6 +32,8 @@ import logging
 from plugin import PluginConnectionsAnalyser
 #import matplotlib.pyplot as plt
 
+# FIXME: implement the plugin-related stuff
+
 class SteppingStoneDetectionServerSide(PluginConnectionsAnalyser):
     
     """
