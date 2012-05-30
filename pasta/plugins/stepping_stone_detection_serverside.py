@@ -68,11 +68,10 @@ class SteppingStoneDetectionServerSide(PluginConnectionsAnalyser):
     def result(self):
         """Return the result of the computations as a string"""
         s = 'Stepping stones detected (server-side connection method):'
-        stepping_stones = [c.nb for c in self.connections if \
-                           self.is_stepping_stone[c]]
-        stepping_stones = map(str,stepping_stones)
+        stepping_stones = ['\n    Connection #'+str(c.nb) for c in \
+                                self.connections if self.is_stepping_stone[c]]
         if stepping_stones:
-            s += '\n    ' + ', '.join(stepping_stones)
+            s += ''.join(stepping_stones)
         else:
             s += '\n    none'
         return s
