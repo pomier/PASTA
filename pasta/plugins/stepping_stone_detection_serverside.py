@@ -76,12 +76,12 @@ class SteppingStoneDetectionServerSide(SingleConnectionAnalyser):
 
     def is_stepping_stone(self):
         """Is the connection part of a stepping stone chain?"""
-        prov = self.compare_RTT_IAT()
+        prov = self.compare_rtt_iat()
         if prov is not None :
-            return prov or self.is_PS_modally_distributed()
+            return prov or self.is_modally_distributed()
         else : return False
         
-    def compare_RTT_IAT(self):
+    def compare_rtt_iat(self):
         """
         Compares inter-arrival times between packets from client, and
         RTTserver->client. Returns True if both are very different, and False 
@@ -89,13 +89,13 @@ class SteppingStoneDetectionServerSide(SingleConnectionAnalyser):
         """
         self.logger.debug('Computation of RTT & IAT similarity')
         # creation of the RTTs list.
-        RTTs = [datagram.RTT.total_seconds() for datagram in self.datagrams]
-        RTTs = RTTs[1:]
-        IATs = []
+        rtts = [datagram.RTT.total_seconds() for datagram in self.datagrams]
+        rtts = rtts[1:]
+        iats = []
         first = True
         last_datagram = None
         
-        if len(RTTs)<20 : 
+        if len(rtts)<20 : 
             self.logger.debug('Not enough useful datagrams to make calculation')
             self.details = '(not enough useful datagrams to make calculation)'
             return None
@@ -105,7 +105,7 @@ class SteppingStoneDetectionServerSide(SingleConnectionAnalyser):
             if not datagram.payloadLen:
                 continue # ignore packets without payload
             if not first and datagram.sentByClient :
-                IATs.append(\
+                iats.append(\
                         (datagram.time - last_datagram.time).total_seconds())
                 last_datagram = datagram
             if first and datagram.sentByClient :
@@ -114,25 +114,25 @@ class SteppingStoneDetectionServerSide(SingleConnectionAnalyser):
         
         compt = 0.
         
-        #plt.axis([0,len(IATs),0,1])
+        #plt.axis([0,len(iats),0,1])
         
-        #plt.plot(IATs,"ro")
-        #plt.plot(RTTs,"bo")
+        #plt.plot(iats,"ro")
+        #plt.plot(rtts,"bo")
         
         #plt.show()
         
         # for each value, if the value of IAT is close enough to the one of the 
         # RTT, increment the value of compt.
-        for i in range(len(RTTs)) :
-            if RTTs[i] != 0 and abs((RTTs[i] - IATs[i])/RTTs[i]) \
+        for i in range(len(rtts)) :
+            if rtts[i] != 0 and abs((rtts[i] - iats[i])/rtts[i]) \
                                                         <= self.CLOSE_ENOUGH:
                 compt += 1
         
         self.logger.debug('Similarity between IATs & RTTs: %.2f%%' \
-                  % (float(compt) / len(RTTs) * 100)) 
+                  % (float(compt) / len(rtts) * 100)) 
                     
         # returns True if IATs & RTTs are different enough.
-        if compt / len(RTTs) <= self.IAT_RTT_DIFFERENT:
+        if compt / len(rtts) <= self.IAT_RTT_DIFFERENT:
             return True        
         
         return False
@@ -158,7 +158,7 @@ class SteppingStoneDetectionServerSide(SingleConnectionAnalyser):
                 return False
         return True
     
-    def is_PS_modally_distributed(self):
+    def is_modally_distributed(self):
         """
         Checks if the distribution is n-modally distributed.
         """

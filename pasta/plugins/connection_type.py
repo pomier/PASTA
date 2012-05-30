@@ -24,11 +24,9 @@ Find the type of a connection based on traffic patterns
 
 
 import logging
+from plugins import SingleConnectionAnalyser
 
-
-# FIXME: implement the plugin-related stuff
-
-class ConnectionType():
+class ConnectionType(SingleConnectionAnalyser):
     """
     Find the type of a connection based on traffic patterns
 
@@ -49,15 +47,14 @@ class ConnectionType():
     scp_up_min_asymetry = 0.95 # min asymetry if server sent more
     scp_down_max_asymetry = 0.05 # max asymetry if client sent more
 
-    def __init__(self, connection):
-        # FIXME: plugin implementation: delete this method
+    def analyse(self, connection):
+        """Find the type of the ssh connection"""
+        
         self.connection = connection
+        self.connectionType = None
         self.time_to_reply = {True: [], False: []}
         self.ratio_server_sent = 0
         self.logger = logging.getLogger('Conn%dType' % connection.nb)
-
-    def compute(self):
-        """Find the type of the ssh connection"""
         self.logger.info('Starting computation')
 
         # compute asymetry
@@ -69,7 +66,7 @@ class ConnectionType():
                               ' (min %.2f required)' % (self.ratio_server_sent,
                                   ConnectionType.scp_up_min_asymetry))
             if self.ratio_server_sent >= ConnectionType.scp_up_min_asymetry:
-                self._type_found('scp (down)')
+                self.connectionType = 'scp (down)'
                 return
         else:
             # scp (up)
@@ -77,7 +74,7 @@ class ConnectionType():
                               ' (max %.2f required)' % (self.ratio_server_sent,
                                   ConnectionType.scp_down_max_asymetry))
             if self.ratio_server_sent <= ConnectionType.scp_down_max_asymetry:
-                self._type_found('scp (up)')
+                self.connectionType = 'scp (up)'
                 return
 
         # compute time to reply
@@ -102,17 +99,12 @@ class ConnectionType():
                         % (name[way], ratio, min_replies[way]))
                 # given the ratio, make the decision
                 if ratio >= min_replies[way]:
-                    self._type_found(name[way])
+                    self.connectionType = name[way]
                     return
-
+    
         # default to tunnel
-        self._type_found('tunnel')
-
-    def _type_found(self, type_name):
-        """Set the type of the connection when found"""
-        self.connection.connectionType = type_name
-        self.logger.info('Computations finished: type is %s'
-                % self.connection.connectionType)
+        self.connectionType = 'tunnel'
+        return
 
     def compute_asymetry(self):
         """Compute the asymetry of the connection"""
@@ -149,6 +141,9 @@ class ConnectionType():
 
     def result_repr(self):
         """Return the result of the analyse as a string"""
+        self.logger.info('Computations finished: type is %s'
+                                            % self.connection.connectionType)
+
         return 'Connection type: %s' % self.connectionType
 
 if __name__ == '__main__':
@@ -213,25 +208,25 @@ if __name__ == '__main__':
         def test_shell_connection(self):
             """Test a shell connection"""
             self.connection.fake_shell(True)
-            ConnectionType(self.connection).compute()
+            ConnectionType(self.connection).analyse()
             self.assertEqual(self.connection.connectionType, 'shell')
 
         def test_reverse_shell_connection(self):
             """Test a reverse shell connection"""
             self.connection.fake_shell(False)
-            ConnectionType(self.connection).compute()
+            ConnectionType(self.connection).analyse()
             self.assertEqual(self.connection.connectionType, 'reverse shell')
 
         def test_scp_up_connection(self):
             """Test a scp (up) connection"""
             self.connection.fake_scp(True)
-            ConnectionType(self.connection).compute()
+            ConnectionType(self.connection).analyse()
             self.assertEqual(self.connection.connectionType, 'scp (up)')
 
         def test_scp_down_connection(self):
             """Test a scp (down) connection"""
             self.connection.fake_scp(False)
-            ConnectionType(self.connection).compute()
+            ConnectionType(self.connection).analyse()
             self.assertEqual(self.connection.connectionType, 'scp (down)')
 
     unittest.main()
