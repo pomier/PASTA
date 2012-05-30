@@ -19,8 +19,7 @@
 # along with PASTA.  If not, see <http://www.gnu.org/licenses/>.
 
 
-# FIXME : complete doc and comments + clean code
-# FIXME remove all print calls (move them to logging calls?)
+# FIXME : clean code + complete comments
 
 """
 Detection of stepping stones at the server side based on the paper
@@ -29,12 +28,10 @@ by Ruei-Min Lin, Yi-Chun Chou, and Kuan-Ta Chen
 It is assumed that Nagle's algorithm is enabled at the client.
 """
 import logging
-from plugin import PluginConnectionsAnalyser
+from plugins import SingleConnectionAnalyser
 #import matplotlib.pyplot as plt
 
-# FIXME: implement the plugin-related stuff
-
-class SteppingStoneDetectionServerSide(PluginConnectionsAnalyser):
+class SteppingStoneDetectionServerSide(SingleConnectionAnalyser):
     
     """
     Detection of stepping stones at the server side based on the paper
@@ -42,61 +39,41 @@ class SteppingStoneDetectionServerSide(PluginConnectionsAnalyser):
     by Ruei-Min Lin, Yi-Chun Chou, and Kuan-Ta Chen
     It is assumed that Nagle's algorithm is enabled at the client.
     """
-   
-    def load_connections(self, connections):
-        self.connections = connections
-        self.is_stepping_stone = {}
-        self.logger = logging.getLogger('SSD-ServerSide')
-
     
-    def analyse(self):
-        """Do all the computations"""
-        self.logger.info('Starting computation')
-
-        for c in self.connections:
-            self.logger.debug('Starting computation for connect. '+str(c.nb))
-            if len(c.datagrams)>20:
-                ssdssc = SteppingStoneDetectionServerSideConnection(c,\
-                    self.logger)
-                self.is_stepping_stone[c] = ssdssc.is_stepping_stone()
-                self.logger.debug('Is stepping stone : '+ \
-                                 str(self.is_stepping_stone[c]))
-            else :
-                self.logger.debug('Not enough datagrams in connection')
-                self.is_stepping_stone[c] = False
-
-    def result(self):
-        """Return the result of the computations as a string"""
-        s = 'Stepping stones detected (server-side connection method):'
-        stepping_stones = ['\n    Connection #'+str(c.nb) for c in \
-                                self.connections if self.is_stepping_stone[c]]
-        if stepping_stones:
-            s += ''.join(stepping_stones)
-        else:
-            s += '\n    none'
-        return s
-
-
-class SteppingStoneDetectionServerSideConnection:
-    """
-    Detection of stepping stones at the serverside for a connection.
-    Returns True if a stepping stone is found, False in the other case.
-    """
-
     IAT_RTT_DIFFERENT = 0.01
     CLOSE_ENOUGH = 0.5
     N_MOD_DIST = 0.98
     MIN_SIZE = 0.1
     
     IN_GROUP = 3
+   
+    def activate(self):
+        self.logger = logging.getLogger('SSDServerS')
 
-    
-    def __init__(self, connection, logger):
-        self.logger = logger
+    def analyse(self, connection):
+        """Do all the computations"""
         self.connection = connection
+        self.stepping_stone = False
+        self.details = ''
+
         self.datagrams = [datagram for datagram in self.connection.datagrams \
-                          if datagram.sentByClient and datagram.payloadLen ]
-    
+                              if datagram.sentByClient and datagram.payloadLen ]
+
+        self.logger.debug('Starting computation for connect. #'+\
+                                                        str(self.connection.nb))
+        if len(self.connection.datagrams)>20:
+            self.stepping_stone = self.is_stepping_stone()
+            self.logger.debug('Stepping stone detected: '+ \
+                                                    str(self.is_stepping_stone))
+        else :
+            self.logger.debug('Not enough datagrams in connection')
+            self.details = '(not enough datagrams in connection)'
+
+    def result_repr(self):
+        """Return the result of the computations as a string"""
+        s = 'Stepping stone detected (server-side): '
+        return s+str(self.stepping_stone)+' '+self.details
+
     def is_stepping_stone(self):
         """Is the connection part of a stepping stone chain?"""
         prov = self.compare_RTT_IAT()
@@ -116,8 +93,11 @@ class SteppingStoneDetectionServerSideConnection:
         RTTs = RTTs[1:]
         IATs = []
         first = True
+        last_datagram = None
+        
         if len(RTTs)<20 : 
             self.logger.debug('Not enough useful datagrams to make calculation')
+            self.details = '(not enough useful datagrams to make calculation)'
             return None
         
         # creation of the IATs list.
@@ -164,8 +144,8 @@ class SteppingStoneDetectionServerSideConnection:
         closest = None
         for group in groups:
             if abs(group - payload) <= self.IN_GROUP and \
-                (closest is None or abs(group - payload) < closest):
-                    closest = group
+                    (closest is None or abs(group - payload) < closest):
+                closest = group
         return closest
     
     def update_average_possible(self, closest, groups):

@@ -37,8 +37,7 @@ class ConnectionIdle(SingleConnectionAnalyser):
 
     def activate(self):
         """Activation of the plugin"""
-        SingleConnectionAnalyser.activate(self)
-        self.logger = logging.getLogger('Conn%dIdle')
+        self.logger = logging.getLogger('ConnIdle')
 
     def analyse(self, connection):
         """
