@@ -18,10 +18,9 @@
 # You should have received a copy of the GNU General Public License
 # along with PASTA.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Computes the idle time for a connection"""
+"""Display the protocol version used by client and server"""
 
 
-import logging
 from plugins import SingleConnectionAnalyser
 import colors as C
 
