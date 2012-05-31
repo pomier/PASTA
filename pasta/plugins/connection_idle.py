@@ -123,7 +123,6 @@ if __name__ == '__main__':
             """Done after every test"""
             self.connection_idle.deactivate()
 
-
         def test_idle_range(self):
             """Check that 0 <= idle <= 1"""
             self.connection_idle.analyse(self.connection)

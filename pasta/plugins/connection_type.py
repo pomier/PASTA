@@ -206,30 +206,38 @@ if __name__ == '__main__':
     class TestConnectionType(unittest.TestCase):
 
         def setUp(self):
+            """Done before every test"""
             self.connection = FakeConnection()
+            self.connection_type = ConnectionType()
+            self.connection_type.activate()
+
+        def tearDown(self):
+            """Done after every test"""
+            self.connection_type.deactivate()
 
         def test_shell_connection(self):
             """Test a shell connection"""
             self.connection.fake_shell(True)
-            ConnectionType(self.connection).analyse()
-            self.assertEqual(self.connection.connectionType, 'shell')
+            self.connection_type.analyse(self.connection)
+            self.assertEqual(self.connection_type.connectionType, 'shell')
 
         def test_reverse_shell_connection(self):
             """Test a reverse shell connection"""
             self.connection.fake_shell(False)
-            ConnectionType(self.connection).analyse()
-            self.assertEqual(self.connection.connectionType, 'reverse shell')
+            self.connection_type.analyse(self.connection)
+            self.assertEqual(self.connection_type.connectionType,
+                    'reverse shell')
 
         def test_scp_up_connection(self):
             """Test a scp (up) connection"""
             self.connection.fake_scp(True)
-            ConnectionType(self.connection).analyse()
-            self.assertEqual(self.connection.connectionType, 'scp (up)')
+            self.connection_type.analyse(self.connection)
+            self.assertEqual(self.connection_type.connectionType, 'scp (up)')
 
         def test_scp_down_connection(self):
             """Test a scp (down) connection"""
             self.connection.fake_scp(False)
-            ConnectionType(self.connection).analyse()
-            self.assertEqual(self.connection.connectionType, 'scp (down)')
+            self.connection_type.analyse(self.connection)
+            self.assertEqual(self.connection_type.connectionType, 'scp (down)')
 
     unittest.main()
