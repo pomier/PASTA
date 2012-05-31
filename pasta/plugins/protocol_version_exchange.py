@@ -42,7 +42,7 @@ class ProtocolVersionExchange(SingleConnectionAnalyser):
         if protocol is None:
             return None
         # see RFC 4253 part 4.2
-        protocol = protocol.strip(' \x10\x13') # remove useless chars
+        protocol = protocol.strip(' \x0a\x0d') # remove useless chars
         protocol = protocol.split(' ', 1)
         (_, ssh_version, soft_version) = protocol[0].split('-', 3)
         comment = None if len(protocol) == 1 else protocol[1]
