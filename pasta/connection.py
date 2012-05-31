@@ -82,8 +82,6 @@ class Connection:
         self.serverSentLen = sum(p.totalLen for p in self.datagrams
                                  if not p.sentByClient)
         self.ssh = is_ssh
-        self.idleTime = None # [Task3] e.g. 0.31415 (for 31.14%)
-        self.connectionType = None # [Task3] e.g. 'shell', 'ssh', 'tunnel'
 
     def __repr__(self):
         def format_protocol(protocol, color):
