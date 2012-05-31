@@ -99,9 +99,9 @@ class SteppingStoneDetectionServerSide(SingleConnectionAnalyser):
         last_datagram = None
 
         if len(rtts) < 20:
-            self.logger.debug('Not enough useful datagrams to do the'
+            self.logger.debug('Not enough useful datagrams to do the' \
                 ' computations')
-            self.details = '(not enough useful datagrams to do the'
+            self.details = '(not enough useful datagrams to do the' \
                 ' computations)'
             return None
 
