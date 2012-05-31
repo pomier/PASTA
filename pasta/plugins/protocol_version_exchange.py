@@ -33,6 +33,9 @@ class ProtocolVersionExchange(SingleConnectionAnalyser):
 
     def analyse(self, connection):
         """Find the protocols anounced"""
+        if connection.clientProtocol is None \
+                and connection.serverProtocol is None:
+            raise ValueError("No protocol exchange found in connection")
         self.client_protocol = self.separate(connection.clientProtocol)
         self.server_protocol = self.separate(connection.serverProtocol)
 
@@ -52,7 +55,7 @@ class ProtocolVersionExchange(SingleConnectionAnalyser):
     def protocol_repr(self, protocol, color):
         """Format the protocol for printing"""
         if protocol is None:
-            return 'unknown'
+            raise ValueError("No protocol exchange found in connection")
         s = 'ssh version %s, software version %s' % (
                 color + protocol['ssh_version'] + C.FRes,
                 color + protocol['software_version'] + C.FRes
@@ -64,9 +67,18 @@ class ProtocolVersionExchange(SingleConnectionAnalyser):
 
     def result_repr(self):
         """Return the result of the analyse as a string"""
-        return 'Client protocol: %s\nServer protocol: %s' \
-                % (self.protocol_repr(self.client_protocol, C.FBlu),
-                    self.protocol_repr(self.server_protocol, C.FYel))
+        s = ''
+        try:
+            s += 'Client protocol: %s\n' \
+                    % self.protocol_repr(self.client_protocol, C.FBlu)
+        except ValueError:
+            pass
+        try:
+            s += 'Server protocol: %s\n' \
+                    % self.protocol_repr(self.server_protocol, C.FYel)
+        except ValueError:
+            pass
+        return s.strip()
 
 if __name__ == '__main__':
 

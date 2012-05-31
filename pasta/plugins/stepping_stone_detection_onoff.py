@@ -133,13 +133,12 @@ class SteppingStoneDetectionOnOff(InterConnectionsAnalyser):
 
     def result_repr(self):
         """Return the result of the analyse as a string"""
+        if not self.matches:
+            raise ValueError("No match found")
         # FIXME: result output
         s = 'Stepping stone chains detected (on-off method):'
-        if self.matches:
-            for c1, c2 in self.matches:
-                s += '\n    %d <-> %d' % (c1.nb, c2.nb)
-        else:
-            s += '\n    none'
+        for c1, c2 in self.matches:
+            s += '\n    %d <-> %d' % (c1.nb, c2.nb)
         return s
 
 # TODO unittests

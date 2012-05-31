@@ -41,14 +41,14 @@ class Algorithms(SingleConnectionAnalyser):
             raise ValueError("No algos found in connection")
         # TODO!!!
         self.algos = {
-                    'kex': 'unknown',
-                    'server_host_key': 'unknown',
-                    'encryption_c2s': 'unknown',
-                    'encryption_s2c': 'unknown',
-                    'mac_c2s': 'unknown',
-                    'mac_s2c': 'unknown',
-                    'compression_c2s': 'unknown',
-                    'compression_s2c': 'unknown',
+                    'kex': 'TODO',
+                    'server_host_key': 'TODO',
+                    'encryption_c2s': 'TODO',
+                    'encryption_s2c': 'TODO',
+                    'mac_c2s': 'TODO',
+                    'mac_s2c': 'TODO',
+                    'compression_c2s': 'TODO',
+                    'compression_s2c': 'TODO',
                 }
 
 
