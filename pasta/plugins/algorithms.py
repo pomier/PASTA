@@ -18,7 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with PASTA.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Computes the idle time for a connection"""
+"""Find the algorithms (most probably) used"""
 
 
 from plugins import SingleConnectionAnalyser
