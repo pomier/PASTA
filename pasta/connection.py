@@ -67,10 +67,8 @@ class Connection:
         self.serverIP = serverIP # string e.g. '123.234.13.37'
         self.clientPort = clientPort # int
         self.serverPort = serverPort # int
-        # client and server protocol: None or dict with key-value pairs:
-        # - 'ssh_version': e.g. '2.0'
-        # - 'software_version': e.g. 'OpenSSH_5.5p1'
-        # - 'comment': None if no comment else the comment; e.g. 'Trisquel-5.5'
+        # client and server protocol: None or string
+        # (e.g. 'SSH-2.0-OpenSSH_5 Trisquel-5.5')
         self.clientProtocol = clientProtocol
         self.serverProtocol = serverProtocol
         self.clientSentNbDatagrams = sum(1 for p in self.datagrams
@@ -84,23 +82,12 @@ class Connection:
         self.ssh = is_ssh
 
     def __repr__(self):
-        def format_protocol(protocol, color):
-            """Format the protocol for printing"""
-            s = 'ssh version %s, software version %s' % (
-                    color + protocol['ssh_version'] + C.FRes,
-                    color + protocol['software_version'] + C.FRes
-                    )
-            if protocol['comment'] is not None:
-                s += ', comment: %s' % (color + protocol['comment'] + C.FRes)
-            return s
         s = (
              'Connection %d: ' + C.FBlu + '%s' + C.FRes + ':' + C.FCya + '%d'
              + C.FRes + ' --> ' + C.FYel + '%s' + C.FRes + ':' + C.FGre
              + '%d' + C.FRes + '\n%s'
              'Start date: %s\n'
              'Duration: %s\n'
-             'Client: %s\n'
-             'Server: %s\n'
              'Datagrams sent by client: ' + C.FBlu + '%d ' + C.FRes + '(' +
                 C.FBlu + '%d ' + C.FRes + 'bytes)\n'
              'Datagrams sent by server: ' + C.FYel + '%d ' + C.FRes + '(' +
@@ -112,12 +99,6 @@ class Connection:
                     'Not detected as a ssh connection' + C.FRes + '\n',
                 self.startTime.strftime('%b %d, %Y - %H:%M:%S'),
                 strTD(self.duration),
-                'unknown'
-                    if self.clientProtocol is None
-                    else format_protocol(self.clientProtocol, C.FBlu),
-                'unknown'
-                    if self.serverProtocol is None
-                    else format_protocol(self.serverProtocol, C.FYel),
                 self.clientSentNbDatagrams, self.clientSentLen,
                 self.serverSentNbDatagrams, self.serverSentLen
             )

@@ -173,24 +173,18 @@ class PcapParser:
                     self.ssh_streams[p[0]] = True
 
                 # Get protocol name if available
-                protocol = p[8].decode('string-escape').strip()
+                protocol = p[8].decode('string-escape')
                 if protocol:
                     # if first time we see a protocol and we don't know who is
                     # the client/server, set them
                     if self.servers_protocol[p[0]] is None:
                         self.clients[p[0]] = dst
                         self.servers[p[0]] = src
-                    # see RFC 4253 part 4.2
-                    protocol = protocol.split(' ', 1)
-                    (_, ssh_version, soft_version) = protocol[0].split('-')
-                    comment = None if len(protocol) == 1 else protocol[1]
-                    infos = {'ssh_version': ssh_version,
-                            'software_version': soft_version,
-                            'comment': comment}
+                    # set the protocol field
                     if self.clients[p[0]] == src:
-                        self.clients_protocol[p[0]] = infos
+                        self.clients_protocol[p[0]] = protocol
                     else:
-                        self.servers_protocol[p[0]] = infos
+                        self.servers_protocol[p[0]] = protocol
             except ValueError as e:
                 # catch conversions for int, datetime...
                 self._parse_error(e)
