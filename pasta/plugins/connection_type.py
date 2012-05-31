@@ -47,14 +47,18 @@ class ConnectionType(SingleConnectionAnalyser):
     scp_up_min_asymetry = 0.95 # min asymetry if server sent more
     scp_down_max_asymetry = 0.05 # max asymetry if client sent more
 
+    def activate(self):
+        """Activation of the plugin"""
+        SingleConnectionAnalyser.activate(self)
+        self.logger = logging.getLogger('ConnType')
+
     def analyse(self, connection):
         """Find the type of the ssh connection"""
-        
+
         self.connection = connection
         self.connectionType = None
         self.time_to_reply = {True: [], False: []}
         self.ratio_server_sent = 0
-        self.logger = logging.getLogger('Conn%dType' % connection.nb)
         self.logger.info('Starting computation')
 
         # compute asymetry
@@ -101,7 +105,7 @@ class ConnectionType(SingleConnectionAnalyser):
                 if ratio >= min_replies[way]:
                     self.connectionType = name[way]
                     return
-    
+
         # default to tunnel
         self.connectionType = 'tunnel'
         return
@@ -143,7 +147,6 @@ class ConnectionType(SingleConnectionAnalyser):
         """Return the result of the analyse as a string"""
         self.logger.info('Computations finished: type is %s'
                                             % self.connection.connectionType)
-
         return 'Connection type: %s' % self.connectionType
 
 if __name__ == '__main__':
@@ -174,7 +177,7 @@ if __name__ == '__main__':
             """Fake a shell connection"""
             time = datetime.now()
             for _ in xrange(1000):
-                time += timedelta(microseconds=random.randint(100000, 10000000))
+                time += timedelta(microseconds=random.randint(100000, 9000000))
                 self.datagrams.append(FakeDatagram(
                     way,
                     random.choice((32, 48)),

@@ -37,6 +37,7 @@ class ConnectionIdle(SingleConnectionAnalyser):
 
     def activate(self):
         """Activation of the plugin"""
+        SingleConnectionAnalyser.activate(self)
         self.logger = logging.getLogger('ConnIdle')
 
     def analyse(self, connection):
@@ -106,7 +107,7 @@ if __name__ == '__main__':
             """Fake a random connection"""
             time = self.startTime
             for _ in xrange(1000):
-                time += timedelta(microseconds=random.randint(100000, 10000000))
+                time += timedelta(microseconds=random.randint(100000, 9000000))
                 self.datagrams.append(FakeDatagram(time))
 
     class TestConnectionType(unittest.TestCase):
