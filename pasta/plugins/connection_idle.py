@@ -82,7 +82,7 @@ class ConnectionIdle(SingleConnectionAnalyser):
 if __name__ == '__main__':
 
     import unittest, random, sys
-    from datetime import datetime, timedelta
+    from datetime import datetime
 
     if sys.version_info[:2] != (2, 7):
         sys.stderr.write('PASTA must be run with Python 2.7\n')
