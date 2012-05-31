@@ -37,6 +37,8 @@ class PcapParser:
         self.servers = {}
         self.clients_protocol = {}
         self.servers_protocol = {}
+        self.clients_algos = {}
+        self.servers_algos = {}
         self.ssh_streams = {}
         self.start_time = {}
         self.end_time = {}
@@ -77,6 +79,8 @@ class PcapParser:
                 self.servers[k][1], # Server port
                 self.clients_protocol[k],
                 self.servers_protocol[k],
+                self.clients_algos[k],
+                self.servers_algos[k],
                 self.ssh_streams[k]))
             self.logger.debug("New connection: %s", connections[-1].summary())
 
@@ -162,6 +166,8 @@ class PcapParser:
                     self.end_time[p[0]] = time
                     self.clients_protocol[p[0]] = None
                     self.servers_protocol[p[0]] = None
+                    self.clients_algos[p[0]] = None
+                    self.servers_algos[p[0]] = None
                     self.ssh_streams[p[0]] = False
                     # assume the first packet of the connection
                     # is send by the client
@@ -185,6 +191,7 @@ class PcapParser:
                         self.clients_protocol[p[0]] = protocol
                     else:
                         self.servers_protocol[p[0]] = protocol
+
             except ValueError as e:
                 # catch conversions for int, datetime...
                 self._parse_error(e)
@@ -214,6 +221,14 @@ class PcapParser:
                 "-eip.src",
                 "-eipv6.src",
                 "-etcp.srcport",
+                "-essh.kex_algorithms",
+                "-essh.server_host_key_algorithms",
+                "-essh.encryption_algorithms_client_to_server",
+                "-essh.encryption_algorithms_server_to_client",
+                "-essh.mac_algorithms_client_to_server",
+                "-essh.mac_algorithms_server_to_client",
+                "-essh.compression_algorithms_client_to_server",
+                "-essh.compression_algorithms_server_to_cluent",
                 ],
                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         except OSError as e:
@@ -223,7 +238,7 @@ class PcapParser:
             self._tshark_error(tshark.returncode, stderr)
 
         for p in [l.split("\t") for l in stdout.split("\n")]:
-            if len(p) < 9:
+            if len(p) < 17:
                 continue
 
             try:
@@ -243,6 +258,22 @@ class PcapParser:
                     )
                 self.datagrams[p[0]].append(new_datagram)
                 self.logger.debug("New datagram: %s", new_datagram)
+                # Algos
+                if any(p[i] for i in xrange(9, 17)):
+                    algos = {
+                            "kex_algorithms": p[9],
+                            "server_host_key_algorithms": p[10],
+                            "encryption_algorithms_client_to_server": p[11],
+                            "encryption_algorithms_server_to_client": p[12],
+                            "mac_algorithms_client_to_server": p[13],
+                            "mac_algorithms_server_to_client": p[14],
+                            "compression_algorithms_client_to_server": p[15],
+                            "compression_algorithms_server_to_cluent": p[16],
+                        }
+                    if self.clients[p[0]] == src:
+                        self.clients_algos[p[0]] = algos
+                    else:
+                        self.servers_algos[p[0]] = algos
             except ValueError as e:
                 # catch conversions for int, datetime...
                 self._parse_error(e)

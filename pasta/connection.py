@@ -57,7 +57,8 @@ class Connection:
 
     def __init__(self, nb, datagrams, startTime, duration,
                  clientIP, serverIP, clientPort, serverPort,
-                 clientProtocol, serverProtocol, is_ssh):
+                 clientProtocol, serverProtocol,
+                 clientAlgos, serverAlgos, is_ssh):
         self.nb = nb
         self.logger = logging.getLogger('Conn%d' % self.nb)
         self.datagrams = datagrams # list of Datagram instances
@@ -71,6 +72,8 @@ class Connection:
         # (e.g. 'SSH-2.0-OpenSSH_5 Trisquel-5.5')
         self.clientProtocol = clientProtocol
         self.serverProtocol = serverProtocol
+        self.clientAlgos = clientAlgos # None or dict
+        self.serverAlgos = serverAlgos # None or dict
         self.clientSentNbDatagrams = sum(1 for p in self.datagrams
                                          if p.sentByClient)
         self.serverSentNbDatagrams = sum(1 for p in self.datagrams
@@ -291,7 +294,7 @@ if __name__ == '__main__':
                     ))
                 seqNb[sentByClient] += totalLen
             connection = Connection(0, datagrams, now, time - now,
-                    '1.2.3.4', '5.6.7.8', 12345, 22, None, None, True)
+                    '1.2.3.4', '5.6.7.8', 12345, 22, None, None, {}, {}, True)
             return connection
 
         def test_compute_RTT(self):
