@@ -69,6 +69,9 @@ class SteppingStoneDetectionOnOff(InterConnectionsAnalyser):
         self.first_check()
         # Second restriction of matches
         self.second_check()
+        # check if we found any matches
+        if not self.matches:
+            raise RuntimeWarning("No match found")
 
     def compute_off(self):
         """Find the off periods for each connection"""
@@ -133,8 +136,6 @@ class SteppingStoneDetectionOnOff(InterConnectionsAnalyser):
 
     def result_repr(self):
         """Return the result of the analyse as a string"""
-        if not self.matches:
-            raise ValueError("No match found")
         # FIXME: result output
         s = 'Stepping stone chains detected (on-off method):'
         for c1, c2 in self.matches:

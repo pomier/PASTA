@@ -43,7 +43,13 @@ class SingleConnectionAnalyser(IPlugin):
         IPlugin.deactivate(self)
 
     def analyse(self, connection):
-        """Get and analyse the connections"""
+        """
+        Get and analyse the connection
+
+        Should raise a ValueError if the plugin can not work with this
+        connection, or a RuntimeWarning if the plugin do not find anything
+        interresting during the analyse
+        """
         raise NotImplementedError()
 
     def result_repr(self):
@@ -67,7 +73,13 @@ class InterConnectionsAnalyser(IPlugin):
         IPlugin.deactivate(self)
 
     def analyse(self, connections):
-        """Get and analyse the connections"""
+        """
+        Get and analyse the connections
+
+        Should raise a ValueError if the plugin can not work with this
+        connection, or a RuntimeWarning if the plugin do not find anything
+        interresting during the analyse
+        """
         raise NotImplementedError()
 
     def result_repr(self):
