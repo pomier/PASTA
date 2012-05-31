@@ -21,8 +21,8 @@
 """Computes the idle time for a connection"""
 
 
-import logging
-from datetime import timedelta
+import logging, unittest, random
+from datetime import timedelta, datetime
 from plugins import SingleConnectionAnalyser
 
 class ConnectionIdle(SingleConnectionAnalyser):
@@ -79,17 +79,8 @@ class ConnectionIdle(SingleConnectionAnalyser):
         return 'Idle time: %.1f%%' % (self.idleTime * 100)
 
 
-if __name__ == '__main__':
-
-    import unittest, random, sys
-    from datetime import datetime
-
-    if sys.version_info[:2] != (2, 7):
-        sys.stderr.write('PASTA must be run with Python 2.7\n')
-        sys.exit(1)
-
-    # make sure we have the same test cases each time
-    random.seed(42)
+class TestConnectionIdle(unittest.TestCase):
+    """Unit tests for ConnectionIdle"""
 
     class FakeDatagram():
         def __init__(self, time):
@@ -108,27 +99,35 @@ if __name__ == '__main__':
             time = self.startTime
             for _ in xrange(1000):
                 time += timedelta(microseconds=random.randint(100000, 9000000))
-                self.datagrams.append(FakeDatagram(time))
+                self.datagrams.append(TestConnectionIdle.FakeDatagram(time))
 
-    class TestConnectionType(unittest.TestCase):
+    def setUp(self):
+        """Done before every test"""
+        self.connection = TestConnectionIdle.FakeConnection()
+        self.connection.fake_random()
+        self.connection_idle = ConnectionIdle()
+        self.connection_idle.activate()
 
-        def setUp(self):
-            """Done before every test"""
-            self.connection = FakeConnection()
-            self.connection.fake_random()
-            self.connection_idle = ConnectionIdle()
-            self.connection_idle.activate()
+    def tearDown(self):
+        """Done after every test"""
+        self.connection_idle.deactivate()
 
-        def tearDown(self):
-            """Done after every test"""
-            self.connection_idle.deactivate()
+    def test_idle_range(self):
+        """Check that 0 <= idle <= 1"""
+        self.connection_idle.analyse(self.connection)
+        self.assertGreaterEqual(self.connection_idle.idleTime, 0)
+        self.assertLessEqual(self.connection_idle.idleTime, 1)
 
-        def test_idle_range(self):
-            """Check that 0 <= idle <= 1"""
-            self.connection_idle.analyse(self.connection)
-            self.assertGreaterEqual(self.connection_idle.idleTime, 0)
-            self.assertLessEqual(self.connection_idle.idleTime, 1)
+    # there is not much to test anyway, since the idle time is subjective
 
-        # there is not much to test anyway, since the idle time is subjective
 
+if __name__ == '__main__':
+    import sys
+    # check Python version
+    if sys.version_info[:2] != (2, 7):
+        sys.stderr.write('PASTA must be run with Python 2.7\n')
+        sys.exit(1)
+    # make sure we have the same test cases each time
+    random.seed(42)
+    # run the unit tests
     unittest.main()

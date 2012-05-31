@@ -34,8 +34,8 @@ class Algorithms(SingleConnectionAnalyser):
     def analyse(self, connection):
         """
         Find the algos most probalby used
-        
-        We choose the first "guest" as explained in RFC 4243 §7.1
+
+        We choose the first "guest" as explained in RFC 4243 section 7.1
         """
         if connection.clientAlgos is None or connection.serverAlgos is None:
             raise ValueError("No algos found in connection")
@@ -71,5 +71,4 @@ class Algorithms(SingleConnectionAnalyser):
                     C.FYel + self.algos['compression_s2c'] + C.FRes
                 )
 
-if __name__ == '__main__':
-    pass # TODO: unittests
+# TODO: unit tests

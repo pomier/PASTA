@@ -20,7 +20,8 @@
 
 
 
-import logging
+import logging, unittest, random
+from datetime import datetime, timedelta
 import colors as C
 
 def strTD(td, short=False):
@@ -196,7 +197,7 @@ class Connection:
             for d in empty_RTTs[way]:
                 # just recopy the RTT to the previous ones
                 d.RTT = last_RTT[way]
-        
+
         #self.smooth_RTT()
 
 
@@ -205,7 +206,7 @@ class Connection:
         # FIXME: fusion (way be done inside)
         from datetime import datetime, timedelta
         # ^^^ FIXME imports: put on top of the file + remove from the unit test
-        
+
         alpha = 0.125
         last_rtt = {True: None, False: None}
         for datagram in self.datagrams:
@@ -248,69 +249,69 @@ class Datagram:
         if self.RTT is not None:
             s += '\nEstimate RTT: %s' % strTD(self.RTT)
         return s
-        
+
 
     def __str__(self):
         return repr(self)
 
 
+class TestConnection(unittest.TestCase):
+    """Unit tests for Connection"""
+
+    def create_connection(self, oneway=False):
+        """
+        Create a connection
+
+        10000 packets
+        RTT between 0.1 and 0.9sec
+        """
+        now = datetime.now()
+        time = now
+        datagrams = []
+        seqNb = {True: random.randint(0, 10000),
+                 False: random.randint(0, 10000)}
+        for _ in xrange(10000):
+            time += timedelta(microseconds=random.randint(100000, 449999))
+            sentByClient = random.choice((True, False))
+            payloadLen = random.randint(10, 100)
+            totalLen = payloadLen + 40
+            datagrams.append(Datagram(
+                sentByClient,
+                time,
+                seqNb[sentByClient],
+                payloadLen,
+                totalLen,
+                -1 if sentByClient and oneway else seqNb[not sentByClient]
+                ))
+            seqNb[sentByClient] += totalLen
+        connection = Connection(0, datagrams, now, time - now,
+                '1.2.3.4', '5.6.7.8', 12345, 22, None, None, {}, {}, True)
+        return connection
+
+    def test_compute_RTT(self):
+        """General test for computeRTT"""
+        connection = self.create_connection()
+        connection.compute_RTT()
+        for datagram in connection.datagrams:
+            self.assertGreaterEqual(datagram.RTT.total_seconds(), 0.1)
+            self.assertLessEqual(datagram.RTT.total_seconds(), 0.9)
+
+    def test_compute_RTT_oneway(self):
+        """Test computeRTT in case of no ack in one way"""
+        connection = self.create_connection(True)
+        connection.compute_RTT()
+        for datagram in connection.datagrams:
+            self.assertGreaterEqual(datagram.RTT.total_seconds(), 0.1)
+            self.assertLessEqual(datagram.RTT.total_seconds(), 0.9)
+
 
 if __name__ == '__main__':
-
-    import unittest, random, sys
-    from datetime import datetime, timedelta
-
+    import sys
+    # check Python version
     if sys.version_info[:2] != (2, 7):
         sys.stderr.write('PASTA must be run with Python 2.7\n')
         sys.exit(1)
-
-    class TestConnection(unittest.TestCase):
-        random.seed(42)
-
-        def create_connection(self, oneway=False):
-            """
-            Create a connection
-
-            10000 packets
-            RTT between 0.1 and 0.9sec
-            """
-            now = datetime.now()
-            time = now
-            datagrams = []
-            seqNb = {True: random.randint(0, 10000),
-                     False: random.randint(0, 10000)}
-            for _ in xrange(10000):
-                time += timedelta(microseconds=random.randint(100000, 449999))
-                sentByClient = random.choice((True, False))
-                payloadLen = random.randint(10, 100)
-                totalLen = payloadLen + 40
-                datagrams.append(Datagram(
-                    sentByClient,
-                    time,
-                    seqNb[sentByClient],
-                    payloadLen,
-                    totalLen,
-                    -1 if sentByClient and oneway else seqNb[not sentByClient]
-                    ))
-                seqNb[sentByClient] += totalLen
-            connection = Connection(0, datagrams, now, time - now,
-                    '1.2.3.4', '5.6.7.8', 12345, 22, None, None, {}, {}, True)
-            return connection
-
-        def test_compute_RTT(self):
-            """General test for computeRTT"""
-            connection = self.create_connection()
-            connection.compute_RTT()
-            for datagram in connection.datagrams:
-                self.assertGreaterEqual(datagram.RTT.total_seconds(), 0.1)
-                self.assertLessEqual(datagram.RTT.total_seconds(), 0.9)
-
-        def test_compute_RTT_oneway(self):
-            """Test computeRTT in case of no ack in one way"""
-            connection = self.create_connection(True)
-            connection.compute_RTT()
-            for datagram in connection.datagrams:
-                self.assertGreaterEqual(datagram.RTT.total_seconds(), 0.1)
-                self.assertLessEqual(datagram.RTT.total_seconds(), 0.9)
-
+    # make sure we have the same test cases each time
+    random.seed(42)
+    # run the unit tests
     unittest.main()

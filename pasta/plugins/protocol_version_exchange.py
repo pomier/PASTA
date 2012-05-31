@@ -21,6 +21,7 @@
 """Display the protocol version used by client and server"""
 
 
+import unittest, random
 from plugins import SingleConnectionAnalyser
 import colors as C
 
@@ -80,97 +81,97 @@ class ProtocolVersionExchange(SingleConnectionAnalyser):
             pass
         return s.strip()
 
-if __name__ == '__main__':
 
-    import unittest, random, sys
-
-    if sys.version_info[:2] != (2, 7):
-        sys.stderr.write('PASTA must be run with Python 2.7\n')
-        sys.exit(1)
-
-    # make sure we have the same test cases each time
-    random.seed(42)
-
+class TestProtocolVersionExchange(unittest.TestCase):
+    """Unit tests for ProtocolVersionExchange"""
 
     class FakeConnection():
         def setProtocols(self, client, server):
-            self.clientProtocol = '%s\x13\x10' % client
-            self.serverProtocol = '%s\x13\x10' % server
+            self.clientProtocol = '%s\x0a\x0d' % client
+            self.serverProtocol = '%s\x0a\x0d' % server
 
-    class TestProtocolVersionExchange(unittest.TestCase):
+    def setUp(self):
+        """Done before every test"""
+        self.connection = TestProtocolVersionExchange.FakeConnection()
+        self.connection_pve = ProtocolVersionExchange()
+        self.connection_pve.activate()
 
-        def setUp(self):
-            """Done before every test"""
-            self.connection = FakeConnection()
-            self.connection_pve = ProtocolVersionExchange()
-            self.connection_pve.activate()
+    def tearDown(self):
+        """Done after every test"""
+        self.connection_pve.deactivate()
 
-        def tearDown(self):
-            """Done after every test"""
-            self.connection_pve.deactivate()
+    def test_no_comment(self):
+        """Protocols version without comments"""
+        self.connection.setProtocols('SSH-2.0-OpenSSH_5.2',
+                'SSH-2.0-OpenSSH_5.3')
+        self.connection_pve.analyse(self.connection)
+        self.assertEqual(self.connection_pve.client_protocol, {
+            'ssh_version': '2.0',
+            'software_version': 'OpenSSH_5.2',
+            'comment': None
+            })
+        self.assertEqual(self.connection_pve.server_protocol, {
+            'ssh_version': '2.0',
+            'software_version': 'OpenSSH_5.3',
+            'comment': None
+            })
 
-        def test_no_comment(self):
-            """Protocols version without comments"""
-            self.connection.setProtocols('SSH-2.0-OpenSSH_5.2',
-                    'SSH-2.0-OpenSSH_5.3')
-            self.connection_pve.analyse(self.connection)
-            self.assertEqual(self.connection_pve.client_protocol, {
-                'ssh_version': '2.0',
-                'software_version': 'OpenSSH_5.2',
-                'comment': None
-                })
-            self.assertEqual(self.connection_pve.server_protocol, {
-                'ssh_version': '2.0',
-                'software_version': 'OpenSSH_5.3',
-                'comment': None
-                })
+    def test_no_comment_space(self):
+        """Protocols version without comments but a space at the end"""
+        self.connection.setProtocols('SSH-2.0-OpenSSH_5.2 ',
+                'SSH-2.0-OpenSSH_5.3 ')
+        self.connection_pve.analyse(self.connection)
+        self.assertEqual(self.connection_pve.client_protocol, {
+            'ssh_version': '2.0',
+            'software_version': 'OpenSSH_5.2',
+            'comment': None
+            })
+        self.assertEqual(self.connection_pve.server_protocol, {
+            'ssh_version': '2.0',
+            'software_version': 'OpenSSH_5.3',
+            'comment': None
+            })
 
-        def test_no_comment_space(self):
-            """Protocols version without comments but a space at the end"""
-            self.connection.setProtocols('SSH-2.0-OpenSSH_5.2 ',
-                    'SSH-2.0-OpenSSH_5.3 ')
-            self.connection_pve.analyse(self.connection)
-            self.assertEqual(self.connection_pve.client_protocol, {
-                'ssh_version': '2.0',
-                'software_version': 'OpenSSH_5.2',
-                'comment': None
-                })
-            self.assertEqual(self.connection_pve.server_protocol, {
-                'ssh_version': '2.0',
-                'software_version': 'OpenSSH_5.3',
-                'comment': None
-                })
+    def test_comment(self):
+        """Protocols version with comments"""
+        self.connection.setProtocols('SSH-2.0-OpenSSH_5.2 Debian-4',
+                'SSH-2.0-OpenSSH_5.3 Trisquel')
+        self.connection_pve.analyse(self.connection)
+        self.assertEqual(self.connection_pve.client_protocol, {
+            'ssh_version': '2.0',
+            'software_version': 'OpenSSH_5.2',
+            'comment': 'Debian-4'
+            })
+        self.assertEqual(self.connection_pve.server_protocol, {
+            'ssh_version': '2.0',
+            'software_version': 'OpenSSH_5.3',
+            'comment': 'Trisquel'
+            })
 
-        def test_comment(self):
-            """Protocols version with comments"""
-            self.connection.setProtocols('SSH-2.0-OpenSSH_5.2 Debian-4',
-                    'SSH-2.0-OpenSSH_5.3 Trisquel')
-            self.connection_pve.analyse(self.connection)
-            self.assertEqual(self.connection_pve.client_protocol, {
-                'ssh_version': '2.0',
-                'software_version': 'OpenSSH_5.2',
-                'comment': 'Debian-4'
-                })
-            self.assertEqual(self.connection_pve.server_protocol, {
-                'ssh_version': '2.0',
-                'software_version': 'OpenSSH_5.3',
-                'comment': 'Trisquel'
-                })
+    def test_failback(self):
+        """Protocols version 1.99 with comments"""
+        self.connection.setProtocols('SSH-1.99-OpenSSH_5.2 Debian-4',
+                'SSH-1.99-OpenSSH_5.3 Trisquel')
+        self.connection_pve.analyse(self.connection)
+        self.assertEqual(self.connection_pve.client_protocol, {
+            'ssh_version': '1.99',
+            'software_version': 'OpenSSH_5.2',
+            'comment': 'Debian-4'
+            })
+        self.assertEqual(self.connection_pve.server_protocol, {
+            'ssh_version': '1.99',
+            'software_version': 'OpenSSH_5.3',
+            'comment': 'Trisquel'
+            })
 
-        def test_failback(self):
-            """Protocols version 1.99 with comments"""
-            self.connection.setProtocols('SSH-1.99-OpenSSH_5.2 Debian-4',
-                    'SSH-1.99-OpenSSH_5.3 Trisquel')
-            self.connection_pve.analyse(self.connection)
-            self.assertEqual(self.connection_pve.client_protocol, {
-                'ssh_version': '1.99',
-                'software_version': 'OpenSSH_5.2',
-                'comment': 'Debian-4'
-                })
-            self.assertEqual(self.connection_pve.server_protocol, {
-                'ssh_version': '1.99',
-                'software_version': 'OpenSSH_5.3',
-                'comment': 'Trisquel'
-                })
 
+if __name__ == '__main__':
+    import sys
+    # check Python version
+    if sys.version_info[:2] != (2, 7):
+        sys.stderr.write('PASTA must be run with Python 2.7\n')
+        sys.exit(1)
+    # make sure we have the same test cases each time
+    random.seed(42)
+    # run the unit tests
     unittest.main()

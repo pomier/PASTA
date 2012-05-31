@@ -185,4 +185,3 @@ class SteppingStoneDetectionClientSide(PluginConnectionsAnalyser):
                 total += (rtt[1] - rtt[1-1])
                 number += 1
         return total/number
-

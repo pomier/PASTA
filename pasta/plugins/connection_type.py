@@ -23,7 +23,8 @@ Find the type of a connection based on traffic patterns
 """
 
 
-import logging
+import logging, unittest, random
+from datetime import datetime, timedelta
 from plugins import SingleConnectionAnalyser
 
 class ConnectionType(SingleConnectionAnalyser):
@@ -149,17 +150,9 @@ class ConnectionType(SingleConnectionAnalyser):
                                             % self.connection.connectionType)
         return 'Connection type: %s' % self.connectionType
 
-if __name__ == '__main__':
 
-    import unittest, random, sys
-    from datetime import datetime, timedelta
-
-    if sys.version_info[:2] != (2, 7):
-        sys.stderr.write('PASTA must be run with Python 2.7\n')
-        sys.exit(1)
-
-    # make sure we have the same test cases each time
-    random.seed(42)
+class TestConnectionType(unittest.TestCase):
+    """Unit tests for ConnectionType"""
 
     class FakeDatagram():
         def __init__(self, way, payloadLen, time):
@@ -178,12 +171,12 @@ if __name__ == '__main__':
             time = datetime.now()
             for _ in xrange(1000):
                 time += timedelta(microseconds=random.randint(100000, 9000000))
-                self.datagrams.append(FakeDatagram(
+                self.datagrams.append(TestConnectionType.FakeDatagram(
                     way,
                     random.choice((32, 48)),
                     time))
                 time += timedelta(microseconds=random.randint(100000, 449999))
-                self.datagrams.append(FakeDatagram(
+                self.datagrams.append(TestConnectionType.FakeDatagram(
                     not way,
                     random.randint(0, 48),
                     time))
@@ -193,51 +186,59 @@ if __name__ == '__main__':
             time = datetime.now()
             for _ in xrange(1000):
                 time += timedelta(microseconds=random.randint(100000, 449999))
-                self.datagrams.append(FakeDatagram(
+                self.datagrams.append(TestConnectionType.FakeDatagram(
                     way,
                     random.randint(48, 1024),
                     time))
                 time += timedelta(microseconds=random.randint(100000, 449999))
-                self.datagrams.append(FakeDatagram(
+                self.datagrams.append(TestConnectionType.FakeDatagram(
                     not way,
                     0,
                     time))
 
-    class TestConnectionType(unittest.TestCase):
+    def setUp(self):
+        """Done before every test"""
+        self.connection = TestConnectionType.FakeConnection()
+        self.connection_type = ConnectionType()
+        self.connection_type.activate()
 
-        def setUp(self):
-            """Done before every test"""
-            self.connection = FakeConnection()
-            self.connection_type = ConnectionType()
-            self.connection_type.activate()
+    def tearDown(self):
+        """Done after every test"""
+        self.connection_type.deactivate()
 
-        def tearDown(self):
-            """Done after every test"""
-            self.connection_type.deactivate()
+    def test_shell_connection(self):
+        """Test a shell connection"""
+        self.connection.fake_shell(True)
+        self.connection_type.analyse(self.connection)
+        self.assertEqual(self.connection_type.connectionType, 'shell')
 
-        def test_shell_connection(self):
-            """Test a shell connection"""
-            self.connection.fake_shell(True)
-            self.connection_type.analyse(self.connection)
-            self.assertEqual(self.connection_type.connectionType, 'shell')
+    def test_reverse_shell_connection(self):
+        """Test a reverse shell connection"""
+        self.connection.fake_shell(False)
+        self.connection_type.analyse(self.connection)
+        self.assertEqual(self.connection_type.connectionType,
+                'reverse shell')
 
-        def test_reverse_shell_connection(self):
-            """Test a reverse shell connection"""
-            self.connection.fake_shell(False)
-            self.connection_type.analyse(self.connection)
-            self.assertEqual(self.connection_type.connectionType,
-                    'reverse shell')
+    def test_scp_up_connection(self):
+        """Test a scp (up) connection"""
+        self.connection.fake_scp(True)
+        self.connection_type.analyse(self.connection)
+        self.assertEqual(self.connection_type.connectionType, 'scp (up)')
 
-        def test_scp_up_connection(self):
-            """Test a scp (up) connection"""
-            self.connection.fake_scp(True)
-            self.connection_type.analyse(self.connection)
-            self.assertEqual(self.connection_type.connectionType, 'scp (up)')
+    def test_scp_down_connection(self):
+        """Test a scp (down) connection"""
+        self.connection.fake_scp(False)
+        self.connection_type.analyse(self.connection)
+        self.assertEqual(self.connection_type.connectionType, 'scp (down)')
 
-        def test_scp_down_connection(self):
-            """Test a scp (down) connection"""
-            self.connection.fake_scp(False)
-            self.connection_type.analyse(self.connection)
-            self.assertEqual(self.connection_type.connectionType, 'scp (down)')
 
+if __name__ == '__main__':
+    import sys
+    # check Python version
+    if sys.version_info[:2] != (2, 7):
+        sys.stderr.write('PASTA must be run with Python 2.7\n')
+        sys.exit(1)
+    # make sure we have the same test cases each time
+    random.seed(42)
+    # run the unit tests
     unittest.main()

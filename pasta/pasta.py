@@ -37,9 +37,9 @@ if __name__ == '__main__':
     def load_plugins(parser, logger=None):
         # import yapsy if needed
         try:
+            from yapsy.PluginManager import PluginManager
             from plugins import SingleConnectionAnalyser, \
                     InterConnectionsAnalyser
-            from yapsy.PluginManager import PluginManager
         except ImportError:
             parser.exit(status=3, message='PASTA plugins require yapsy.\n'
                 'You may try [sudo] easy_install-2.7 yapsy\n'
