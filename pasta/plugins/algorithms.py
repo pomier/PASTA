@@ -33,9 +33,9 @@ class Algorithms(SingleConnectionAnalyser):
 
     def analyse(self, connection):
         """
-        Find the algos most probalby used
+        Find the algos most probably used.
 
-        We choose the first "guest" as explained in RFC 4243 section 7.1
+        We choose the first "guessed" as explained in RFC 4253 section 7.1
         """
         if connection.clientAlgos is None or connection.serverAlgos is None:
             raise ValueError("No algos found in connection")

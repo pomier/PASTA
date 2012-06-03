@@ -58,18 +58,25 @@ class SteppingStoneDetectionServerSide(SingleConnectionAnalyser):
         self.stepping_stone = False
         self.details = ''
 
-        self.datagrams = [datagram for datagram in self.connection.datagrams \
-                              if datagram.sentByClient and datagram.payloadLen]
+        if self.connection.datagrams == None :
+            raise ValueError
+        else :
+            self.datagrams = [datagram for datagram in \
+                              self.connection.datagrams if \
+                              datagram.sentByClient and datagram.payloadLen]
 
-        self.logger.debug('Starting computation for connect. #%d' \
-                % self.connection.nb)
-        if len(self.connection.datagrams)>20:
-            self.stepping_stone = self.is_stepping_stone()
-            self.logger.debug('Stepping stone detected: %s' \
-                    % self.is_stepping_stone)
-        else:
-            self.logger.debug('Not enough datagrams in connection')
-            self.details = '(not enough datagrams in connection)'
+            self.logger.debug('Starting computation for connect. #%d' \
+                                                        % self.connection.nb)
+            if len(self.connection.datagrams)>20:
+                try : 
+                    self.stepping_stone = self.is_stepping_stone()
+                    self.logger.debug('Stepping stone detected: %s' \
+                                                % self.is_stepping_stone)
+                except :
+                    raise ValueError
+            else:
+                self.logger.debug('Not enough datagrams in connection')
+                self.details = '(not enough datagrams in connection)'
 
     def result_repr(self):
         """Return the result of the computations as a string"""
@@ -100,9 +107,9 @@ class SteppingStoneDetectionServerSide(SingleConnectionAnalyser):
 
         if len(rtts) < 20:
             self.logger.debug('Not enough useful datagrams to do the' \
-                ' computations')
+                ' computation')
             self.details = '(not enough useful datagrams to do the' \
-                ' computations)'
+                ' computation)'
             return None
 
         # creation of the IATs list.
