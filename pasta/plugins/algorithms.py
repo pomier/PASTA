@@ -39,6 +39,7 @@ class Algorithms(SingleConnectionAnalyser):
         """
         if connection.clientAlgos is None or connection.serverAlgos is None:
             raise ValueError("No algos found in connection")
+        
         self.connection = connection
         self.algos = {
                     'kex': self.determine_algo('kex_algorithms'),
@@ -93,7 +94,7 @@ class Algorithms(SingleConnectionAnalyser):
                 return client_algos[0]
             else :
                 for algo in client_algos :
-                    # TODO
-                    pass
+                    if algo in server_algos: #FIXME : add conditions of RFC
+                        return algo
         return None
 # TODO: unit tests
