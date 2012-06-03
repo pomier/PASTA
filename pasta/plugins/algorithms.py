@@ -39,16 +39,23 @@ class Algorithms(SingleConnectionAnalyser):
         """
         if connection.clientAlgos is None or connection.serverAlgos is None:
             raise ValueError("No algos found in connection")
-        # TODO!!!
+        self.connection = connection
         self.algos = {
-                    'kex': 'TODO',
-                    'server_host_key': 'TODO',
-                    'encryption_c2s': 'TODO',
-                    'encryption_s2c': 'TODO',
-                    'mac_c2s': 'TODO',
-                    'mac_s2c': 'TODO',
-                    'compression_c2s': 'TODO',
-                    'compression_s2c': 'TODO',
+                    'kex': self.determine_algo('kex_algorithms'),
+                    'server_host_key': 
+                            self.determine_algo('server_host_key_algorithms'),
+                    'encryption_c2s': self.determine_algo(\
+                                    'encryption_algorithms_client_to_server'),
+                    'encryption_s2c': self.determine_algo(\
+                                    'encryption_algorithms_server_to_client'),
+                    'mac_c2s': 
+                        self.determine_algo('mac_algorithms_client_to_server'),
+                    'mac_s2c':
+                        self.determine_algo('mac_algorithms_server_to_client'),
+                    'compression_c2s': self.determine_algo(\
+                                    'compression_algorithms_client_to_server'),
+                    'compression_s2c': self.determine_algo(\
+                                    'compression_algorithms_server_to_client'),
                 }
 
 
@@ -71,4 +78,22 @@ class Algorithms(SingleConnectionAnalyser):
                     C.FYel + self.algos['compression_s2c'] + C.FRes
                 )
 
+    def determine_algo(self,field):
+        """Determines the server host key algorithm"""
+        client_algos = self.connection.clientAlgos[field].split(",")
+        server_algos = self.connection.serverAlgos[field].split(",")
+        
+        if field is not 'kex_algorithms':
+            for algo in client_algos :
+                if algo in server_algos :
+                    return algo
+        
+        else :
+            if client_algos[0] == server_algos[0] :
+                return client_algos[0]
+            else :
+                for algo in client_algos :
+                    # TODO
+                    pass
+        return None
 # TODO: unit tests

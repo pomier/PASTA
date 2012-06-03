@@ -228,7 +228,7 @@ class PcapParser:
                 "-essh.mac_algorithms_client_to_server",
                 "-essh.mac_algorithms_server_to_client",
                 "-essh.compression_algorithms_client_to_server",
-                "-essh.compression_algorithms_server_to_cluent",
+                "-essh.compression_algorithms_server_to_client",
                 ],
                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         except OSError as e:
@@ -268,7 +268,7 @@ class PcapParser:
                             "mac_algorithms_client_to_server": p[13],
                             "mac_algorithms_server_to_client": p[14],
                             "compression_algorithms_client_to_server": p[15],
-                            "compression_algorithms_server_to_cluent": p[16],
+                            "compression_algorithms_server_to_client": p[16],
                         }
                     if self.clients[p[0]] == src:
                         self.clients_algos[p[0]] = algos
