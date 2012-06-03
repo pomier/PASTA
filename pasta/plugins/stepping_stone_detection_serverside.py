@@ -59,7 +59,7 @@ class SteppingStoneDetectionServerSide(SingleConnectionAnalyser):
         self.details = ''
 
         if self.connection.datagrams == None :
-            raise ValueError
+            raise ValueError() # FIXME: error message
         else :
             self.datagrams = [datagram for datagram in \
                               self.connection.datagrams if \
@@ -73,7 +73,7 @@ class SteppingStoneDetectionServerSide(SingleConnectionAnalyser):
                     self.logger.debug('Stepping stone detected: %s' \
                                                 % self.is_stepping_stone)
                 except :
-                    raise ValueError
+                    raise ValueError() # FIXME: error message
             else:
                 self.logger.debug('Not enough datagrams in connection')
                 self.details = '(not enough datagrams in connection)'

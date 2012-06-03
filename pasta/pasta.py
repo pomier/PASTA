@@ -303,7 +303,7 @@ if __name__ == '__main__':
                             ' by the plugin')
                     plugin_object.analyse(connection)
                     logger.debug('Print the result of the analyse'
-                        'by the plugin')
+                            ' by the plugin')
                     print plugin_object.result_repr()
                     logger.debug('Deactivate the plugin')
                     plugin_object.deactivate()

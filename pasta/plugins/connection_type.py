@@ -147,7 +147,7 @@ class ConnectionType(SingleConnectionAnalyser):
     def result_repr(self):
         """Return the result of the analyse as a string"""
         self.logger.info('Computations finished: type is %s'
-                                            % self.connection.connectionType)
+                                            % self.connectionType)
         return 'Connection type: %s' % self.connectionType
 
 
