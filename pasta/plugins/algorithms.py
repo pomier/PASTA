@@ -38,7 +38,7 @@ class Algorithms(SingleConnectionAnalyser):
         We choose the first "guessed" as explained in RFC 4253 section 7.1
         """
         if connection.clientAlgos is None or connection.serverAlgos is None:
-            raise ValueError("No algos found in connection")
+            raise RuntimeWarning("No algos found in connection")
 
         self.connection = connection
         self.algos = {

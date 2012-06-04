@@ -46,9 +46,9 @@ class SingleConnectionAnalyser(IPlugin):
         """
         Get and analyse the connection
 
-        Should raise a ValueError if the plugin can not work with this
-        connection, or a RuntimeWarning if the plugin do not find anything
-        interresting during the analyse
+        Should raise a RuntimeWarning if the plugin can not work with this
+        connection or if the plugin do not find anything interresting during
+        the analyse
         """
         raise NotImplementedError()
 
@@ -76,9 +76,9 @@ class InterConnectionsAnalyser(IPlugin):
         """
         Get and analyse the connections
 
-        Should raise a ValueError if the plugin can not work with this
-        connection, or a RuntimeWarning if the plugin do not find anything
-        interresting during the analyse
+        Should raise a RuntimeWarning if the plugin can not work with this
+        connection or if the plugin do not find anything interresting during
+        the analyse
         """
         raise NotImplementedError()
 

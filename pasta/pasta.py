@@ -307,12 +307,15 @@ if __name__ == '__main__':
                     print plugin_object.result_repr()
                     logger.debug('Deactivate the plugin')
                     plugin_object.deactivate()
+                except RuntimeWarning as e:
+                    logger.warning('Plugin %s: %s' % (plugin.name, e.message))
                 except Exception as e:
                     if e.message:
-                        logger.error('Plugin crash: %s, %s' %
-                                (e.__class__.__name__, e.message))
+                        logger.error('Plugin %s crash: %s, %s' %
+                                (plugin.name, e.__class__.__name__, e.message))
                     else:
-                        logger.error('Plugin crash: %s' % e.__class__.__name__)
+                        logger.error('Plugin %s crash: %s' %
+                                (plugin.name, e.__class__.__name__))
         print
 
     # InterConnectionsAnalyser plugins
@@ -333,9 +336,12 @@ if __name__ == '__main__':
                 print plugin_object.result_repr() + '\n'
                 logger.debug('Deactivate the plugin')
                 plugin_object.deactivate()
+            except RuntimeWarning as e:
+                logger.warning('Plugin %s: %s' % (plugin.name, e.message))
             except Exception as e:
                 if e.message:
-                    logger.error('Plugin crash: %s, %s' %
-                            (e.__class__.__name__, e.message))
+                    logger.error('Plugin %s crash: %s, %s' %
+                            (plugin.name, e.__class__.__name__, e.message))
                 else:
-                    logger.error('Plugin crash: %s' % e.__class__.__name__)
+                    logger.error('Plugin %s crash: %s' %
+                            (plugin.name, e.__class__.__name__))
