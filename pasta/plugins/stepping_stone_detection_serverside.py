@@ -56,7 +56,6 @@ class SteppingStoneDetectionServerSide(SingleConnectionAnalyser):
         """Do all the computations"""
         self.connection = connection
         self.stepping_stone = False
-        self.details = ''
 
         if self.connection.datagrams == None :
             raise RuntimeWarning("No datagram in the connection.")
@@ -71,27 +70,23 @@ class SteppingStoneDetectionServerSide(SingleConnectionAnalyser):
                 try : 
                     self.stepping_stone = self.is_stepping_stone()
                     self.logger.debug('Stepping stone detected: %s' \
-                                                % self.is_stepping_stone)
+                                                % self.stepping_stone)
                 except :
-                    raise RuntimeWarning("No field payloadLen or RTT in a datagram \
-                                     of the connection.")
+                    raise RuntimeWarning("No field payloadLen or RTT in a \
+                                                datagram of the connection.")
             else:
                 self.logger.debug('Not enough datagrams in connection')
-                self.details = '(not enough datagrams in connection)'
+                raise RuntimeWarning('Not enough datagrams in connection')
 
     def result_repr(self):
         """Return the result of the computations as a string"""
-        return 'Stepping stone detected (server-side): %s %s' \
-                % (self.stepping_stone, self.details)
+        return 'Stepping stone detected (server-side): %s' \
+                % (self.stepping_stone)
 
     def is_stepping_stone(self):
         """Is the connection part of a stepping stone chain?"""
-        prov = self.compare_rtt_iat()
-        if prov is not None:
-            return prov or self.is_modally_distributed()
-        else:
-            return False
-
+        return self.compare_rtt_iat() or self.is_modally_distributed()
+        
     def compare_rtt_iat(self):
         """
         Compares inter-arrival times between packets from client, and
@@ -109,9 +104,8 @@ class SteppingStoneDetectionServerSide(SingleConnectionAnalyser):
         if len(rtts) < 20:
             self.logger.debug('Not enough useful datagrams to do the' \
                 ' computation')
-            self.details = '(not enough useful datagrams to do the' \
-                ' computation)'
-            return None
+            raise RuntimeWarning('Not enough useful datagrams to do the' \
+                                 ' computation')
 
         # creation of the IATs list.
         for datagram in self.connection.datagrams:
