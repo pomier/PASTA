@@ -63,7 +63,7 @@ class PcapParser:
             streams_selected = self.streams
 
         if self.keep_datagrams:
-            self.extract_datagrams(streams_selected)
+            self.extract_datagrams(ports, streams_selected)
 
         # Create Connection objects
         connections = []
@@ -197,7 +197,7 @@ class PcapParser:
                 self._parse_error(e)
 
 
-    def extract_datagrams(self, streams):
+    def extract_datagrams(self, ports, streams):
         """Get datagrams from streams"""
 
         if not streams:
@@ -207,8 +207,7 @@ class PcapParser:
                                             for stream in streams])
 
         # Read the pcap file to get the packet informations
-        try:
-            tshark = subprocess.Popen([
+        args = [
                 "tshark", "-n", "-r", self.file_name,
                 "-R", tshark_stream_string,
                 "-Tfields",
@@ -229,8 +228,14 @@ class PcapParser:
                 "-essh.mac_algorithms_server_to_client",
                 "-essh.compression_algorithms_client_to_server",
                 "-essh.compression_algorithms_server_to_client",
-                ],
-                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                ]
+
+        for port in ports:
+            args.append("-dtcp.port==%d,ssh" % port)
+
+        try:
+            tshark = subprocess.Popen(
+                args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         except OSError as e:
             self._os_error(e)
         (stdout, stderr) = tshark.communicate()
