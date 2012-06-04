@@ -39,7 +39,7 @@ class Algorithms(SingleConnectionAnalyser):
         """
         if connection.clientAlgos is None or connection.serverAlgos is None:
             raise ValueError("No algos found in connection")
-        
+
         self.connection = connection
         self.algos = {
                     'kex': self.determine_algo('kex_algorithms'),
@@ -79,22 +79,25 @@ class Algorithms(SingleConnectionAnalyser):
                     C.FYel + self.algos['compression_s2c'] + C.FRes
                 )
 
-    def determine_algo(self,field):
+    def determine_algo(self, field):
         """Determines the server host key algorithm"""
         client_algos = self.connection.clientAlgos[field].split(",")
         server_algos = self.connection.serverAlgos[field].split(",")
-        
-        if field is not 'kex_algorithms':
-            for algo in client_algos :
-                if algo in server_algos :
+
+        if field == 'kex_algorithms':
+            for algo in client_algos:
+                if algo in server_algos:
                     return algo
-        
-        else :
-            if client_algos[0] == server_algos[0] :
-                return client_algos[0]
-            else :
-                for algo in client_algos :
-                    if algo in server_algos: #FIXME : add conditions of RFC
-                        return algo
-        return None
+            # FIXME: add conditions of RFC
+        elif field == 'server_host_key_algorithms':
+            for algo in client_algos:
+                if algo in server_algos:
+                    return algo
+            # FIXME: add conditions of RFC
+        else:
+            for algo in client_algos:
+                if algo in server_algos:
+                    return algo
+        return 'unknown'
+
 # TODO: unit tests
