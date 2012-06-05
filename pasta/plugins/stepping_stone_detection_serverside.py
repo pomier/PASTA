@@ -57,9 +57,9 @@ class SteppingStoneDetectionServerSide(SingleConnectionAnalyser):
         self.connection = connection
         self.stepping_stone = False
 
-        if self.connection.datagrams == None :
+        if self.connection.datagrams == None:
             raise RuntimeWarning("No datagram in the connection.")
-        else :
+        else:
             self.datagrams = [datagram for datagram in \
                               self.connection.datagrams if \
                               datagram.sentByClient and datagram.payloadLen]
@@ -67,11 +67,11 @@ class SteppingStoneDetectionServerSide(SingleConnectionAnalyser):
             self.logger.debug('Starting computation for connect. #%d' \
                                                         % self.connection.nb)
             if len(self.connection.datagrams)>20:
-                try : 
+                try:
                     self.stepping_stone = self.is_stepping_stone()
                     self.logger.debug('Stepping stone detected: %s' \
                                                 % self.stepping_stone)
-                except :
+                except: # FIXME: be more specific on the exception catched here
                     raise RuntimeWarning("No field payloadLen or RTT in a \
                                                 datagram of the connection.")
             else:
@@ -86,7 +86,7 @@ class SteppingStoneDetectionServerSide(SingleConnectionAnalyser):
     def is_stepping_stone(self):
         """Is the connection part of a stepping stone chain?"""
         return self.compare_rtt_iat() or self.is_modally_distributed()
-        
+
     def compare_rtt_iat(self):
         """
         Compares inter-arrival times between packets from client, and
@@ -139,10 +139,7 @@ class SteppingStoneDetectionServerSide(SingleConnectionAnalyser):
                   % (float(compt) / len(rtts) * 100))
 
         # returns True if IATs & RTTs are different enough.
-        if compt / len(rtts) <= self.IAT_RTT_DIFFERENT:
-            return True
-
-        return False
+        return compt / len(rtts) <= self.IAT_RTT_DIFFERENT
 
     def closest_group(self, payload, groups):
         """
@@ -191,10 +188,7 @@ class SteppingStoneDetectionServerSide(SingleConnectionAnalyser):
         self.logger.debug( 'n-modulus at %.2f%%' % (float(nb) / \
                                                 len(payloads) * 100 ))
 
-        if nb > self.N_MOD_DIST * len(payloads):
-            return True
-
-        return False
+        return nb > self.N_MOD_DIST * len(payloads)
 
 
 if __name__ == '__main__':
