@@ -67,15 +67,21 @@ All the fields given by Pasta about the ssh connections are:
     - the idle time (a percentage representing how busy the connection was).
     - the connection type (tunnel, scp (up/down), shell, or reverse shell).
 
-# FIXME : complete DETAILED DESCRIPTION section (with Task4 too)
+Pasta can also detect stepping stones, depending on the point of 
+view (client-side, proxy-side, server-side).
 
 
 WARNING
-# FIXME : to correct, depending of the future implementation (keeping 
-#         uncompleted connections on port 22 ?)
 
 If the beginning of a connection is missing, the program will not be able to
-determine if the connection is a ssh one, and will be discarded.
+determine if the connection is a ssh one.
+
+About the plugin stepping_stone_detection_serverside :
+The algorithm used requires the client to send small packets at regular intervals 
+to the server, according to the paper Stepping Stone Detection at The Server Side 
+by Ruei-Min Lin, Yi-Chun Chou, and Kuan-Ta Chen. Considering too that the 
+intervals of generated packets at the client are not known by the program, the 
+plugin will not work if Nagle's algorithm is disabled at the client.
 
 
 --

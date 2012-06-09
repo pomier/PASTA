@@ -19,8 +19,6 @@
 # along with PASTA.  If not, see <http://www.gnu.org/licenses/>.
 
 
-# FIXME: clean code + complete comments
-
 """
 Detection of stepping stones at the server side based on the paper
     Stepping Stone Detection at The Server Side
@@ -29,7 +27,6 @@ It is assumed that Nagle's algorithm is enabled at the client.
 """
 import logging
 from plugins import SingleConnectionAnalyser
-#import matplotlib.pyplot as plt
 
 class SteppingStoneDetectionServerSide(SingleConnectionAnalyser):
 
@@ -71,9 +68,9 @@ class SteppingStoneDetectionServerSide(SingleConnectionAnalyser):
                     self.stepping_stone = self.is_stepping_stone()
                     self.logger.debug('Stepping stone detected: %s' \
                                                 % self.stepping_stone)
-                except: # FIXME: be more specific on the exception catched here
-                    raise RuntimeWarning("No field payloadLen or RTT in a \
-                                                datagram of the connection.")
+                except:
+                    raise RuntimeWarning("Missing field in the connection\
+                                                    (payload or RTT).")
             else:
                 self.logger.debug('Not enough datagrams in connection')
                 raise RuntimeWarning('Not enough datagrams in connection')
@@ -120,13 +117,6 @@ class SteppingStoneDetectionServerSide(SingleConnectionAnalyser):
                 first = False
 
         compt = 0.
-
-        #plt.axis([0,len(iats),0,1])
-
-        #plt.plot(iats,"ro")
-        #plt.plot(rtts,"bo")
-
-        #plt.show()
 
         # for each value, if the value of IAT is close enough to the one of the
         # RTT, increment the value of compt.
@@ -189,7 +179,3 @@ class SteppingStoneDetectionServerSide(SingleConnectionAnalyser):
                                                 len(payloads) * 100 ))
 
         return nb > self.N_MOD_DIST * len(payloads)
-
-
-if __name__ == '__main__':
-    pass # TODO unittest
