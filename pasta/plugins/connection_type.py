@@ -19,7 +19,7 @@
 # along with PASTA.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-Find the type of a connection based on traffic patterns
+Finds the type of a connection based on traffic patterns
 """
 
 
@@ -29,7 +29,7 @@ from plugins import SingleConnectionAnalyser
 
 class ConnectionType(SingleConnectionAnalyser):
     """
-    Find the type of a connection based on traffic patterns
+    Finds the type of a connection based on traffic patterns
 
     Uses: sentByClient, RTT, payloadLen, time
     """
@@ -54,7 +54,7 @@ class ConnectionType(SingleConnectionAnalyser):
         self.logger = logging.getLogger('ConnType')
 
     def analyse(self, connection):
-        """Find the type of the ssh connection"""
+        """Finds the type of the ssh connection"""
 
         self.connection = connection
         self.connectionType = None
@@ -124,7 +124,7 @@ class ConnectionType(SingleConnectionAnalyser):
             self.ratio_server_sent = server_sent / (server_sent + client_sent)
 
     def compute_time_to_reply(self):
-        """Compute the times to reply"""
+        """Computes the times to reply"""
         # True: time for the server to reply
         # False: time for the client to reply
         self.time_to_reply = {True: [], False: []}
@@ -145,7 +145,7 @@ class ConnectionType(SingleConnectionAnalyser):
             last_datagram[not way] = datagram
 
     def result_repr(self):
-        """Return the result of the analyse as a string"""
+        """Returns the result of the analyse as a string"""
         self.logger.info('Computations finished: type is %s'
                                             % self.connectionType)
         return 'Connection type: %s' % self.connectionType

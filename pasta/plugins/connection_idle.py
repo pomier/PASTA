@@ -42,9 +42,9 @@ class ConnectionIdle(SingleConnectionAnalyser):
 
     def analyse(self, connection):
         """
-        Compute the idle time
+        Computes the idle time
 
-        Simply cut the duration of the connection in intervals of fixed length
+        Simply cuts the duration of the connection in intervals of fixed length
         Idle time is the percentage of intervals with no packets with payload
         """
         self.connection = connection
@@ -75,7 +75,7 @@ class ConnectionIdle(SingleConnectionAnalyser):
         self.idleTime = intervals_idle / float(intervals_total)
 
     def result_repr(self):
-        """Return the result of the analyse as a string"""
+        """Returns the result of the analyse as a string"""
         return 'Idle time: %.1f%%' % (self.idleTime * 100)
 
 

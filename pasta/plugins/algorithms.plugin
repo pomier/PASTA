@@ -24,4 +24,4 @@ Module = algorithms
 [Documentation]
 Author = the PASTA team
 Version = 1
-Description = Find the algorithms (most probably) used
+Description = Finds the algorithms (most probably) used.

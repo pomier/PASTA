@@ -24,4 +24,4 @@ Module = connection_type
 [Documentation]
 Author = the PASTA team
 Version = 1
-Description = Find the type of the connection (shell, scp, tunnel, etc)
+Description = Finds the type of the connection (shell, scp, tunnel, etc).

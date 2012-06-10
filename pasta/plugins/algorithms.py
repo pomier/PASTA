@@ -18,7 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with PASTA.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Find the algorithms (most probably) used"""
+"""Finds the algorithms (most probably) used"""
 
 
 from plugins import SingleConnectionAnalyser
@@ -26,14 +26,14 @@ import colors as C
 
 class Algorithms(SingleConnectionAnalyser):
     """
-    Find the algorithms (most probably) used
+    Finds the algorithms (most probably) used
 
     Uses: protocol.clientAlgos, protocol.serverAlgos
     """
 
     def analyse(self, connection):
         """
-        Find the algos most probably used.
+        Finds the algos most probably used.
 
         We choose the first "guessed" as explained in RFC 4253 section 7.1
         """
@@ -61,7 +61,7 @@ class Algorithms(SingleConnectionAnalyser):
 
 
     def result_repr(self):
-        """Return the result of the analyse as a string"""
+        """Returns the result of the analyse as a string"""
         return (
                     'Key exchange algorithm: %s\n'
                     'Server host key algorithm: %s\n'

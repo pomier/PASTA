@@ -50,7 +50,7 @@ class SteppingStoneDetectionServerSide(SingleConnectionAnalyser):
         self.logger = logging.getLogger('SSDServerS')
 
     def analyse(self, connection):
-        """Do all the computations"""
+        """Does all the computations"""
         self.connection = connection
         self.stepping_stone = False
 
@@ -76,7 +76,7 @@ class SteppingStoneDetectionServerSide(SingleConnectionAnalyser):
                 raise RuntimeWarning('Not enough datagrams in connection')
 
     def result_repr(self):
-        """Return the result of the computations as a string"""
+        """Returns the result of the computations as a string"""
         return 'Stepping stone detected (server-side): %s' \
                 % (self.stepping_stone)
 

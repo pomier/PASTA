@@ -24,4 +24,4 @@ Module = connection_idle
 [Documentation]
 Author = the PASTA team
 Version = 1
-Description = Compute the idle time of a connection
+Description = Computes the idle time of a connection.

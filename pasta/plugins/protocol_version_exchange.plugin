@@ -24,4 +24,4 @@ Module = protocol_version_exchange
 [Documentation]
 Author = the PASTA team
 Version = 1
-Description = Display the protocol version used by client and server
+Description = Displays the protocol version used by client and server.

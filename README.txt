@@ -65,12 +65,12 @@ All the fields given by Pasta about the ssh connections are:
     - the number of datagrams sent by the client, and the number of bytes.
     - the number of datagrams sent by the server, and the number of bytes.
 
-Also, differents plugins can detect:
+Also, different plugins can detect:
     - the type of connection (ssh, scp, etc)
     - the idle time
     - stepping stones
     - ...
-Fore more informations about the plugins, look in the .plugin files.
+Fore more information about the plugins, look at the .plugin files.
 
 
 WARNING
