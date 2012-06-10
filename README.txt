@@ -17,13 +17,13 @@ The PASTA team (also known as the Spaghetteam):
 
 REQUIREMENTS
 
-Stand alone program:
+Stand alone programs:
     tshark (mandatory)
     python v.2.7
 
 Python 2.7 libraries:
     argparse (mandatory)
-    yapsy (kind of mandatory)
+    yapsy (recommanded)
     colorama (optional)
 
 
@@ -64,27 +64,21 @@ All the fields given by Pasta about the ssh connections are:
     - the protocol used by the server.
     - the number of datagrams sent by the client, and the number of bytes.
     - the number of datagrams sent by the server, and the number of bytes.
-    - the idle time (a percentage representing how busy the connection was).
-    - the connection type (tunnel, scp (up/down), shell, or reverse shell).
 
-Pasta can also detect stepping stones, depending on the point of 
-view (client-side, proxy-side, server-side).
+Also, differents plugins can detect:
+    - the type of connection (ssh, scp, etc)
+    - the idle time
+    - stepping stones
+    - ...
+Fore more informations about the plugins, look in the .plugin files.
 
 
 WARNING
 
 If the beginning of a connection is missing, the program will not be able to
-determine if the connection is a ssh one.
-
-About the plugin stepping_stone_detection_serverside :
-The algorithm used requires the client to send small packets at regular intervals 
-to the server, according to the paper Stepping Stone Detection at The Server Side 
-by Ruei-Min Lin, Yi-Chun Chou, and Kuan-Ta Chen. Considering too that the 
-intervals of generated packets at the client are not known by the program, the 
-plugin will not work if Nagle's algorithm is disabled at the client.
+determine if the connection is a ssh one. Hence, use the -a option.
 
 
 --
 TODO: rest of the file (description of the software, requirements, how
       to use, install, explain that some connections can't be detected, etc)
-      - may be done later

@@ -25,3 +25,9 @@ Module = stepping_stone_detection_serverside
 Author = the PASTA team
 Version = 1
 Description = Detects connections at the server side using a proxy.
+About = The algorithm used requires the client to send small packets at regular
+        intervals to the server, according to the paper Stepping Stone
+        Detection at The Server Side by Ruei-Min Lin, Yi-Chun Chou, and Kuan-Ta
+        Chen. Considering too that the intervals of generated packets at the
+        client are not known by the program, the plugin will not work if
+        Nagle's algorithm is disabled at the client.
