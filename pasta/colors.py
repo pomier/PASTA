@@ -56,3 +56,25 @@ def coloramaze():
         BRes = colorama.Back.RESET
         BWhi = colorama.Back.WHITE
         BYel = colorama.Back.YELLOW
+
+def remove_color(text):
+    """Remove color from text"""
+    text = text.replace(FBla, '')
+    text = text.replace(FBlu, '')
+    text = text.replace(FCya, '')
+    text = text.replace(FGre, '')
+    text = text.replace(FMag, '')
+    text = text.replace(FRed, '')
+    text = text.replace(FRes, '')
+    text = text.replace(FWhi, '')
+    text = text.replace(FYel, '')
+    text = text.replace(BBla, '')
+    text = text.replace(BBlu, '')
+    text = text.replace(BCya, '')
+    text = text.replace(BGre, '')
+    text = text.replace(BMag, '')
+    text = text.replace(BRed, '')
+    text = text.replace(BRes, '')
+    text = text.replace(BWhi, '')
+    text = text.replace(BYel, '')
+    return text

@@ -27,7 +27,8 @@ if __name__ == '__main__':
     import sys, argparse, logging, os, csv
     import colors as C
     from pcap_parser import PcapParser
-    from connection import ConnectionsNormalRepr, ConnectionsCSVRepr
+    from connection import ConnectionsNormalRepr, ConnectionsCSVRepr, \
+            ConnectionsTableRepr
 
     # Check the right version of Python
     if sys.version_info[:2] != (2, 7):
@@ -39,12 +40,12 @@ if __name__ == '__main__':
         # import yapsy if needed
         try:
             from yapsy.PluginManager import PluginManager
-            from plugins import SingleConnectionAnalyser, \
-                    InterConnectionsAnalyser
         except ImportError:
             parser.exit(status=3, message='PASTA plugins require yapsy.\n'
                 'You may try [sudo] easy_install-2.7 yapsy\n'
                 'Or use the option --no-plugins to disable the plugins\n')
+        from plugins import SingleConnectionAnalyser, \
+                InterConnectionsAnalyser
         # create the plugin manager
         plugin_manager = PluginManager(
                 categories_filter={
@@ -149,7 +150,11 @@ if __name__ == '__main__':
     group_summary.add_argument('-S', '--no-summary', action='store_false',
                                dest='no_summary', help='show all the'
                                ' informations of the ssh connections (slower)')
-    group_summary.add_argument('--csv', action='store_true', dest='csv',
+    group_table_csv = display_options.add_mutually_exclusive_group()
+    group_table_csv.add_argument('-t', '--table', dest='table',
+                                 action='store_true', help='display'
+                                 ' informations in a table if possible')
+    group_table_csv.add_argument('--csv', action='store_true', dest='csv',
                                help='print the result formated as CSV; implies'
                                ' --no-colors')
 
@@ -259,7 +264,7 @@ if __name__ == '__main__':
         logger.info('Trying to enable colors')
         C.coloramaze()
     else:
-        logger.info('Colors disabled')
+        logger.warning('Colors disabled')
 
 
     # Loading plugins
@@ -289,6 +294,13 @@ if __name__ == '__main__':
     # Printing connections
     logger.info('Printing connections...')
     ConnectionsRepr = ConnectionsNormalRepr
+    if args.table:
+        logger.info('Trying to enable tables')
+        try:
+            from texttable import Texttable
+            ConnectionsRepr = ConnectionsTableRepr
+        except ImportError:
+            logger.warning('Tables disabled')
     kargs = [logger, compute_datagrams, None if not args.plugins else
             plugin_manager.getPluginsOfCategory("SingleConnectionAnalyser")]
     if args.csv:

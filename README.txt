@@ -22,9 +22,9 @@ Stand alone programs:
     python v.2.7
 
 Python 2.7 libraries:
-    argparse (mandatory)
     yapsy (recommanded)
     colorama (optional)
+    texttable (optional)
 
 
 INSTALLATION

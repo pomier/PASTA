@@ -262,9 +262,11 @@ class ConnectionsRepr:
         self.logger = logger
         self.plugins = []
         self.plugins_fields = {}
+        self.plugins_fields_table = {}
         for plugin in plugins:
             try:
                 fields = plugin.plugin_object.result_fields()
+                fields_table = plugin.plugin_object.result_fields_table()
             except Exception as e:
                 if e.message:
                     self.logger.error('Plugin %s fatal error: %s, %s' %
@@ -275,6 +277,7 @@ class ConnectionsRepr:
             else:
                 self.plugins.append(plugin)
                 self.plugins_fields[plugin] = fields
+                self.plugins_fields_table[plugin] = fields_table
         self.full = full
 
     def repr(self, connection):
@@ -329,7 +332,7 @@ class ConnectionsNormalRepr(ConnectionsRepr):
              'Datagrams sent by client: ' + C.FBlu + '%d ' + C.FRes + '(' +
                 C.FBlu + '%d ' + C.FRes + 'bytes)\n'
              'Datagrams sent by server: ' + C.FYel + '%d ' + C.FRes + '(' +
-                C.FYel + '%d ' + C.FRes + 'bytes)\n'
+                C.FYel + '%d ' + C.FRes + 'bytes)'
             ) % (
                 connection.nb, connection.clientIP, connection.clientPort,
                 connection.serverIP, connection.serverPort,
@@ -344,8 +347,8 @@ class ConnectionsNormalRepr(ConnectionsRepr):
             plugin_results = self.result_plugin(connection, plugin)
             for field in self.plugins_fields[plugin]:
                 if field in plugin_results:
-                    r += '%s: %s\n' % (field, plugin_results[field])
-        print r
+                    r += '\n%s: %s' % (field, plugin_results[field])
+        print '\n%s' % r.replace('\n', '\n  ')
 
     def repr_summary(self, connection):
         """A one-line summary of the connection"""
@@ -359,6 +362,58 @@ class ConnectionsNormalRepr(ConnectionsRepr):
                 connection.serverIP, connection.serverPort,
                 connection.startTime.strftime('%m%b%y %H:%M:%S'),
             )
+
+class ConnectionsTableRepr(ConnectionsNormalRepr):
+    """Table representation of connections"""
+
+    def repr_full(self, connection):
+        """Full representation of a connection"""
+        from texttable import Texttable
+        t = Texttable(78)
+        t.set_deco(Texttable.HEADER | Texttable.VLINES)
+        t.set_chars(['.', '|', 'o', '-'])
+        t.header(['Field', 'Client', 'Server'])
+        t.set_cols_align(['r', 'l', 'l'])
+        t.add_row(['IP', connection.clientIP, connection.serverIP])
+        t.add_row(['Port', connection.clientPort, connection.serverPort])
+        t.add_row(['Datagrams', connection.clientSentNbDatagrams,
+            connection.serverSentNbDatagrams])
+        t.add_row(['Datagrams (bytes)', connection.clientSentLen,
+            connection.serverSentLen])
+        r = (
+             'Connection %d\n%s'
+             'Start date: %s\n'
+             'Duration: %s'
+            ) % (
+                connection.nb, '' if connection.ssh else C.FMag +
+                    'Not detected as a ssh connection' + C.FRes + '\n',
+                connection.startTime.strftime('%b %d, %Y - %H:%M:%S'),
+                strTD(connection.duration)
+            )
+        for plugin in self.plugins:
+            plugin_results = self.result_plugin(connection, plugin)
+            for field_short, field_client, field_server \
+                    in self.plugins_fields_table[plugin]:
+                if field_client not in plugin_results \
+                        or plugin_results[field_client] is None:
+                    plugin_results[field_client] = ''
+                if field_server not in plugin_results \
+                        or plugin_results[field_server] is None:
+                    plugin_results[field_server] = ''
+                if plugin_results[field_client] != '' \
+                        or plugin_results[field_server] != '':
+                    t.add_row([
+                        field_short,
+                        C.remove_color(plugin_results[field_client]),
+                        C.remove_color(plugin_results[field_server])
+                        ])
+                del(plugin_results[field_client])
+                del(plugin_results[field_server])
+            for field in self.plugins_fields[plugin]:
+                if field in plugin_results:
+                    r += '\n%s: %s' % (field, plugin_results[field])
+        r += '\n%s' % t.draw()
+        print '%s\n' % r.replace('\n', '\n  ')
 
 class ConnectionsCSVRepr(ConnectionsRepr):
     """Representation of a connection as CSV"""

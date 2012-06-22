@@ -57,6 +57,19 @@ class SingleConnectionAnalyser(IPlugin):
         """Return the fields of the analyse as a tuple of strings"""
         raise NotImplementedError()
 
+    @staticmethod
+    def result_fields_table():
+        """
+        Set the fields that can be put in a client/server table
+
+        Return a set with tuples as items:
+            ('Short description', # description of the row
+             'Client field', # name of the client field (as in result_fields)
+             'Server field' # name of the server field (as in result_fields)
+            )
+        """
+        return set()
+
     def result_repr(self):
         """
         Return the result of the analyse as a dict of strings
