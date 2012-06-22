@@ -75,10 +75,21 @@ class SteppingStoneDetectionServerSide(SingleConnectionAnalyser):
                 self.logger.debug('Not enough datagrams in connection')
                 raise RuntimeWarning('Not enough datagrams in connection')
 
+    @staticmethod
+    def fields_repr():
+        """
+        Return the fields of the analyse as a tuple of strings
+        (same order as in result_repr)
+        """
+        return ('Stepping stone detected (server-side)',)
+
     def result_repr(self):
-        """Returns the result of the computations as a string"""
-        return 'Stepping stone detected (server-side): %s' \
-                % (self.stepping_stone)
+        """
+        Return the result of the analyse as a tuple of strings
+        (same order as in fields_repr)
+        """
+        return {'Stepping stone detected (server-side)':
+            'yes' if self.stepping_stone else 'no'}
 
     def is_stepping_stone(self):
         """Is the connection part of a stepping stone chain?"""

@@ -24,9 +24,10 @@ Parse the arguments and launch PASTA according to them
 
 
 if __name__ == '__main__':
-    import sys, argparse, logging, os
+    import sys, argparse, logging, os, csv
     import colors as C
     from pcap_parser import PcapParser
+    from connection import ConnectionsNormalRepr, ConnectionsCSVRepr
 
     # Check the right version of Python
     if sys.version_info[:2] != (2, 7):
@@ -148,6 +149,9 @@ if __name__ == '__main__':
     group_summary.add_argument('-S', '--no-summary', action='store_false',
                                dest='no_summary', help='show all the'
                                ' informations of the ssh connections (slower)')
+    group_summary.add_argument('--csv', action='store_true', dest='csv',
+                               help='print the result formated as CSV; implies'
+                               ' --no-colors')
 
     plugins_options = parser.add_argument_group('Plugins options')
     parser_list_plugins.add_argument('--list-plugins', action='store_true',
@@ -251,7 +255,7 @@ if __name__ == '__main__':
 
 
     # Colors
-    if args.colors:
+    if args.colors and not args.csv:
         logger.info('Trying to enable colors')
         C.coloramaze()
     else:
@@ -284,39 +288,17 @@ if __name__ == '__main__':
 
     # Printing connections
     logger.info('Printing connections...')
+    ConnectionsRepr = ConnectionsNormalRepr
+    kargs = [logger, compute_datagrams, None if not args.plugins else
+            plugin_manager.getPluginsOfCategory("SingleConnectionAnalyser")]
+    if args.csv:
+        ConnectionsRepr = ConnectionsCSVRepr
+        kargs.append(csv.writer(sys.stdout))
+        # FIXME (prev line): CSV options: let the choice to the user?
+    connection_repr = ConnectionsRepr(*kargs)
     for connection in connections:
-        if not compute_datagrams:
-            print connection.summary()
-            break
-        print connection
-        # SingleConnectionAnalyser plugins
-        if args.plugins:
-            logger.info('Analyse connection %d (plugins)', connection.nb)
-            for plugin in plugin_manager.getPluginsOfCategory\
-                    ("SingleConnectionAnalyser"):
-                plugin_object = plugin.plugin_object
-                logger.info('Using plugin %s' % plugin.name)
-                try:
-                    logger.debug('Activate the plugin')
-                    plugin_object.activate()
-                    logger.debug('Launch the analyse of the connection'
-                            ' by the plugin')
-                    plugin_object.analyse(connection)
-                    logger.debug('Print the result of the analyse'
-                            ' by the plugin')
-                    print plugin_object.result_repr()
-                    logger.debug('Deactivate the plugin')
-                    plugin_object.deactivate()
-                except RuntimeWarning as e:
-                    logger.warning('Plugin %s: %s' % (plugin.name, e.message))
-                except Exception as e:
-                    if e.message:
-                        logger.error('Plugin %s crash: %s, %s' %
-                                (plugin.name, e.__class__.__name__, e.message))
-                    else:
-                        logger.error('Plugin %s crash: %s' %
-                                (plugin.name, e.__class__.__name__))
-        print
+        connection_repr.repr(connection)
+
 
     # InterConnectionsAnalyser plugins
     if args.plugins and compute_datagrams:

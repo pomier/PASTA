@@ -74,9 +74,20 @@ class ConnectionIdle(SingleConnectionAnalyser):
                 (intervals_idle, intervals_total))
         self.idleTime = intervals_idle / float(intervals_total)
 
+    @staticmethod
+    def fields_repr():
+        """
+        Return the fields of the analyse as a tuple of strings
+        (same order as in result_repr)
+        """
+        return ('Idle time',)
+
     def result_repr(self):
-        """Returns the result of the analyse as a string"""
-        return 'Idle time: %.1f%%' % (self.idleTime * 100)
+        """
+        Return the result of the analyse as a tuple of strings
+        (same order as in fields_repr)
+        """
+        return {'Idle time': '%.1f%%' % (self.idleTime * 100)}
 
 
 class TestConnectionIdle(unittest.TestCase):

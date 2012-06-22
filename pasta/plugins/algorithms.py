@@ -59,25 +59,44 @@ class Algorithms(SingleConnectionAnalyser):
                                     'compression_algorithms_server_to_client'),
                 }
 
+    @staticmethod
+    def fields_repr():
+        """
+        Return the fields of the analyse as a tuple of strings
+        (same order as in result_repr)
+        """
+        return (
+                'Key exchange algorithm',
+                'Server host key algorithm',
+                'Encryption algorithm (client to server)',
+                'Encryption algorithm (server to client)',
+                'MAC algorithm (client to server)',
+                'MAC algorithm (server to client)',
+                'Compression algorithm (client to server)',
+                'Compression algorithm (server to client)'
+                )
 
     def result_repr(self):
-        """Returns the result of the analyse as a string"""
-        return (
-                    'Key exchange algorithm: %s\n'
-                    'Server host key algorithm: %s\n'
-                    'Encryption algorithms: C>S: %s, S>C: %s\n'
-                    'MAC algorithms: C>S: %s, S>C: %s\n'
-                    'Compression algorithms: C>S: %s, S>C: %s'
-                ) % (
-                    self.algos['kex'],
-                    self.algos['server_host_key'],
+        """
+        Return the result of the analyse as a tuple of strings
+        (same order as in fields_repr)
+        """
+        return {
+                'Key exchange algorithm': self.algos['kex'],
+                'Server host key algorithm': self.algos['server_host_key'],
+                'Encryption algorithm (client to server)': \
                     C.FBlu + self.algos['encryption_c2s'] + C.FRes,
+                'Encryption algorithm (server to client)': \
                     C.FYel + self.algos['encryption_s2c'] + C.FRes,
+                'MAC algorithm (client to server)': \
                     C.FBlu + self.algos['mac_c2s'] + C.FRes,
+                'MAC algorithm (server to client)': \
                     C.FYel + self.algos['mac_s2c'] + C.FRes,
+                'Compression algorithm (client to server)': \
                     C.FBlu + self.algos['compression_c2s'] + C.FRes,
+                'Compression algorithm (server to client)': \
                     C.FYel + self.algos['compression_s2c'] + C.FRes
-                )
+                }
 
     def determine_algo(self, field):
         """Determines the server host key algorithm"""

@@ -144,11 +144,22 @@ class ConnectionType(SingleConnectionAnalyser):
             last_datagram[way] = None
             last_datagram[not way] = datagram
 
+    @staticmethod
+    def fields_repr():
+        """
+        Return the fields of the analyse as a tuple of strings
+        (same order as in result_repr)
+        """
+        return ('Connection type',)
+
     def result_repr(self):
-        """Returns the result of the analyse as a string"""
+        """
+        Return the result of the analyse as a tuple of strings
+        (same order as in fields_repr)
+        """
         self.logger.info('Computations finished: type is %s'
                                             % self.connectionType)
-        return 'Connection type: %s' % self.connectionType
+        return {'Connection type': self.connectionType}
 
 
 class TestConnectionType(unittest.TestCase):

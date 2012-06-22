@@ -63,15 +63,49 @@ class ProtocolVersionExchange(SingleConnectionAnalyser):
             s += ', comment: %s' % (color + protocol['comment'] + C.FRes)
         return s
 
+    @staticmethod
+    def fields_repr():
+        """
+        Return the fields of the analyse as a tuple of strings
+        (same order as in result_repr)
+        """
+        '''
+        return ('Client protocol', 'Server protocol')
+        '''
+        return (
+                'Client SSH version',
+                'Server SSH version',
+                'Client software version',
+                'Server software version',
+                'Client protocol comment',
+                'Server protocol comment'
+               )
 
     def result_repr(self):
-        """Return the result of the analyse as a string"""
-        s = ''
-        s += 'Client protocol: %s\n' \
-                % self.protocol_repr(self.client_protocol, C.FBlu)
-        s += 'Server protocol: %s\n' \
-                % self.protocol_repr(self.server_protocol, C.FYel)
-        return s.strip()
+        """
+        Return the result of the analyse as a tuple of strings
+        (same order as in fields_repr)
+        """
+        '''
+        return {'Client protocol': self.protocol_repr(self.client_protocol, C.FBlu),
+                'Server protocol': self.protocol_repr(self.server_protocol, C.FYel)}
+        '''
+        return {
+                'Client SSH version': \
+                    C.FBlu + self.client_protocol['ssh_version'] + C.FRes,
+                'Server SSH version': \
+                    C.FYel + self.server_protocol['ssh_version'] + C.FRes,
+                'Client software version': \
+                    C.FBlu + self.client_protocol['software_version'] + C.FRes,
+                'Server software version': \
+                    C.FYel + self.server_protocol['software_version'] + C.FRes,
+                'Client protocol comment': None \
+                        if self.client_protocol['comment'] is None \
+                        else C.FBlu + self.client_protocol['comment'] +  C.FRes,
+                'Server protocol comment': None \
+                        if self.server_protocol['comment'] is None \
+                        else C.FBlu + self.server_protocol['comment'] +  C.FRes
+               }
 
 
 class TestProtocolVersionExchange(unittest.TestCase):

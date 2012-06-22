@@ -255,6 +255,157 @@ class Datagram:
         return repr(self)
 
 
+class ConnectionsRepr:
+    """Representation of connection, one after the other"""
+
+    def __init__(self, logger, full, plugins):
+        self.logger = logger
+        self.plugins = []
+        self.plugins_fields = {}
+        for plugin in plugins:
+            try:
+                fields = plugin.plugin_object.fields_repr()
+            except Exception as e:
+                if e.message:
+                    self.logger.error('Plugin %s fatal error: %s, %s' %
+                            (plugin.name, e.__class__.__name__, e.message))
+                else:
+                    self.logger.error('Plugin %s fatal error: %s' %
+                            (plugin.name, e.__class__.__name__))
+            else:
+                self.plugins.append(plugin)
+                self.plugins_fields[plugin] = fields
+        self.full = full
+
+    def repr(self, connection):
+        """Representation of a connection"""
+        raise NotImplementedError()
+
+    def result_plugin(self, connection, plugin):
+        """Apply and represent a plugin on a connection"""
+        s = {}
+        plugin_object = plugin.plugin_object
+        self.logger.info('Analyse connection %d with plugin %s' \
+                % (connection.nb, plugin.name))
+        try:
+            self.logger.debug('Activate the plugin')
+            plugin_object.activate()
+            self.logger.debug('Launch the analyse of the connection'
+                    ' by the plugin')
+            plugin_object.analyse(connection)
+            self.logger.debug('Get the result of the analyse by the plugin')
+            s = plugin_object.result_repr()
+            self.logger.debug('Deactivate the plugin')
+            plugin_object.deactivate()
+        except RuntimeWarning as e:
+            self.logger.warning('Plugin %s: %s' % (plugin.name, e.message))
+        except Exception as e:
+            if e.message:
+                self.logger.error('Plugin %s crash: %s, %s' %
+                        (plugin.name, e.__class__.__name__, e.message))
+            else:
+                self.logger.error('Plugin %s crash: %s' %
+                        (plugin.name, e.__class__.__name__))
+        return s
+
+class ConnectionsNormalRepr(ConnectionsRepr):
+    """Normal representation of connections"""
+
+    def repr(self, connection):
+        """Representation of a connection"""
+        if self.full:
+            self.repr_full(connection)
+        else:
+            self.repr_summary(connection)
+
+    def repr_full(self, connection):
+        """Full representation of a connection"""
+        r = (
+             'Connection %d: ' + C.FBlu + '%s' + C.FRes + ':' + C.FCya + '%d'
+             + C.FRes + ' --> ' + C.FYel + '%s' + C.FRes + ':' + C.FGre
+             + '%d' + C.FRes + '\n%s'
+             'Start date: %s\n'
+             'Duration: %s\n'
+             'Datagrams sent by client: ' + C.FBlu + '%d ' + C.FRes + '(' +
+                C.FBlu + '%d ' + C.FRes + 'bytes)\n'
+             'Datagrams sent by server: ' + C.FYel + '%d ' + C.FRes + '(' +
+                C.FYel + '%d ' + C.FRes + 'bytes)\n'
+            ) % (
+                connection.nb, connection.clientIP, connection.clientPort,
+                connection.serverIP, connection.serverPort,
+                '' if connection.ssh else C.FMag +
+                    'Not detected as a ssh connection' + C.FRes + '\n',
+                connection.startTime.strftime('%b %d, %Y - %H:%M:%S'),
+                strTD(connection.duration),
+                connection.clientSentNbDatagrams, connection.clientSentLen,
+                connection.serverSentNbDatagrams, connection.serverSentLen
+            )
+        for plugin in self.plugins:
+            plugin_results = self.result_plugin(connection, plugin)
+            for field in self.plugins_fields[plugin]:
+                if field in plugin_results:
+                    r += '%s: %s\n' % (field, plugin_results[field])
+        print r
+
+    def repr_summary(self, connection):
+        """A one-line summary of the connection"""
+        print (
+             '%s Connection %-3d: ' + C.FBlu + '%16s' + C.FRes + ':' + C.FCya +
+             '%-5.d' + C.FRes + ' --> ' + C.FYel + '%16s' + C.FRes + ':' +
+             C.FGre + '%-5d' + C.FRes + ' %s'
+            ) % (
+                ' ' if connection.ssh else C.FMag + '?' + C.FRes,
+                connection.nb, connection.clientIP, connection.clientPort,
+                connection.serverIP, connection.serverPort,
+                connection.startTime.strftime('%m%b%y %H:%M:%S'),
+            )
+
+class ConnectionsCSVRepr(ConnectionsRepr):
+    """Representation of a connection as CSV"""
+
+    def __init__(self, logger, full, plugins, csv_writer):
+        ConnectionsRepr.__init__(self, logger, full, plugins)
+        self.csv_writer = csv_writer
+        columns = ['Connection nb', 'Detected as SSH', 'Source IP', 'Source port',
+                'Destination IP', 'Destinantion port', 'Start date']
+        if self.full:
+            columns.extend(['Duration',
+                'Datargrams send by client', 'Datagrams send by client in bytes',
+                'Datargrams send by server', 'Datagrams send by server in bytes'])
+            for plugin in self.plugins:
+                columns.extend(self.plugins_fields[plugin])
+        self.csv_writer.writerow(columns)
+
+    def repr(self, connection):
+        """Representation of a connection"""
+        columns = [
+                connection.nb, # Connection nb
+                1 if connection.ssh else 0, # Detected as SSH
+                connection.clientIP, # Source IP'
+                connection.clientPort, # Source port
+                connection.serverIP, # Destination IP
+                connection.serverPort, # Destinantion port
+                connection.startTime.strftime('%d/%m/%Y %H:%M:%S') # Start date
+                ]
+        if self.full:
+            columns.extend([
+                connection.duration.total_seconds(), # Duration
+                connection.clientSentNbDatagrams, # Datargrams send by client
+                connection.clientSentLen, # Datagrams send by client in bytes
+                connection.serverSentNbDatagrams, # Datargrams send by server
+                connection.serverSentLen # Datagrams send by server in byte
+                ])
+            for plugin in self.plugins:
+                plugin_results = self.result_plugin(connection, plugin)
+                for field in self.plugins_fields[plugin]:
+                    if field in plugin_results:
+                        column.append(plugin_results[field])
+                    else:
+                        column.append('')
+                else:
+                    columns.extend(plugin_result)
+        self.csv_writer.writerow(columns)
+
 class TestConnection(unittest.TestCase):
     """Unit tests for Connection"""
 

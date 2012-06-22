@@ -52,8 +52,16 @@ class SingleConnectionAnalyser(IPlugin):
         """
         raise NotImplementedError()
 
+    @staticmethod
+    def fields_repr():
+        """Return the fields of the analyse as a tuple of strings"""
+        raise NotImplementedError()
+
     def result_repr(self):
-        """Return the result of the analyse as a string"""
+        """
+        Return the result of the analyse as a dict of strings
+        Note: only keys returned by fields_repr will be considered
+        """
         raise NotImplementedError()
 
 
