@@ -75,7 +75,7 @@ class ConnectionIdle(SingleConnectionAnalyser):
         self.idleTime = intervals_idle / float(intervals_total)
 
     @staticmethod
-    def fields_repr():
+    def result_fields():
         """
         Return the fields of the analyse as a tuple of strings
         (same order as in result_repr)

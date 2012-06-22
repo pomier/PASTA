@@ -264,7 +264,7 @@ class ConnectionsRepr:
         self.plugins_fields = {}
         for plugin in plugins:
             try:
-                fields = plugin.plugin_object.fields_repr()
+                fields = plugin.plugin_object.result_fields()
             except Exception as e:
                 if e.message:
                     self.logger.error('Plugin %s fatal error: %s, %s' %

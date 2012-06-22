@@ -64,7 +64,7 @@ class ProtocolVersionExchange(SingleConnectionAnalyser):
         return s
 
     @staticmethod
-    def fields_repr():
+    def result_fields():
         """
         Return the fields of the analyse as a tuple of strings
         (same order as in result_repr)

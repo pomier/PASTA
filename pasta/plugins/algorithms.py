@@ -60,7 +60,7 @@ class Algorithms(SingleConnectionAnalyser):
                 }
 
     @staticmethod
-    def fields_repr():
+    def result_fields():
         """
         Return the fields of the analyse as a tuple of strings
         (same order as in result_repr)

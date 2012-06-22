@@ -145,7 +145,7 @@ class ConnectionType(SingleConnectionAnalyser):
             last_datagram[not way] = datagram
 
     @staticmethod
-    def fields_repr():
+    def result_fields():
         """
         Return the fields of the analyse as a tuple of strings
         (same order as in result_repr)
