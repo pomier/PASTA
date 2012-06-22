@@ -295,12 +295,7 @@ if __name__ == '__main__':
     logger.info('Printing connections...')
     ConnectionsRepr = ConnectionsNormalRepr
     if args.table:
-        logger.info('Trying to enable tables')
-        try:
-            from texttable import Texttable
-            ConnectionsRepr = ConnectionsTableRepr
-        except ImportError:
-            logger.warning('Tables disabled')
+        ConnectionsRepr = ConnectionsTableRepr
     kargs = [logger, compute_datagrams, None if not args.plugins else
             plugin_manager.getPluginsOfCategory("SingleConnectionAnalyser")]
     if args.csv:

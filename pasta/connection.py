@@ -23,6 +23,10 @@
 import logging, unittest, random
 from datetime import datetime, timedelta
 import colors as C
+try:
+    from texttable import Texttable
+except ImportError:
+    Texttable = None
 
 def strTD(td, short=False):
     """Better representation of a timedelta instance"""
@@ -368,7 +372,6 @@ class ConnectionsTableRepr(ConnectionsNormalRepr):
 
     def repr_full(self, connection):
         """Full representation of a connection"""
-        from texttable import Texttable
         t = Texttable(78)
         t.set_deco(Texttable.HEADER | Texttable.VLINES)
         t.set_chars(['.', '|', 'o', '-'])
@@ -414,6 +417,10 @@ class ConnectionsTableRepr(ConnectionsNormalRepr):
                     r += '\n%s: %s' % (field, plugin_results[field])
         r += '\n%s' % t.draw()
         print '%s\n' % r.replace('\n', '\n  ')
+
+# Failback to ConnectionsNormalRepr if Texttable was not imported properly
+if Texttable is None:
+    ConnectionsTableRepr = ConnectionsNormalRepr
 
 class ConnectionsCSVRepr(ConnectionsRepr):
     """Representation of a connection as CSV"""
