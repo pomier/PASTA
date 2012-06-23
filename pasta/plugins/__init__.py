@@ -62,13 +62,13 @@ class SingleConnectionAnalyser(IPlugin):
         """
         Set the fields that can be put in a client/server table
 
-        Return a set with tuples as items:
+        Return a list of tuples as items:
             ('Short description', # description of the row
              'Client field', # name of the client field (as in result_fields)
              'Server field' # name of the server field (as in result_fields)
             )
         """
-        return set()
+        return []
 
     def result_repr(self):
         """

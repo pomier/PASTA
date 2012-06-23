@@ -84,7 +84,7 @@ class ProtocolVersionExchange(SingleConnectionAnalyser):
     @staticmethod
     def result_fields_table():
         """Set the fields that can be put in a client/server table"""
-        return {(
+        return [(
                     'SSH version',
                     'Client SSH version',
                     'Server SSH version'
@@ -96,7 +96,7 @@ class ProtocolVersionExchange(SingleConnectionAnalyser):
                     'Protocol comment',
                     'Client protocol comment',
                     'Server protocol comment'
-               )}
+               )]
 
     def result_repr(self):
         """

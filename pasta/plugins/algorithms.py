@@ -79,7 +79,7 @@ class Algorithms(SingleConnectionAnalyser):
     @staticmethod
     def result_fields_table():
         """Set the fields that can be put in a client/server table"""
-        return {(
+        return [(
                     'Encryption',
                     'Encryption algorithm (client to server)',
                     'Encryption algorithm (server to client)'
@@ -91,7 +91,7 @@ class Algorithms(SingleConnectionAnalyser):
                     'Compression',
                     'Compression algorithm (client to server)',
                     'Compression algorithm (server to client)'
-                )}
+                )]
 
     def result_repr(self):
         """
