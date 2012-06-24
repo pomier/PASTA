@@ -121,7 +121,7 @@ class ProtocolVersionExchange(SingleConnectionAnalyser):
                         else C.FBlu + self.client_protocol['comment'] +  C.FRes,
                 'Server protocol comment': None \
                         if self.server_protocol['comment'] is None \
-                        else C.FBlu + self.server_protocol['comment'] +  C.FRes
+                        else C.FYel + self.server_protocol['comment'] +  C.FRes
                }
 
 
