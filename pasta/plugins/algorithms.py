@@ -31,6 +31,39 @@ class Algorithms(SingleConnectionAnalyser):
     Uses: protocol.clientAlgos, protocol.serverAlgos
     """
 
+    # We need these algorithms to determine best guesses
+    # list from http://www.iana.org/assignments/ssh-parameters/ssh-parameters.xml
+    KEX_ALGORITHMS = {
+            # values are (requires_encryption, requires_signature)
+            'diffie-hellman-group-exchange-sha1': ('TODO', 'TODO'), # TODO
+            'diffie-hellman-group-exchange-sha256': ('TODO', 'TODO'), # TODO
+            'diffie-hellman-group1-sha1': ('TODO', 'TODO'), # TODO
+            'diffie-hellman-group14-sha1': ('TODO', 'TODO'), # TODO
+            'ecdh-sha2-*': ('TODO', 'TODO'), # TODO
+            'ecmqv-sha2': ('TODO', 'TODO'), # TODO
+            'gss-group1-sha1-*': ('TODO', 'TODO'), # TODO
+            'gss-group14-sha1-*': ('TODO', 'TODO'), # TODO
+            'gss-gex-sha1-*': ('TODO', 'TODO'), # TODO
+            'gss-*': ('TODO', 'TODO'), # TODO
+            'rsa1024-sha1': ('TODO', 'TODO'), # TODO
+            'rsa2048-sha256': ('TODO', 'TODO') # TODO
+            }
+    SERVER_HOST_KEY_ALGORITHMS = {
+            # values are (encryption_capable, signature_capable)
+            'ssh-dss': ('TODO', 'TODO'), # TODO
+            'ssh-rsa': ('TODO', 'TODO'), # TODO
+            'spki-sign-rsa': ('TODO', 'TODO'), # TODO
+            'spki-sign-dss': ('TODO', 'TODO'), # TODO
+            'pgp-sign-rsa': ('TODO', 'TODO'), # TODO
+            'pgp-sign-dss': ('TODO', 'TODO'), # TODO
+            'null': (False, False),
+            'ecdsa-sha2-*': ('TODO', 'TODO'), # TODO
+            'x509v3-ssh-dss': ('TODO', 'TODO'), # TODO
+            'x509v3-ssh-rsa': ('TODO', 'TODO'), # TODO
+            'x509v3-rsa2048-sha256': ('TODO', 'TODO'), # TODO
+            'x509v3-ecdsa-sha2-*': ('TODO', 'TODO') # TODO
+            }
+
     def analyse(self, connection):
         """
         Finds the algos most probably used.
@@ -41,10 +74,10 @@ class Algorithms(SingleConnectionAnalyser):
             raise RuntimeWarning("No algos found in connection")
 
         self.connection = connection
+        kex_algo, shk_algo = self.determine_kex_and_server_host_key_algo()
         self.algos = {
-                    'kex': self.determine_algo('kex_algorithms'),
-                    'server_host_key': 
-                            self.determine_algo('server_host_key_algorithms'),
+                    'kex': kex_algo,
+                    'server_host_key': shk_algo,
                     'encryption_c2s': self.determine_algo(\
                                     'encryption_algorithms_client_to_server'),
                     'encryption_s2c': self.determine_algo(\
@@ -58,6 +91,70 @@ class Algorithms(SingleConnectionAnalyser):
                     'compression_s2c': self.determine_algo(\
                                     'compression_algorithms_server_to_client'),
                 }
+
+    def determine_kex_and_server_host_key_algo(self):
+        """Determine the kex_algo and server_host_key_algo"""
+        client_algos = self.connection.clientAlgos['kex_algorithms'].split(",")
+        server_algos = self.connection.serverAlgos['kex_algorithms'].split(",")
+        for algo in client_algos:
+            # check if server supports algo
+            if algo not in server_algos:
+                continue
+            # if algo not known, assume requires nothing
+            cap_needed = (False, False)
+            # if algo known, find what is required
+            for known_algo in self.KEX_ALGORITHMS:
+                if known_algo[-1] == '*':
+                    if algo.startswith(known_algo[-1]) and '@' not in algo:
+                        cap_needed = self.KEX_ALGORITHMS[known_algo]
+                        break
+                else:
+                    if algo == known_algo:
+                        cap_needed = self.KEX_ALGORITHMS[known_algo]
+                        break
+            # check that we can have an algo with required capabilities
+            try:
+                shk_algo = self.determine_server_host_key_algo(cap_needed)
+            except StandardError:
+                continue
+            # return what is required and the choosen algo
+            return (algo, shk_algo)
+        return ('unknown', 'unknown')
+
+    def determine_server_host_key_algo(self, cap_needed):
+        """Determine the server_host_key_algo given the nedded capacities"""
+        client_algos = self.connection.clientAlgos \
+                ['server_host_key_algorithms'].split(",")
+        server_algos = self.connection.serverAlgos \
+                ['server_host_key_algorithms'].split(",")
+        for algo in client_algos:
+            # check if server supports algo
+            if algo not in server_algos:
+                continue
+            # check if algo is known
+            # if algo is not known, assume it has not any capabilities
+            for known_algo in self.SERVER_HOST_KEY_ALGORITHMS:
+                cap = self.SERVER_HOST_KEY_ALGORITHMS[known_algo]
+                # check if this algo has the required capabilities
+                if cap_needed[0] and not cap[0]:
+                    continue
+                if cap_needed[1] and not cap[1]:
+                    continue
+                # check if this is the corresponding algo
+                if algo.startswith(known_algo[:-1]) and '@' not in algo:
+                    return algo # algo found!
+                elif algo == known_algo:
+                    return algo # algo found!
+        raise StandardError('No algorithm with required capabilities found')
+
+    def determine_algo(self, field):
+        """Determines the algorithm of the specified type"""
+        client_algos = self.connection.clientAlgos[field].split(",")
+        server_algos = self.connection.serverAlgos[field].split(",")
+        for algo in client_algos:
+            if algo in server_algos:
+                return algo
+        return 'unknown'
 
     @staticmethod
     def result_fields():
@@ -114,26 +211,5 @@ class Algorithms(SingleConnectionAnalyser):
                 'Compression algorithm (server to client)': \
                     C.FYel + self.algos['compression_s2c'] + C.FRes
                 }
-
-    def determine_algo(self, field):
-        """Determines the server host key algorithm"""
-        client_algos = self.connection.clientAlgos[field].split(",")
-        server_algos = self.connection.serverAlgos[field].split(",")
-
-        if field == 'kex_algorithms':
-            for algo in client_algos:
-                if algo in server_algos:
-                    return algo
-            # FIXME: add conditions of RFC
-        elif field == 'server_host_key_algorithms':
-            for algo in client_algos:
-                if algo in server_algos:
-                    return algo
-            # FIXME: add conditions of RFC
-        else:
-            for algo in client_algos:
-                if algo in server_algos:
-                    return algo
-        return 'unknown'
 
 # TODO: unit tests
