@@ -42,8 +42,8 @@ if __name__ == '__main__':
             from yapsy.PluginManager import PluginManager
         except ImportError:
             parser.exit(status=3, message='PASTA plugins require yapsy.\n'
-                'You may try [sudo] easy_install-2.7 yapsy\n'
-                'Or use the option --no-plugins to disable the plugins\n')
+                'See README file for more informations.\n'
+                'Alternatively, use the option --no-plugins to disable the plugins\n')
         from plugins import SingleConnectionAnalyser, \
                 InterConnectionsAnalyser
         # create the plugin manager

@@ -289,6 +289,7 @@ class PcapParser:
         self.logger.error('Tshark call raises OSERROR: %s' % e.strerror)
         errors = {
             errno.ENOENT: 'Tshark is required to use PASTA\n'
+                'See README file for more informations.\n'
                 'The tshark binary used was %s; to change it, use the'
                 ' --tshark option.' % self.tshark_cmd,
             errno.EACCES: 'Permission denied when executing tshark\n'
