@@ -90,44 +90,10 @@ class Connection:
         self.ssh = is_ssh
 
     def __repr__(self):
-        s = (
-             'Connection %d: ' + C.FBlu + '%s' + C.FRes + ':' + C.FCya + '%d'
-             + C.FRes + ' --> ' + C.FYel + '%s' + C.FRes + ':' + C.FGre
-             + '%d' + C.FRes + '\n%s'
-             'Start date: %s\n'
-             'Duration: %s\n'
-             'Datagrams sent by client: ' + C.FBlu + '%d ' + C.FRes + '(' +
-                C.FBlu + '%d ' + C.FRes + 'bytes)\n'
-             'Datagrams sent by server: ' + C.FYel + '%d ' + C.FRes + '(' +
-                C.FYel + '%d ' + C.FRes + 'bytes)'
-            ) % (
-                self.nb, self.clientIP, self.clientPort,
-                self.serverIP, self.serverPort,
-                '' if self.ssh else C.FMag +
-                    'Not detected as a ssh connection' + C.FRes + '\n',
-                self.startTime.strftime('%b %d, %Y - %H:%M:%S'),
-                strTD(self.duration),
-                self.clientSentNbDatagrams, self.clientSentLen,
-                self.serverSentNbDatagrams, self.serverSentLen
-            )
-        return s
+        return '<Connection %d>' % self.nb
 
     def __str__(self):
         return repr(self)
-
-    def summary(self):
-        """A one-line summary of the connection"""
-        s = (
-             '%s Connection %-3d: ' + C.FBlu + '%16s' + C.FRes + ':' + C.FCya +
-             '%-5.d' + C.FRes + ' --> ' + C.FYel + '%16s' + C.FRes + ':' +
-             C.FGre + '%-5d' + C.FRes + ' %s'
-            ) % (
-                ' ' if self.ssh else C.FMag + '?' + C.FRes,
-                self.nb, self.clientIP, self.clientPort,
-                self.serverIP, self.serverPort,
-                self.startTime.strftime('%m%b%y %H:%M:%S'),
-            )
-        return s
 
     def compute_RTT(self):
         """Set an approximate RTT for each datagram in self.datagrams"""
