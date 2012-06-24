@@ -82,7 +82,7 @@ class PcapParser:
                 self.clients_algos[k],
                 self.servers_algos[k],
                 self.ssh_streams[k]))
-            self.logger.debug("New connection: %s", connections[-1].summary())
+            self.logger.debug("New connection (#%d)", connections[-1].nb)
 
         self.logger.info("Parsing %s finished", file_name)
         return connections
