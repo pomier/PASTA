@@ -18,19 +18,24 @@ The PASTA team (also known as the Spaghetteam):
 REQUIREMENTS
 
 Stand alone programs:
+    python 2.7 (mandatory)
     tshark (mandatory)
-    python v.2.7
 
 Python 2.7 libraries:
     yapsy (recommanded)
     colorama (optional)
     texttable (optional)
 
-
 INSTALLATION
 
-# TODO : complete INSTALLATION section
+# TODO how to install python2.7 and tshark
 
+To install the python libraries, you may use pip:
+    pip install -r requirements.txt
+If it does not work for you, you may give easy_install a try:
+    easy_install requirements.txt
+    (or easy_install-2.7 requirements.txt)
+Please note that these commands may need extra-privileges.
 
 DESCRIPTION
 
@@ -44,7 +49,7 @@ KNOWN BUGS
 
 A bug in some modified versions of argparse are making the -s and -S options
 non-exclusive. In that case, if they are used together, it would be as if -s
-was not used.
+was not used. Same thing with -t and --csv.
 
 
 USAGE
@@ -77,8 +82,3 @@ WARNING
 
 If the beginning of a connection is missing, the program will not be able to
 determine if the connection is a ssh one. Hence, use the -a option.
-
-
---
-TODO: rest of the file (description of the software, requirements, how
-      to use, install, explain that some connections can't be detected, etc)
