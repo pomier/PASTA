@@ -28,7 +28,7 @@
 
 import logging
 from plugins import SingleConnectionAnalyser
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 
 # FIXME: implement the plugin-related stuff
 
@@ -58,7 +58,7 @@ class SteppingStoneDetectionClientSide(SingleConnectionAnalyser):
         kernel = [1]
         #low_pass = self.convolve(RTT, kernel)
         low_pass = RTT
-        plt.plot(range(len(low_pass)), low_pass)
+        #plt.plot(range(len(low_pass)), low_pass)
         #plt.show()
 
     @staticmethod
