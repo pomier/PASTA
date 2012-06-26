@@ -104,7 +104,7 @@ class SteppingStoneDetectionClientSide(SingleConnectionAnalyser):
                 q = sendQ.pop(0) if len(sendQ) else None
                 if q and q.ack <= p.seqNb and q.seqNb < p.ack:
                     # Packets p and q are matched
-                    if (p.time - q.time).total_seconds() < 0.2:
+                    if (p.time - q.time).total_seconds() < 1:
                         RTT.append((p.time - q.time).total_seconds() * 2)
                         time.append((p.time - time0).total_seconds())
 
