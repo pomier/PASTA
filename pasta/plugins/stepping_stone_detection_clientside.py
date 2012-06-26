@@ -26,12 +26,13 @@
 # [2] A Real-Time Algorithm to Detect Long Connection Chains of Interactive
 # Terminal Sessions, by Jianhua Yang and Shou-Hsuan Stephen Huang
 
-from plugin import PluginConnectionsAnalyser
+import logging
+from plugins import SingleConnectionAnalyser
 import matplotlib.pyplot as plt
 
 # FIXME: implement the plugin-related stuff
 
-class SteppingStoneDetectionClientSide(PluginConnectionsAnalyser):
+class SteppingStoneDetectionClientSide(SingleConnectionAnalyser):
     """
     Detection of stepping stones at the client side.
     Gives the number of following machines in the stepping stones chain.
@@ -41,30 +42,37 @@ class SteppingStoneDetectionClientSide(PluginConnectionsAnalyser):
     by Jianhua Yang and Shou-Hsuan Stephen Huang
     """
 
-    def load_connections(self, connections):
-        self.connections = connections
-        self.hosts = []
+    def activate(self):
+        """Activation of the plugin"""
+        SingleConnectionAnalyser.activate(self)
+        self.logger = logging.getLogger('SSDClientS')
+        self.hosts_number = 0
 
-    def analyse(self):
+    def analyse(self, connection):
         """Do all the computations"""
         # TODO
-        for connection in self.connections:
-            (time, RTT) = self.compute_matching(connection)
-            self.hosts.append((connection, self.count_jumps(RTT)))
-            # Low pass filter
-            kernel = [1]
-            #low_pass = self.convolve(RTT, kernel)
-            low_pass = RTT
-            plt.plot(range(len(low_pass)), low_pass)
-        plt.show()
+        self.logger.debug('Starting analyse #%d' % (connection.nb))
+        (time, RTT) = self.compute_matching(connection)
+        self.hosts_number = self.count_jumps(RTT)
+        # Low pass filter
+        kernel = [1]
+        #low_pass = self.convolve(RTT, kernel)
+        low_pass = RTT
+        plt.plot(range(len(low_pass)), low_pass)
+        #plt.show()
 
-    def result(self):
+    @staticmethod
+    def result_fields():
+        """
+        Return the fields of the analyse as a tuple of strings
+        (same order as in result_repr)
+        """
+        return ('Stepping stone detected (client-side)',)
+
+    def result_repr(self):
         """Return the result of the computations as a string"""
-        # TODO
-        s = 'Stepping stone chains detected (client method):\n'
-        for r in self.hosts:
-            s += "#%d : Chain of %d hosts detected\n" % (r[0].nb, r[1])
-        return s
+        return {'Stepping stone detected (client-side)':
+            '%d hosts' % (self.hosts_number)}
 
     def compute_matching(self, connection):
         """Match the right packets to get RTT
