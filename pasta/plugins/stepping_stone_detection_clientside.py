@@ -53,11 +53,12 @@ class SteppingStoneDetectionClientSide(SingleConnectionAnalyser):
         # TODO
         self.logger.debug('Starting analyse #%d' % (connection.nb))
         (time, RTT) = self.compute_matching(connection)
-        self.hosts_number = self.count_jumps(RTT)
+        averaged = self.clean(RTT)
+        self.hosts_number = self.count_jumps(averaged)
         # Low pass filter
-        kernel = [1]
+        #kernel = [1]
         #low_pass = self.convolve(RTT, kernel)
-        low_pass = RTT
+        #low_pass = averaged
         #plt.plot(range(len(low_pass)), low_pass)
         #plt.show()
 
@@ -103,51 +104,22 @@ class SteppingStoneDetectionClientSide(SingleConnectionAnalyser):
                 q = sendQ.pop(0) if len(sendQ) else None
                 if q and q.ack <= p.seqNb and q.seqNb < p.ack:
                     # Packets p and q are matched
-                    if (p.time - q.time).total_seconds() < 1:
+                    if (p.time - q.time).total_seconds() < 0.2:
                         RTT.append((p.time - q.time).total_seconds() * 2)
                         time.append((p.time - time0).total_seconds())
 
         return (time, RTT)
 
-#    def clean(self, curve):
-#        result = []
-#        # Get rid of the 10 first packets (false results)
-#        i = 10
-#        while i < len(curve):
-#            values = []
-#            if i+10 <= len(curve):
-#                values = curve[i:i+10]
-#                values.sort()
-#                median_value = values[len(values)/2]
-#                for j in range(10):
-#                    result.append(median_value)
-#                result.append(median_value)
-#            i += 10
-#        for i in range(len(curve)):
-#            total = 0
-#            if i > 1:
-#                total += curve[i-2]
-#            if i < len(curve) - 2:
-#                total += curve[i+2]
-#            if curve[i] < total:
-#                result.append(curve[i])
-#
-#        return result
-#
-#    def convolve(self, curve, kernel):
-#        if len(kernel) % 2 == 0:
-#            return []
-#
-#        result = []
-#        middle = (len(kernel) - 1) / 2
-#        for i in range(len(curve)):
-#            total = 0
-#            for j in range(len(kernel)):
-#                if i+j-middle in range(len(curve)):
-#                    total = total + kernel[j]*curve[i+j-middle]
-#            result.append(total / sum(kernel))
-#
-#        return result
+    def clean(self, curve):
+        result = []
+        # Get rid of the 10 first packets (false results)
+        i = 10
+        for i in range(20, len(curve) - 2):
+            mean = sum(curve[i-2:i+3])/5
+            if abs(curve[i] - mean) * 100 < 5*curve[i]:
+                result.append(curve[i])
+
+        return result
 
     def count_jumps(self, rtt):
         """
@@ -156,33 +128,28 @@ class SteppingStoneDetectionClientSide(SingleConnectionAnalyser):
         Based on algorithm 2 in [2]
         """
 
-        jumps = 0
-        max_jumps = 0
+        jumps = 1
+        max_jumps = 1
 
         if len(rtt) < 6:
             return jumps
 
-        # Threshold = average of values in array rtt
-        threshold = self.compute_threshold(rtt)
-#        print "Threshold %f" % (threshold)
-        up = True
-
-        for i in range(5, len(rtt)-1):
+        i = 5
+        while i < len(rtt)-1:
             minLeft = min([rtt[i-5], rtt[i-4], rtt[i-3]])
+            maxLeft = max([rtt[i-5], rtt[i-4], rtt[i-3]])
             minRight = min([rtt[i-2], rtt[i-1], rtt[i]])
+            maxRight = max([rtt[i-2], rtt[i-1], rtt[i]])
             diff = minLeft - minRight
-            if diff > 0:
-                up = True
-            else:
-                up = False
-                diff *= -1
-            if diff > threshold:
-                if up:
-                    jumps += 1
-                    if jumps > max_jumps:
-                        max_jumps = jumps
-                elif jumps > 0:
-                    jumps -= 1
+            if (minLeft - maxRight) * 100 > 20*maxRight and jumps > 1:
+                jumps -= 1
+                i += 5
+            elif (minRight - maxLeft) * 100 > 20*maxLeft:
+                jumps += 1
+                i += 5
+                if jumps > max_jumps:
+                    max_jumps = jumps
+            i += 1
         return max_jumps
                 
     def compute_threshold(self, rtt):
@@ -192,4 +159,7 @@ class SteppingStoneDetectionClientSide(SingleConnectionAnalyser):
             if rtt[1] - rtt[1-1] > 0:
                 total += (rtt[1] - rtt[1-1])
                 number += 1
-        return total/number
+        if number == 0:
+            return 0
+        else:
+            return total/number
