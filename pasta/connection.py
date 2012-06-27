@@ -233,21 +233,22 @@ class ConnectionsRepr:
         self.plugins = []
         self.plugins_fields = {}
         self.plugins_fields_table = {}
-        for plugin in plugins:
-            try:
-                fields = plugin.plugin_object.result_fields()
-                fields_table = plugin.plugin_object.result_fields_table()
-            except Exception as e:
-                if e.message:
-                    self.logger.error('Plugin %s fatal error: %s, %s' %
-                            (plugin.name, e.__class__.__name__, e.message))
+        if plugins:
+            for plugin in plugins:
+                try:
+                    fields = plugin.plugin_object.result_fields()
+                    fields_table = plugin.plugin_object.result_fields_table()
+                except Exception as e:
+                    if e.message:
+                        self.logger.error('Plugin %s fatal error: %s, %s' %
+                                (plugin.name, e.__class__.__name__, e.message))
+                    else:
+                        self.logger.error('Plugin %s fatal error: %s' %
+                                (plugin.name, e.__class__.__name__))
                 else:
-                    self.logger.error('Plugin %s fatal error: %s' %
-                            (plugin.name, e.__class__.__name__))
-            else:
-                self.plugins.append(plugin)
-                self.plugins_fields[plugin] = fields
-                self.plugins_fields_table[plugin] = fields_table
+                    self.plugins.append(plugin)
+                    self.plugins_fields[plugin] = fields
+                    self.plugins_fields_table[plugin] = fields_table
         self.full = full
 
     def repr(self, connection):
