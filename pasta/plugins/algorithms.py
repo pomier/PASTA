@@ -41,27 +41,27 @@ class Algorithms(SingleConnectionAnalyser):
             'diffie-hellman-group14-sha1': ('TODO', 'TODO'), # TODO
             'ecdh-sha2-*': ('TODO', 'TODO'), # TODO
             'ecmqv-sha2': ('TODO', 'TODO'), # TODO
-            'gss-group1-sha1-*': ('TODO', 'TODO'), # TODO
-            'gss-group14-sha1-*': ('TODO', 'TODO'), # TODO
-            'gss-gex-sha1-*': ('TODO', 'TODO'), # TODO
-            'gss-*': ('TODO', 'TODO'), # TODO
-            'rsa1024-sha1': ('TODO', 'TODO'), # TODO
-            'rsa2048-sha256': ('TODO', 'TODO') # TODO
+            'gss-group1-sha1-*': (False, False), # TODO
+            'gss-group14-sha1-*': (False, False), # TODO
+            'gss-gex-sha1-*': (False, False), # TODO
+            'gss-*': (False, False), # TODO
+            'rsa1024-sha1': (False, True), # TODO
+            'rsa2048-sha256': (False, True) # TODO
             }
     SERVER_HOST_KEY_ALGORITHMS = {
             # values are (encryption_capable, signature_capable)
-            'ssh-dss': ('TODO', 'TODO'), # TODO
-            'ssh-rsa': ('TODO', 'TODO'), # TODO
-            'spki-sign-rsa': ('TODO', 'TODO'), # TODO
-            'spki-sign-dss': ('TODO', 'TODO'), # TODO
-            'pgp-sign-rsa': ('TODO', 'TODO'), # TODO
-            'pgp-sign-dss': ('TODO', 'TODO'), # TODO
+            'ssh-dss': ('TODO', True), # TODO
+            'ssh-rsa': ('TODO', True), # TODO
+            'spki-sign-rsa': ('TODO', True), # TODO
+            'spki-sign-dss': ('TODO', True), # TODO
+            'pgp-sign-rsa': ('TODO', True), # TODO
+            'pgp-sign-dss': ('TODO', True), # TODO
             'null': (False, False),
-            'ecdsa-sha2-*': ('TODO', 'TODO'), # TODO
-            'x509v3-ssh-dss': ('TODO', 'TODO'), # TODO
-            'x509v3-ssh-rsa': ('TODO', 'TODO'), # TODO
-            'x509v3-rsa2048-sha256': ('TODO', 'TODO'), # TODO
-            'x509v3-ecdsa-sha2-*': ('TODO', 'TODO') # TODO
+            'ecdsa-sha2-*': ('TODO', True), # TODO
+            'x509v3-ssh-dss': ('TODO', True), # TODO
+            'x509v3-ssh-rsa': ('TODO', True), # TODO
+            'x509v3-rsa2048-sha256': ('TODO', True), # TODO
+            'x509v3-ecdsa-sha2-*': ('TODO', True) # TODO
             }
 
     def analyse(self, connection):
