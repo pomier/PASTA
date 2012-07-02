@@ -41,12 +41,12 @@ class Algorithms(SingleConnectionAnalyser):
             'diffie-hellman-group14-sha1': ('TODO', 'TODO'), # TODO
             'ecdh-sha2-*': ('TODO', 'TODO'), # TODO
             'ecmqv-sha2': ('TODO', 'TODO'), # TODO
-            'gss-group1-sha1-*': (False, False), # TODO
-            'gss-group14-sha1-*': (False, False), # TODO
-            'gss-gex-sha1-*': (False, False), # TODO
-            'gss-*': (False, False), # TODO
-            'rsa1024-sha1': (False, True), # TODO
-            'rsa2048-sha256': (False, True) # TODO
+            'gss-group1-sha1-*': (False, False),
+            'gss-group14-sha1-*': (False, False),
+            'gss-gex-sha1-*': (False, False),
+            'gss-*': (False, False),
+            'rsa1024-sha1': (False, True),
+            'rsa2048-sha256': (False, True)
             }
     SERVER_HOST_KEY_ALGORITHMS = {
             # values are (encryption_capable, signature_capable)

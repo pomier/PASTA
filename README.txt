@@ -29,6 +29,12 @@ Python 2.7 libraries:
 INSTALLATION
 
 # TODO how to install python2.7 and tshark
+To install python2.7, you can go on this website : 
+http://www.python.org/getit/releases/2.7/
+
+In order to install tshark, you need to download Wireshark, which can be
+found there : 
+http://www.wireshark.org/download.html
 
 To install the python libraries, you may use pip:
     pip install -r requirements.txt
