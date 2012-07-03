@@ -302,7 +302,6 @@ if __name__ == '__main__':
     if args.csv:
         ConnectionsRepr = ConnectionsCSVRepr
         kargs.append(csv.writer(sys.stdout))
-        # FIXME (prev line): CSV options: let the choice to the user?
     connection_repr = ConnectionsRepr(*kargs)
     for connection in connections:
         connection_repr.repr(connection)
