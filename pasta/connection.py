@@ -173,7 +173,8 @@ class Connection:
 class Datagram:
     """A datagram of a ssh connection"""
 
-    def __init__(self, sent_by_client, time, seq_nb, total_len, payload_len, ack):
+    def __init__(self, sent_by_client, time, seq_nb, total_len, payload_len, \
+                                                                        ack):
         self.sent_by_client = sent_by_client # True or False
         self.time = time # instance of datetime.datetime
         self.seq_nb = seq_nb #int
