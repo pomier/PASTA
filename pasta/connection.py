@@ -18,6 +18,9 @@
 # You should have received a copy of the GNU General Public License
 # along with PASTA.  If not, see <http://www.gnu.org/licenses/>.
 
+"""
+Connections (+RTT computations) and datagrams structures
+"""
 
 
 import logging, unittest, random
@@ -167,6 +170,7 @@ class Connection:
             for d in empty_rtts[way]:
                 # just recopy the RTT to the previous ones
                 d.rtt = last_rtt[way]
+
 
 class Datagram:
     """A datagram of a ssh connection"""
