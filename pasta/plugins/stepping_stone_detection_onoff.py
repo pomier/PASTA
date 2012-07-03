@@ -136,8 +136,7 @@ class SteppingStoneDetectionOnOff(InterConnectionsAnalyser):
 
     def result_repr(self):
         """Return the result of the analyse as a string"""
-        # FIXME: result output
-        s = 'Stepping stone chains detected (on-off method):'
+        s = 'Stepping stone links detected (on-off method):'
         for c1, c2 in self.matches:
             s += '\n    %d <-> %d' % (c1.nb, c2.nb)
         return s
