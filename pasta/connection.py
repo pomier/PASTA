@@ -168,27 +168,6 @@ class Connection:
                 # just recopy the RTT to the previous ones
                 d.rtt = last_rtt[way]
 
-        #self.smooth_rtt()
-
-
-    def smooth_rtt(self):
-        """Smooth the RTTs"""
-        # FIXME: fusion (way be done inside)
-        from datetime import datetime, timedelta
-        # ^^^ FIXME imports: put on top of the file + remove from the unit test
-
-        alpha = 0.125
-        last_rtt = {True: None, False: None}
-        for datagram in self.datagrams:
-            way = datagram.sent_by_client
-            if last_rtt[way] is None:
-                last_rtt[way] = datagram.rtt.total_seconds()
-            else:
-                last_rtt[way] = (1 - alpha) * last_rtt[way] + \
-                        alpha * datagram.rtt.total_seconds()
-                datagram.rtt = timedelta(seconds = last_rtt[way])
-
-
 class Datagram:
     """A datagram of a ssh connection"""
 
