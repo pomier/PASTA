@@ -129,8 +129,6 @@ class Connection:
                     datagram.RTT = last_RTT
                     last_RTT = None
         # Step2: estimate the other RTTs
-        # FIXME: we may put an averaging system here (as in TCP)
-        #        (i.e. no need for a third loop on datagrams)
         last_RTT = {True: None, False: None}
         empty_RTTs = {True: [], False: []}
         for datagram in self.datagrams:
@@ -167,26 +165,6 @@ class Connection:
             for d in empty_RTTs[way]:
                 # just recopy the RTT to the previous ones
                 d.RTT = last_RTT[way]
-
-        #self.smooth_RTT()
-
-
-    def smooth_RTT(self):
-        """Smooth the RTTs"""
-        # FIXME: fusion (way be done inside)
-        from datetime import datetime, timedelta
-        # ^^^ FIXME imports: put on top of the file + remove from the unit test
-
-        alpha = 0.125
-        last_rtt = {True: None, False: None}
-        for datagram in self.datagrams:
-            way = datagram.sentByClient
-            if last_rtt[way] is None:
-                last_rtt[way] = datagram.RTT.total_seconds()
-            else:
-                last_rtt[way] = (1 - alpha) * last_rtt[way] + \
-                        alpha * datagram.RTT.total_seconds()
-                datagram.RTT = timedelta(seconds = last_rtt[way])
 
 
 class Datagram:
