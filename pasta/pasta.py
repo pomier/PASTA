@@ -37,6 +37,7 @@ if __name__ == '__main__':
 
     # Load the plugins on demand
     def load_plugins(parser, logger=None):
+        """Load all plugins"""
         # import yapsy if needed
         try:
             from yapsy.PluginManager import PluginManager
@@ -58,6 +59,7 @@ if __name__ == '__main__':
                 plugin_info_ext='plugin')
         plugin_manager.locatePlugins()
         def load_plugin(plugin):
+            """A plugin is being loaded"""
             if logger is not None:
                 logger.info('...plugin %s v.%s'
                         % (plugin.name, plugin.version))
@@ -83,6 +85,7 @@ if __name__ == '__main__':
 
     # Usage
     class PastaFormatter(argparse.RawDescriptionHelpFormatter):
+        """Argparse formatter to separate some options in the usage"""
         def _format_usage(self, usage, actions, groups, prefix):
             if prefix is None:
                 prefix = 'usage: '

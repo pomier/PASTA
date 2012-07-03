@@ -18,6 +18,9 @@
 # You should have received a copy of the GNU General Public License
 # along with PASTA.  If not, see <http://www.gnu.org/licenses/>.
 
+"""
+Parse the pcap file and outputs Connection instances
+"""
 
 
 from connection import Connection, Datagram
@@ -43,6 +46,7 @@ class PcapParser:
         self.start_time = {}
         self.end_time = {}
         self.file_name = ""
+        self.only_ssh = True
         self._tshark_datagrams = []
 
     def parse(self, file_name, connections_nb=None, only_ssh=True):
