@@ -28,7 +28,7 @@ class Algorithms(SingleConnectionAnalyser):
     """
     Finds the algorithms (most probably) used
 
-    Uses: protocol.clientAlgos, protocol.serverAlgos
+    Uses: protocol.client_algos, protocol.server_algos
     """
 
     # We need these algorithms to determine best guesses
@@ -71,7 +71,7 @@ class Algorithms(SingleConnectionAnalyser):
 
         We choose the first "guessed" as explained in RFC 4253 section 7.1
         """
-        if connection.clientAlgos is None or connection.serverAlgos is None:
+        if connection.client_algos is None or connection.server_algos is None:
             raise RuntimeWarning("No algos found in connection")
 
         self.connection = connection
@@ -95,8 +95,10 @@ class Algorithms(SingleConnectionAnalyser):
 
     def determine_kex_and_server_host_key_algo(self):
         """Determine the kex_algo and server_host_key_algo"""
-        client_algos = self.connection.clientAlgos['kex_algorithms'].split(",")
-        server_algos = self.connection.serverAlgos['kex_algorithms'].split(",")
+        client_algos = self.connection.client_algos \
+                ['kex_algorithms'].split(',')
+        server_algos = self.connection.server_algos \
+                ['kex_algorithms'].split(',')
         for algo in client_algos:
             # check if server supports algo
             if algo not in server_algos:
@@ -124,10 +126,10 @@ class Algorithms(SingleConnectionAnalyser):
 
     def determine_server_host_key_algo(self, cap_needed):
         """Determine the server_host_key_algo given the nedded capacities"""
-        client_algos = self.connection.clientAlgos \
-                ['server_host_key_algorithms'].split(",")
-        server_algos = self.connection.serverAlgos \
-                ['server_host_key_algorithms'].split(",")
+        client_algos = self.connection.client_algos \
+                ['server_host_key_algorithms'].split(',')
+        server_algos = self.connection.server_algos \
+                ['server_host_key_algorithms'].split(',')
         for algo in client_algos:
             # check if server supports algo
             if algo not in server_algos:
@@ -150,8 +152,8 @@ class Algorithms(SingleConnectionAnalyser):
 
     def determine_algo(self, field):
         """Determines the algorithm of the specified type"""
-        client_algos = self.connection.clientAlgos[field].split(",")
-        server_algos = self.connection.serverAlgos[field].split(",")
+        client_algos = self.connection.client_algos[field].split(',')
+        server_algos = self.connection.server_algos[field].split(',')
         for algo in client_algos:
             if algo in server_algos:
                 return algo
