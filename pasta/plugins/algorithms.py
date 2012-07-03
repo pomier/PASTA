@@ -32,7 +32,8 @@ class Algorithms(SingleConnectionAnalyser):
     """
 
     # We need these algorithms to determine best guesses
-    # list from http://www.iana.org/assignments/ssh-parameters/ssh-parameters.xml
+    # list from \
+    #       http://www.iana.org/assignments/ssh-parameters/ssh-parameters.xml
     KEX_ALGORITHMS = {
             # values are (requires_encryption, requires_signature)
             'diffie-hellman-group-exchange-sha1': ('TODO', 'TODO'), # TODO

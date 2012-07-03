@@ -104,8 +104,10 @@ class ProtocolVersionExchange(SingleConnectionAnalyser):
         (same order as in fields_repr)
         """
         '''
-        return {'Client protocol': self.protocol_repr(self.client_protocol, C.FBlu),
-                'Server protocol': self.protocol_repr(self.server_protocol, C.FYel)}
+        return {'Client protocol': self.protocol_repr(self.client_protocol, \
+                                                                        C.FBlu),
+                'Server protocol': self.protocol_repr(self.server_protocol, \
+                                                                        C.FYel)}
         '''
         return {
                 'Client SSH version': \
