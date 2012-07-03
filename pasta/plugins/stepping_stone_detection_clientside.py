@@ -28,9 +28,6 @@
 
 import logging
 from plugins import SingleConnectionAnalyser
-#import matplotlib.pyplot as plt
-
-# FIXME: implement the plugin-related stuff
 
 class SteppingStoneDetectionClientSide(SingleConnectionAnalyser):
     """
@@ -50,17 +47,10 @@ class SteppingStoneDetectionClientSide(SingleConnectionAnalyser):
 
     def analyse(self, connection):
         """Do all the computations"""
-        # TODO
         self.logger.debug('Starting analyse #%d' % (connection.nb))
         (time, rtt) = self.compute_matching(connection)
         averaged = self.clean(rtt)
         self.hosts_number = self.count_jumps(averaged)
-        # Low pass filter
-        #kernel = [1]
-        #low_pass = self.convolve(rtt, kernel)
-        #low_pass = averaged
-        #plt.plot(range(len(low_pass)), low_pass)
-        #plt.show()
 
     @staticmethod
     def result_fields():
@@ -68,12 +58,13 @@ class SteppingStoneDetectionClientSide(SingleConnectionAnalyser):
         Return the fields of the analyse as a tuple of strings
         (same order as in result_repr)
         """
-        return ('Stepping stone detected (client-side)',)
+        return ('Stepping stone detection (client-side)',)
 
     def result_repr(self):
         """Return the result of the computations as a string"""
-        return {'Stepping stone detected (client-side)':
-            '%d hosts' % (self.hosts_number)}
+        return {'Stepping stone detection (client-side)':
+            'no stepping-stone detected' if self.hosts_number == 1
+                else 'chain of %d stepping-stone(s)' % (self.hosts_number-1)}
 
     def compute_matching(self, connection):
         """Match the right packets to get RTT
@@ -112,7 +103,7 @@ class SteppingStoneDetectionClientSide(SingleConnectionAnalyser):
 
     def clean(self, curve):
         result = []
-        # Get rid of the 10 first packets (false results)
+        # Get rid of the 10 first packets (noise)
         i = 10
         for i in range(20, len(curve) - 2):
             mean = sum(curve[i-2:i+3])/5
