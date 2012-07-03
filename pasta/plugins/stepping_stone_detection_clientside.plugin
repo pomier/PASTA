@@ -24,4 +24,4 @@ Module = stepping_stone_detection_clientside
 [Documentation]
 Author = the PASTA team
 Version = 1
-Description = Detects connections being part of a stepping stone chain #FIXME
+Description = Detects chains of stepping stones from the client side.
