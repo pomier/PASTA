@@ -9,7 +9,7 @@
 
 AUTHORS
 
-The PASTA team (also known as the Spaghetteam):
+The PASTA team (or Spaghetteam):
     César 'Mr. Blue' Burini
     Pierre 'Rogdham' Pavlidès
     Romain 'Haradwaith' Pomier
@@ -27,7 +27,7 @@ Python 2.7 libraries:
     texttable (optional)
 
 
-INSTALLATION
+REQUIREMENTS INSTALLATION
 
 To install python2.7 and tshark, use the package manager of your system if any,
 or go to
