@@ -292,7 +292,7 @@ if __name__ == '__main__':
     if compute_datagrams:
         logger.info('RTT computations...')
         for connection in connections:
-            connection.compute_RTT()
+            connection.compute_rtt()
 
 
     # Printing connections

@@ -28,7 +28,7 @@ try:
 except ImportError:
     Texttable = None
 
-def strTD(td, short=False):
+def str_td(td, short=False):
     """Better representation of a timedelta instance"""
     days = td.days
     hours = td.seconds / 3600
@@ -60,33 +60,33 @@ def strTD(td, short=False):
 class Connection:
     """A SSH connection"""
 
-    def __init__(self, nb, datagrams, startTime, duration,
-                 clientIP, serverIP, clientPort, serverPort,
-                 clientProtocol, serverProtocol,
-                 clientAlgos, serverAlgos, is_ssh):
+    def __init__(self, nb, datagrams, start_time, duration,
+                 client_ip, server_ip, client_port, server_port,
+                 client_protocol, server_protocol,
+                 client_algos, server_algos, is_ssh):
         self.nb = nb
         self.logger = logging.getLogger('Conn%d' % self.nb)
         self.datagrams = datagrams # list of Datagram instances
-        self.startTime = startTime # instance of datetime.datetime
+        self.start_time = start_time # instance of datetime.datetime
         self.duration = duration # instance of datetime.timedelta
-        self.clientIP = clientIP # string e.g. '123.234.0.42'
-        self.serverIP = serverIP # string e.g. '123.234.13.37'
-        self.clientPort = clientPort # int
-        self.serverPort = serverPort # int
+        self.client_ip = client_ip # string e.g. '123.234.0.42'
+        self.server_ip = server_ip # string e.g. '123.234.13.37'
+        self.client_port = client_port # int
+        self.server_port = server_port # int
         # client and server protocol: None or string
         # (e.g. 'SSH-2.0-OpenSSH_5 Trisquel-5.5')
-        self.clientProtocol = clientProtocol
-        self.serverProtocol = serverProtocol
-        self.clientAlgos = clientAlgos # None or dict
-        self.serverAlgos = serverAlgos # None or dict
-        self.clientSentNbDatagrams = sum(1 for p in self.datagrams
-                                         if p.sentByClient)
-        self.serverSentNbDatagrams = sum(1 for p in self.datagrams
-                                         if not p.sentByClient)
-        self.clientSentLen = sum(p.totalLen for p in self.datagrams
-                                 if p.sentByClient)
-        self.serverSentLen = sum(p.totalLen for p in self.datagrams
-                                 if not p.sentByClient)
+        self.client_protocol = client_protocol
+        self.server_protocol = server_protocol
+        self.client_algos = client_algos # None or dict
+        self.server_algos = server_algos # None or dict
+        self.client_sent_nb_datagrams = sum(1 for p in self.datagrams
+                                         if p.sent_by_client)
+        self.server_sent_nb_datagrams = sum(1 for p in self.datagrams
+                                         if not p.sent_by_client)
+        self.client_sent_len = sum(p.total_len for p in self.datagrams
+                                 if p.sent_by_client)
+        self.server_sent_len = sum(p.total_len for p in self.datagrams
+                                 if not p.sent_by_client)
         self.ssh = is_ssh
 
     def __repr__(self):
@@ -95,89 +95,111 @@ class Connection:
     def __str__(self):
         return repr(self)
 
-    def compute_RTT(self):
+    def compute_rtt(self):
         """Set an approximate RTT for each datagram in self.datagrams"""
         # Step1: compute RTT for the very last packet being acked
         # (ignore multiple acks in one)
         self.datagrams.reverse()
         last_acking = {True: None, False: None}
-        has_RTT = {True: False, False: False} # both ways have no RTTs
+        has_rtt = {True: False, False: False} # both ways have no RTTs
         for datagram in self.datagrams:
-            if last_acking[not datagram.sentByClient] is not None \
-                    and datagram.seqNb \
-                        < last_acking[not datagram.sentByClient].ack:
+            if last_acking[not datagram.sent_by_client] is not None \
+                    and datagram.seq_nb \
+                        < last_acking[not datagram.sent_by_client].ack:
                 # this last_acking is acking datagram
-                datagram.RTT = (last_acking[not datagram.sentByClient].time \
+                datagram.rtt = (last_acking[not datagram.sent_by_client].time \
                                    - datagram.time) * 2
-                has_RTT[datagram.sentByClient] = True
-                last_acking[not datagram.sentByClient] = None
+                has_rtt[datagram.sent_by_client] = True
+                last_acking[not datagram.sent_by_client] = None
             if datagram.ack > -1:
-                last_acking[datagram.sentByClient] = datagram
+                last_acking[datagram.sent_by_client] = datagram
         self.datagrams.reverse()
         # Step1 (bis): if no RTTs in both ways, returns
-        if not has_RTT[True] and not has_RTT[False]:
+        if not has_rtt[True] and not has_rtt[False]:
             self.logger.warning('Failed to compute RTTs')
             return
         # Step1 (ter): if no RTTs in one way, take RTTs from the other way
-        if has_RTT[True] != has_RTT[False]: # xor
-            way = has_RTT[True] # RTTs in datagrams sent by client?
-            last_RTT = None
+        if has_rtt[True] != has_rtt[False]: # xor
+            way = has_rtt[True] # RTTs in datagrams sent by client?
+            last_rtt = None
             for datagram in self.datagrams:
-                if datagram.sentByClient == way:
-                    last_RTT = datagram.RTT
-                elif last_RTT is not None:
-                    datagram.RTT = last_RTT
-                    last_RTT = None
+                if datagram.sent_by_client == way:
+                    last_rtt = datagram.rtt
+                elif last_rtt is not None:
+                    datagram.rtt = last_rtt
+                    last_rtt = None
         # Step2: estimate the other RTTs
-        last_RTT = {True: None, False: None}
-        empty_RTTs = {True: [], False: []}
+        # FIXME: we may put an averaging system here (as in TCP)
+        #        (i.e. no need for a third loop on datagrams)
+        last_rtt = {True: None, False: None}
+        empty_rtts = {True: [], False: []}
         for datagram in self.datagrams:
-            if datagram.RTT is None:
+            if datagram.rtt is None:
                 # add this datagram to the list to be RTTed
-                empty_RTTs[datagram.sentByClient].append(datagram)
+                empty_rtts[datagram.sent_by_client].append(datagram)
             else:
-                if empty_RTTs[datagram.sentByClient]:
-                    if last_RTT[datagram.sentByClient] is None:
+                if empty_rtts[datagram.sent_by_client]:
+                    if last_rtt[datagram.sent_by_client] is None:
                         # if it is the first RTTed packet in this way
                         # just recopy the RTT to the previous ones
-                        for d in empty_RTTs[datagram.sentByClient]:
-                            d.RTT = datagram.RTT
+                        for d in empty_rtts[datagram.sent_by_client]:
+                            d.rtt = datagram.rtt
                     else:
                         # if it is not the first RTTed packet in this way
                         # do a linear interpolation of the RTT
-                        diff = datagram.RTT \
-                                         - last_RTT[datagram.sentByClient]
-                        diff /= 1 + len(empty_RTTs[datagram.sentByClient])
+                        diff = datagram.rtt \
+                                         - last_rtt[datagram.sent_by_client]
+                        diff /= 1 + len(empty_rtts[datagram.sent_by_client])
                         i = 1
-                        for d in empty_RTTs[datagram.sentByClient]:
-                            d.RTT = last_RTT[datagram.sentByClient] \
+                        for d in empty_rtts[datagram.sent_by_client]:
+                            d.rtt = last_rtt[datagram.sent_by_client] \
                                         + i * diff
                             i += 1
                     # empty the list to be RTTed
-                    empty_RTTs[datagram.sentByClient] = []
+                    empty_rtts[datagram.sent_by_client] = []
                 # this packet has been RTTed in the previous step
-                last_RTT[datagram.sentByClient] = datagram.RTT
+                last_rtt[datagram.sent_by_client] = datagram.rtt
         # Step2 (cont.): maybe the last datagrams have not been RTTed
         for way in (True, False):
-            if last_RTT[way] is None:
+            if last_rtt[way] is None:
                 # no packet have been RTTed in this way
                 continue
-            for d in empty_RTTs[way]:
+            for d in empty_rtts[way]:
                 # just recopy the RTT to the previous ones
-                d.RTT = last_RTT[way]
+                d.rtt = last_rtt[way]
+
+        #self.smooth_rtt()
+
+
+    def smooth_rtt(self):
+        """Smooth the RTTs"""
+        # FIXME: fusion (way be done inside)
+        from datetime import datetime, timedelta
+        # ^^^ FIXME imports: put on top of the file + remove from the unit test
+
+        alpha = 0.125
+        last_rtt = {True: None, False: None}
+        for datagram in self.datagrams:
+            way = datagram.sent_by_client
+            if last_rtt[way] is None:
+                last_rtt[way] = datagram.rtt.total_seconds()
+            else:
+                last_rtt[way] = (1 - alpha) * last_rtt[way] + \
+                        alpha * datagram.rtt.total_seconds()
+                datagram.rtt = timedelta(seconds = last_rtt[way])
 
 
 class Datagram:
     """A datagram of a ssh connection"""
 
-    def __init__(self, sentByClient, time, seqNb, totalLen, payloadLen, ack):
-        self.sentByClient = sentByClient # True or False
+    def __init__(self, sent_by_client, time, seq_nb, total_len, payload_len, ack):
+        self.sent_by_client = sent_by_client # True or False
         self.time = time # instance of datetime.datetime
-        self.seqNb = seqNb #int
-        self.totalLen = totalLen # int length of the datagram
-        self.payloadLen = payloadLen # int length of the payload
-        self.ack = ack # int: -1 if not ACKed else seqnb of the datagram ACKed
-        self.RTT = None # instance of datetime.timedelta
+        self.seq_nb = seq_nb #int
+        self.total_len = total_len # int length of the datagram
+        self.payload_len = payload_len # int length of the payload
+        self.ack = ack # int: -1 if not ACKed else seq_nb of the datagram ACKed
+        self.rtt = None # instance of datetime.timedelta
 
     def __repr__(self):
         s = (
@@ -186,16 +208,16 @@ class Datagram:
                 'Sequence number: %d\n'
                 'Payload length: %d bytes'
             ) % (
-                C.FBlu + 'client' + C.FRes if self.sentByClient
+                C.FBlu + 'client' + C.FRes if self.sent_by_client
                 else C.FYel + 'server' + C.FRes,
                self.time.strftime('%b %d, %Y - %H:%M:%S.%f'),
-               self.seqNb,
-               self.payloadLen
+               self.seq_nb,
+               self.payload_len
             )
         if self.ack > 0:
             s += '\nSequence number of datagram ACKed: %d' % self.ack
-        if self.RTT is not None:
-            s += '\nEstimate RTT: %s' % strTD(self.RTT)
+        if self.rtt is not None:
+            s += '\nEstimate RTT: %s' % str_td(self.rtt)
         return s
 
 
@@ -283,14 +305,14 @@ class ConnectionsNormalRepr(ConnectionsRepr):
              'Datagrams sent by server: ' + C.FYel + '%d ' + C.FRes + '(' +
                 C.FYel + '%d ' + C.FRes + 'bytes)'
             ) % (
-                connection.nb, connection.clientIP, connection.clientPort,
-                connection.serverIP, connection.serverPort,
+                connection.nb, connection.client_ip, connection.client_port,
+                connection.server_ip, connection.server_port,
                 '' if connection.ssh else C.FMag +
                     'Not detected as a ssh connection' + C.FRes + '\n',
-                connection.startTime.strftime('%b %d, %Y - %H:%M:%S'),
-                strTD(connection.duration),
-                connection.clientSentNbDatagrams, connection.clientSentLen,
-                connection.serverSentNbDatagrams, connection.serverSentLen
+                connection.start_time.strftime('%b %d, %Y - %H:%M:%S'),
+                str_td(connection.duration),
+                connection.client_sent_nb_datagrams, connection.client_sent_len,
+                connection.server_sent_nb_datagrams, connection.server_sent_len
             )
         for plugin in self.plugins:
             plugin_results = self.result_plugin(connection, plugin)
@@ -307,9 +329,9 @@ class ConnectionsNormalRepr(ConnectionsRepr):
              C.FGre + '%-5d' + C.FRes + ' %s'
             ) % (
                 ' ' if connection.ssh else C.FMag + '?' + C.FRes,
-                connection.nb, connection.clientIP, connection.clientPort,
-                connection.serverIP, connection.serverPort,
-                connection.startTime.strftime('%m%b%y %H:%M:%S'),
+                connection.nb, connection.client_ip, connection.client_port,
+                connection.server_ip, connection.server_port,
+                connection.start_time.strftime('%m%b%y %H:%M:%S'),
             )
 
 class ConnectionsTableRepr(ConnectionsNormalRepr):
@@ -322,12 +344,12 @@ class ConnectionsTableRepr(ConnectionsNormalRepr):
         t.set_chars(['.', '|', 'o', '-'])
         t.header(['Field', 'Client', 'Server'])
         t.set_cols_align(['r', 'l', 'l'])
-        t.add_row(['IP', connection.clientIP, connection.serverIP])
-        t.add_row(['Port', connection.clientPort, connection.serverPort])
-        t.add_row(['Datagrams', connection.clientSentNbDatagrams,
-            connection.serverSentNbDatagrams])
-        t.add_row(['Datagrams (bytes)', connection.clientSentLen,
-            connection.serverSentLen])
+        t.add_row(['IP', connection.client_ip, connection.server_ip])
+        t.add_row(['Port', connection.client_port, connection.server_port])
+        t.add_row(['Datagrams', connection.client_sent_nb_datagrams,
+            connection.server_sent_nb_datagrams])
+        t.add_row(['Datagrams (bytes)', connection.client_sent_len,
+            connection.server_sent_len])
         r = (
              'Connection %d\n%s'
              'Start date: %s\n'
@@ -335,8 +357,8 @@ class ConnectionsTableRepr(ConnectionsNormalRepr):
             ) % (
                 connection.nb, '' if connection.ssh else C.FMag +
                     'Not detected as a ssh connection' + C.FRes + '\n',
-                connection.startTime.strftime('%b %d, %Y - %H:%M:%S'),
-                strTD(connection.duration)
+                connection.start_time.strftime('%b %d, %Y - %H:%M:%S'),
+                str_td(connection.duration)
             )
         for plugin in self.plugins:
             plugin_results = self.result_plugin(connection, plugin)
@@ -390,19 +412,19 @@ class ConnectionsCSVRepr(ConnectionsRepr):
         columns = [
                 connection.nb, # Connection nb
                 1 if connection.ssh else 0, # Detected as SSH
-                connection.clientIP, # Source IP'
-                connection.clientPort, # Source port
-                connection.serverIP, # Destination IP
-                connection.serverPort, # Destinantion port
-                connection.startTime.strftime('%d/%m/%Y %H:%M:%S') # Start date
+                connection.client_ip, # Source IP'
+                connection.client_port, # Source port
+                connection.server_ip, # Destination IP
+                connection.server_port, # Destinantion port
+                connection.start_time.strftime('%d/%m/%Y %H:%M:%S') # Start date
                 ]
         if self.full:
             columns.extend([
                 connection.duration.total_seconds(), # Duration
-                connection.clientSentNbDatagrams, # Datargrams send by client
-                connection.clientSentLen, # Datagrams send by client in bytes
-                connection.serverSentNbDatagrams, # Datargrams send by server
-                connection.serverSentLen # Datagrams send by server in byte
+                connection.client_sent_nb_datagrams, # Datargrams send by client
+                connection.client_sent_len, # Datagrams send by client in bytes
+                connection.server_sent_nb_datagrams, # Datargrams send by server
+                connection.server_sent_len # Datagrams send by server in byte
                 ])
             for plugin in self.plugins:
                 plugin_results = self.result_plugin(connection, plugin)
@@ -426,41 +448,41 @@ class TestConnection(unittest.TestCase):
         now = datetime.now()
         time = now
         datagrams = []
-        seqNb = {True: random.randint(0, 10000),
+        seq_nb = {True: random.randint(0, 10000),
                  False: random.randint(0, 10000)}
         for _ in xrange(10000):
             time += timedelta(microseconds=random.randint(100000, 449999))
-            sentByClient = random.choice((True, False))
-            payloadLen = random.randint(10, 100)
-            totalLen = payloadLen + 40
+            sent_by_client = random.choice((True, False))
+            payload_len = random.randint(10, 100)
+            total_len = payload_len + 40
             datagrams.append(Datagram(
-                sentByClient,
+                sent_by_client,
                 time,
-                seqNb[sentByClient],
-                payloadLen,
-                totalLen,
-                -1 if sentByClient and oneway else seqNb[not sentByClient]
+                seq_nb[sent_by_client],
+                payload_len,
+                total_len,
+                -1 if sent_by_client and oneway else seq_nb[not sent_by_client]
                 ))
-            seqNb[sentByClient] += totalLen
+            seq_nb[sent_by_client] += total_len
         connection = Connection(0, datagrams, now, time - now,
                 '1.2.3.4', '5.6.7.8', 12345, 22, None, None, {}, {}, True)
         return connection
 
-    def test_compute_RTT(self):
+    def test_compute_rtt(self):
         """General test for computeRTT"""
         connection = self.create_connection()
-        connection.compute_RTT()
+        connection.compute_rtt()
         for datagram in connection.datagrams:
-            self.assertGreaterEqual(datagram.RTT.total_seconds(), 0.1)
-            self.assertLessEqual(datagram.RTT.total_seconds(), 0.9)
+            self.assertGreaterEqual(datagram.rtt.total_seconds(), 0.1)
+            self.assertLessEqual(datagram.rtt.total_seconds(), 0.9)
 
-    def test_compute_RTT_oneway(self):
+    def test_compute_rtt_oneway(self):
         """Test computeRTT in case of no ack in one way"""
         connection = self.create_connection(True)
-        connection.compute_RTT()
+        connection.compute_rtt()
         for datagram in connection.datagrams:
-            self.assertGreaterEqual(datagram.RTT.total_seconds(), 0.1)
-            self.assertLessEqual(datagram.RTT.total_seconds(), 0.9)
+            self.assertGreaterEqual(datagram.rtt.total_seconds(), 0.1)
+            self.assertLessEqual(datagram.rtt.total_seconds(), 0.9)
 
 
 if __name__ == '__main__':

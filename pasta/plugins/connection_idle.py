@@ -29,7 +29,7 @@ class ConnectionIdle(SingleConnectionAnalyser):
     """
     Computes the idle time for a connection
 
-    Uses: payloadLen, time
+    Uses: payload_len, time
     """
 
     # Configuration constant
@@ -54,9 +54,9 @@ class ConnectionIdle(SingleConnectionAnalyser):
             self.logger.warning('Connection is empty')
             return
         intervals_total = intervals_idle = 0 # counters
-        position = self.connection.startTime # left limit of the interval
+        position = self.connection.start_time # left limit of the interval
         for datagram in self.connection.datagrams:
-            if not datagram.payloadLen:
+            if not datagram.payload_len:
                 # idle time at ssh level: ignore packets without payload
                 continue
             if datagram.time < position:
@@ -72,7 +72,7 @@ class ConnectionIdle(SingleConnectionAnalyser):
                     (position, position + self.time_interval))
         self.logger.debug('Idle intervals: %d/%d' % \
                 (intervals_idle, intervals_total))
-        self.idleTime = intervals_idle / float(intervals_total)
+        self.idle_time = intervals_idle / float(intervals_total)
 
     @staticmethod
     def result_fields():
@@ -87,7 +87,7 @@ class ConnectionIdle(SingleConnectionAnalyser):
         Return the result of the analyse as a tuple of strings
         (same order as in fields_repr)
         """
-        return {'Idle time': '%.1f%%' % (self.idleTime * 100)}
+        return {'Idle time': '%.1f%%' % (self.idle_time * 100)}
 
 
 class TestConnectionIdle(unittest.TestCase):
@@ -95,39 +95,39 @@ class TestConnectionIdle(unittest.TestCase):
 
     class FakeDatagram():
         def __init__(self, time):
-            self.payloadLen = random.choice((0, 32, 42, 1024))
+            self.payload_len = random.choice((0, 32, 42, 1024))
             self.time = time
 
     class FakeConnection():
         def __init__(self):
             self.datagrams = []
             self.duration = timedelta(seconds=random.randint(10, 1000))
-            self.startTime = datetime.now()
+            self.start_time = datetime.now()
             self.nb = random.randint(0, 100000)
 
         def fake_random(self):
             """Fake a random connection"""
-            time = self.startTime
+            time = self.start_time
             for _ in xrange(1000):
                 time += timedelta(microseconds=random.randint(100000, 9000000))
                 self.datagrams.append(TestConnectionIdle.FakeDatagram(time))
 
-    def setUp(self):
+    def setup(self):
         """Done before every test"""
         self.connection = TestConnectionIdle.FakeConnection()
         self.connection.fake_random()
         self.connection_idle = ConnectionIdle()
         self.connection_idle.activate()
 
-    def tearDown(self):
+    def teardown(self):
         """Done after every test"""
         self.connection_idle.deactivate()
 
     def test_idle_range(self):
         """Check that 0 <= idle <= 1"""
         self.connection_idle.analyse(self.connection)
-        self.assertGreaterEqual(self.connection_idle.idleTime, 0)
-        self.assertLessEqual(self.connection_idle.idleTime, 1)
+        self.assertGreaterEqual(self.connection_idle.idle_time, 0)
+        self.assertLessEqual(self.connection_idle.idle_time, 1)
 
     # there is not much to test anyway, since the idle time is subjective
 

@@ -59,7 +59,7 @@ class SteppingStoneDetectionServerSide(SingleConnectionAnalyser):
         else:
             self.datagrams = [datagram for datagram in \
                               self.connection.datagrams if \
-                              datagram.sentByClient and datagram.payloadLen]
+                              datagram.sent_by_client and datagram.payload_len]
 
             self.logger.debug('Starting computation for connect. #%d' \
                                                         % self.connection.nb)
@@ -103,7 +103,7 @@ class SteppingStoneDetectionServerSide(SingleConnectionAnalyser):
         """
         self.logger.debug('Computation of RTT & IAT similarity')
         # creation of the RTTs list.
-        rtts = [datagram.RTT.total_seconds() for datagram in self.datagrams]
+        rtts = [datagram.rtt.total_seconds() for datagram in self.datagrams]
         rtts = rtts[1:]
         iats = []
         first = True
@@ -117,13 +117,13 @@ class SteppingStoneDetectionServerSide(SingleConnectionAnalyser):
 
         # creation of the IATs list.
         for datagram in self.connection.datagrams:
-            if not datagram.payloadLen:
+            if not datagram.payload_len:
                 continue # ignore packets without payload
-            if not first and datagram.sentByClient:
+            if not first and datagram.sent_by_client:
                 iats.append(\
                         (datagram.time - last_datagram.time).total_seconds())
                 last_datagram = datagram
-            if first and datagram.sentByClient:
+            if first and datagram.sent_by_client:
                 last_datagram = datagram
                 first = False
 
@@ -169,7 +169,7 @@ class SteppingStoneDetectionServerSide(SingleConnectionAnalyser):
         """
         self.logger.debug('Checking if n-modulus distribution.')
 
-        payloads = [datagram.payloadLen for datagram in self.datagrams]
+        payloads = [datagram.payload_len for datagram in self.datagrams]
         groups = {}
         for payload in payloads:
             closest = self.closest_group(payload, groups)

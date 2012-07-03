@@ -29,16 +29,16 @@ class ProtocolVersionExchange(SingleConnectionAnalyser):
     """
     Display the protocol version used by client and server
 
-    Uses: protocol.clientProtocol, protocol.serverProtocol
+    Uses: protocol.client_protocol, protocol.server_protocol
     """
 
     def analyse(self, connection):
         """Find the protocols anounced"""
-        if connection.clientProtocol is None \
-                and connection.serverProtocol is None:
+        if connection.client_protocol is None \
+                and connection.server_protocol is None:
             raise RuntimeWarning("No protocol exchange found in connection")
-        self.client_protocol = self.separate(connection.clientProtocol)
-        self.server_protocol = self.separate(connection.serverProtocol)
+        self.client_protocol = self.separate(connection.client_protocol)
+        self.server_protocol = self.separate(connection.server_protocol)
 
     def separate(self, protocol):
         """Separate the different parts from a protocol field"""
@@ -131,23 +131,23 @@ class TestProtocolVersionExchange(unittest.TestCase):
     """Unit tests for ProtocolVersionExchange"""
 
     class FakeConnection():
-        def setProtocols(self, client, server):
-            self.clientProtocol = '%s\x0a\x0d' % client
-            self.serverProtocol = '%s\x0a\x0d' % server
+        def set_protocols(self, client, server):
+            self.client_protocol = '%s\x0a\x0d' % client
+            self.server_protocol = '%s\x0a\x0d' % server
 
-    def setUp(self):
+    def setup(self):
         """Done before every test"""
         self.connection = TestProtocolVersionExchange.FakeConnection()
         self.connection_pve = ProtocolVersionExchange()
         self.connection_pve.activate()
 
-    def tearDown(self):
+    def teardown(self):
         """Done after every test"""
         self.connection_pve.deactivate()
 
     def test_no_comment(self):
         """Protocols version without comments"""
-        self.connection.setProtocols('SSH-2.0-OpenSSH_5.2',
+        self.connection.set_protocols('SSH-2.0-OpenSSH_5.2',
                 'SSH-2.0-OpenSSH_5.3')
         self.connection_pve.analyse(self.connection)
         self.assertEqual(self.connection_pve.client_protocol, {
@@ -163,7 +163,7 @@ class TestProtocolVersionExchange(unittest.TestCase):
 
     def test_no_comment_space(self):
         """Protocols version without comments but a space at the end"""
-        self.connection.setProtocols('SSH-2.0-OpenSSH_5.2 ',
+        self.connection.set_protocols('SSH-2.0-OpenSSH_5.2 ',
                 'SSH-2.0-OpenSSH_5.3 ')
         self.connection_pve.analyse(self.connection)
         self.assertEqual(self.connection_pve.client_protocol, {
@@ -179,7 +179,7 @@ class TestProtocolVersionExchange(unittest.TestCase):
 
     def test_comment(self):
         """Protocols version with comments"""
-        self.connection.setProtocols('SSH-2.0-OpenSSH_5.2 Debian-4',
+        self.connection.set_protocols('SSH-2.0-OpenSSH_5.2 Debian-4',
                 'SSH-2.0-OpenSSH_5.3 Trisquel')
         self.connection_pve.analyse(self.connection)
         self.assertEqual(self.connection_pve.client_protocol, {
@@ -195,7 +195,7 @@ class TestProtocolVersionExchange(unittest.TestCase):
 
     def test_failback(self):
         """Protocols version 1.99 with comments"""
-        self.connection.setProtocols('SSH-1.99-OpenSSH_5.2 Debian-4',
+        self.connection.set_protocols('SSH-1.99-OpenSSH_5.2 Debian-4',
                 'SSH-1.99-OpenSSH_5.3 Trisquel')
         self.connection_pve.analyse(self.connection)
         self.assertEqual(self.connection_pve.client_protocol, {

@@ -80,7 +80,7 @@ class SteppingStoneDetectionOnOff(InterConnectionsAnalyser):
             iterator = iter(connection.datagrams)
             last_time = iterator.next().time
             for datagram in iterator:
-                if not datagram.payloadLen:
+                if not datagram.payload_len:
                     continue # consider only datagrams with payload
                 if datagram.time - last_time < self.TIDLE:
                     self.off[connection].append(datagram.time)

@@ -31,7 +31,7 @@ class ConnectionType(SingleConnectionAnalyser):
     """
     Finds the type of a connection based on traffic patterns
 
-    Uses: sentByClient, RTT, payloadLen, time
+    Uses: sent_by_client, rtt, payload_len, time
     """
 
     # Configuration constants
@@ -57,7 +57,7 @@ class ConnectionType(SingleConnectionAnalyser):
         """Finds the type of the ssh connection"""
 
         self.connection = connection
-        self.connectionType = None
+        self.connection_type = None
         self.time_to_reply = {True: [], False: []}
         self.ratio_server_sent = 0
         self.logger.info('Starting computation')
@@ -71,7 +71,7 @@ class ConnectionType(SingleConnectionAnalyser):
                               ' (min %.2f required)' % (self.ratio_server_sent,
                                   ConnectionType.scp_up_min_asymetry))
             if self.ratio_server_sent >= ConnectionType.scp_up_min_asymetry:
-                self.connectionType = 'scp (down)'
+                self.connection_type = 'scp (down)'
                 return
         else:
             # scp (up)
@@ -79,7 +79,7 @@ class ConnectionType(SingleConnectionAnalyser):
                               ' (max %.2f required)' % (self.ratio_server_sent,
                                   ConnectionType.scp_down_max_asymetry))
             if self.ratio_server_sent <= ConnectionType.scp_down_max_asymetry:
-                self.connectionType = 'scp (up)'
+                self.connection_type = 'scp (up)'
                 return
 
         # compute time to reply
@@ -104,19 +104,19 @@ class ConnectionType(SingleConnectionAnalyser):
                         % (name[way], ratio, min_replies[way]))
                 # given the ratio, make the decision
                 if ratio >= min_replies[way]:
-                    self.connectionType = name[way]
+                    self.connection_type = name[way]
                     return
 
         # default to tunnel
-        self.connectionType = 'tunnel'
+        self.connection_type = 'tunnel'
         return
 
     def compute_asymetry(self):
         """Compute the asymetry of the connection"""
-        client_sent = float(sum(p.payloadLen for p in self.connection.datagrams
-                                if p.sentByClient))
-        server_sent = float(sum(p.payloadLen for p in self.connection.datagrams
-                                if not p.sentByClient))
+        client_sent = float(sum(p.payload_len for p in self.connection.datagrams
+                                if p.sent_by_client))
+        server_sent = float(sum(p.payload_len for p in self.connection.datagrams
+                                if not p.sent_by_client))
         if server_sent == 0.0:
             # be sure not to have a division by zero error
             self.ratio_server_sent = 0.0
@@ -130,16 +130,16 @@ class ConnectionType(SingleConnectionAnalyser):
         self.time_to_reply = {True: [], False: []}
         last_datagram = {True: None, False: None}
         for datagram in self.connection.datagrams:
-            if not datagram.payloadLen:
+            if not datagram.payload_len:
                 # no payload, skip
                 continue
-            way = not datagram.sentByClient
+            way = not datagram.sent_by_client
             if last_datagram[way] is not None \
-                    and last_datagram[way].RTT.total_seconds():
+                    and last_datagram[way].rtt.total_seconds():
                 # a reply
                 self.time_to_reply[way].append(
                     (datagram.time - last_datagram[way].time).total_seconds() /
-                    last_datagram[way].RTT.total_seconds()
+                    last_datagram[way].rtt.total_seconds()
                     )
             last_datagram[way] = None
             last_datagram[not way] = datagram
@@ -158,19 +158,19 @@ class ConnectionType(SingleConnectionAnalyser):
         (same order as in fields_repr)
         """
         self.logger.info('Computations finished: type is %s'
-                                            % self.connectionType)
-        return {'Connection type': self.connectionType}
+                                            % self.connection_type)
+        return {'Connection type': self.connection_type}
 
 
 class TestConnectionType(unittest.TestCase):
     """Unit tests for ConnectionType"""
 
     class FakeDatagram():
-        def __init__(self, way, payloadLen, time):
-            self.sentByClient = way
-            self.payloadLen = payloadLen
+        def __init__(self, way, payload_len, time):
+            self.sent_by_client = way
+            self.payload_len = payload_len
             self.time = time
-            self.RTT = timedelta(microseconds=random.randint(500000, 900000))
+            self.rtt = timedelta(microseconds=random.randint(500000, 900000))
 
     class FakeConnection():
         def __init__(self):
@@ -221,26 +221,26 @@ class TestConnectionType(unittest.TestCase):
         """Test a shell connection"""
         self.connection.fake_shell(True)
         self.connection_type.analyse(self.connection)
-        self.assertEqual(self.connection_type.connectionType, 'shell')
+        self.assertEqual(self.connection_type.connection_type, 'shell')
 
     def test_reverse_shell_connection(self):
         """Test a reverse shell connection"""
         self.connection.fake_shell(False)
         self.connection_type.analyse(self.connection)
-        self.assertEqual(self.connection_type.connectionType,
+        self.assertEqual(self.connection_type.connection_type,
                 'reverse shell')
 
     def test_scp_up_connection(self):
         """Test a scp (up) connection"""
         self.connection.fake_scp(True)
         self.connection_type.analyse(self.connection)
-        self.assertEqual(self.connection_type.connectionType, 'scp (up)')
+        self.assertEqual(self.connection_type.connection_type, 'scp (up)')
 
     def test_scp_down_connection(self):
         """Test a scp (down) connection"""
         self.connection.fake_scp(False)
         self.connection_type.analyse(self.connection)
-        self.assertEqual(self.connection_type.connectionType, 'scp (down)')
+        self.assertEqual(self.connection_type.connection_type, 'scp (down)')
 
 
 if __name__ == '__main__':
