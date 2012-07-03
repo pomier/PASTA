@@ -135,13 +135,13 @@ class TestProtocolVersionExchange(unittest.TestCase):
             self.client_protocol = '%s\x0a\x0d' % client
             self.server_protocol = '%s\x0a\x0d' % server
 
-    def setup(self):
+    def setUp(self):
         """Done before every test"""
         self.connection = TestProtocolVersionExchange.FakeConnection()
         self.connection_pve = ProtocolVersionExchange()
         self.connection_pve.activate()
 
-    def teardown(self):
+    def tearDown(self):
         """Done after every test"""
         self.connection_pve.deactivate()
 

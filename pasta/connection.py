@@ -132,8 +132,6 @@ class Connection:
                     datagram.rtt = last_rtt
                     last_rtt = None
         # Step2: estimate the other RTTs
-        # FIXME: we may put an averaging system here (as in TCP)
-        #        (i.e. no need for a third loop on datagrams)
         last_rtt = {True: None, False: None}
         empty_rtts = {True: [], False: []}
         for datagram in self.datagrams:

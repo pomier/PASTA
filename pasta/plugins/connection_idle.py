@@ -112,14 +112,14 @@ class TestConnectionIdle(unittest.TestCase):
                 time += timedelta(microseconds=random.randint(100000, 9000000))
                 self.datagrams.append(TestConnectionIdle.FakeDatagram(time))
 
-    def setup(self):
+    def setUp(self):
         """Done before every test"""
         self.connection = TestConnectionIdle.FakeConnection()
         self.connection.fake_random()
         self.connection_idle = ConnectionIdle()
         self.connection_idle.activate()
 
-    def teardown(self):
+    def tearDown(self):
         """Done after every test"""
         self.connection_idle.deactivate()
 
