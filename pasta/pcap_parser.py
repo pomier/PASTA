@@ -43,17 +43,19 @@ class PcapParser:
         self.start_time = {}
         self.end_time = {}
         self.file_name = ""
+        self._tshark_datagrams = []
 
     def parse(self, file_name, connections_nb=None, only_ssh=True):
         """Parse the given pcap file and create Connection objects"""
 
         self.logger.info("Start to parse %s", file_name)
         self.file_name = file_name
+        self.only_ssh = only_ssh
 
         ports = self.extract_ports()
 
         # get infos about the streams
-        self.extract_streams(ports, only_ssh)
+        self.extract_streams(ports)
 
         # Select only needed tcp streams
         if connections_nb:
@@ -115,15 +117,13 @@ class PcapParser:
 
         return ports
 
-
-    def extract_streams(self, ports, only_ssh):
-        """Decode ports as ssh, and get the packets 'ssh.protocol'"""
-
-        # FIXME: in case of not only_ssh, redundant with extract_datagrams
+    def _tshark_extract_streams(self, ports):
+        """Extract the streams (and maybe datagrams)"""
+        self._tshark_datagrams = []
 
         args = [
             self.tshark_cmd, "-n", "-r", self.file_name,
-            "-Rssh.protocol" if only_ssh else "-Rtcp",
+            "-Rssh.protocol" if self.only_ssh else "-Rtcp",
             "-Tfields",
             "-etcp.stream",
             "-eframe.time",
@@ -136,6 +136,21 @@ class PcapParser:
             "-essh.protocol",
             "-essh.message_code"]
 
+        if not self.only_ssh and self.keep_datagrams:
+            args .extend([
+                "-etcp.seq",
+                "-etcp.len",
+                "-eframe.len",
+                "-etcp.ack",
+                "-essh.kex_algorithms",
+                "-essh.server_host_key_algorithms",
+                "-essh.encryption_algorithms_client_to_server",
+                "-essh.encryption_algorithms_server_to_client",
+                "-essh.mac_algorithms_client_to_server",
+                "-essh.mac_algorithms_server_to_client",
+                "-essh.compression_algorithms_client_to_server",
+                "-essh.compression_algorithms_server_to_client",
+                ])
         for port in ports:
             args.append("-dtcp.port==%d,ssh" % port)
 
@@ -148,10 +163,78 @@ class PcapParser:
         if tshark.returncode:
             self._tshark_error(tshark.returncode, stderr)
 
-        for p in [l.split("\t") for l in stdout.split("\n")]:
+        for l in stdout.split("\n"):
+            p = l.split("\t")
             if len(p) < 10:
                 continue
+            yield p
+            if not self.only_ssh and self.keep_datagrams:
+                self._tshark_datagrams.append([p[0], p[10], p[1], p[11], p[12],
+                    p[13], p[2], p[3], p[4], p[14], p[15], p[16], p[17], p[18],
+                    p[19], p[20], p[21]])
 
+    def _tshark_extract_datagrams(self, ports, streams):
+        """Extract the datagrams"""
+
+        if not streams:
+            return
+
+        if self._tshark_datagrams:
+            # we already have the datagrams, just check the streams
+            for p in self._tshark_datagrams:
+                if p[0] in streams:
+                    yield p
+        else:
+            # we have to extract the streams
+            tshark_stream_string = " or ".join(["tcp.stream==" + stream
+                                                for stream in streams])
+
+            # Read the pcap file to get the packet informations
+            args = [
+                    "tshark", "-n", "-r", self.file_name,
+                    "-R", tshark_stream_string,
+                    "-Tfields",
+                    "-etcp.stream",
+                    "-etcp.seq",
+                    "-eframe.time",
+                    "-etcp.len",
+                    "-eframe.len",
+                    "-etcp.ack",
+                    "-eip.src",
+                    "-eipv6.src",
+                    "-etcp.srcport",
+                    "-essh.kex_algorithms",
+                    "-essh.server_host_key_algorithms",
+                    "-essh.encryption_algorithms_client_to_server",
+                    "-essh.encryption_algorithms_server_to_client",
+                    "-essh.mac_algorithms_client_to_server",
+                    "-essh.mac_algorithms_server_to_client",
+                    "-essh.compression_algorithms_client_to_server",
+                    "-essh.compression_algorithms_server_to_client",
+                    ]
+
+            for port in ports:
+                args.append("-dtcp.port==%d,ssh" % port)
+
+            try:
+                tshark = subprocess.Popen(
+                    args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            except OSError as e:
+                self._os_error(e)
+            (stdout, stderr) = tshark.communicate()
+            if tshark.returncode:
+                self._tshark_error(tshark.returncode, stderr)
+
+            for l in stdout.split("\n"):
+                p = l.split("\t")
+                if len(p) < 17:
+                    continue
+                yield p
+
+    def extract_streams(self, ports):
+        """Decode ports as ssh, and get the packets 'ssh.protocol'"""
+
+        for p in self._tshark_extract_streams(ports):
             try:
                 src = (p[2] if p[2] else p[3], int(p[4]))
                 dst = (p[5] if p[5] else p[6], int(p[7]))
@@ -175,7 +258,7 @@ class PcapParser:
                     self.servers[p[0]] = dst
 
                 # if datagram detected as ssh, the stream is a ssh connection
-                if p[9] or only_ssh:
+                if p[9] or self.only_ssh:
                     self.ssh_streams[p[0]] = True
 
                 # Get protocol name if available
@@ -199,53 +282,7 @@ class PcapParser:
 
     def extract_datagrams(self, ports, streams):
         """Get datagrams from streams"""
-
-        if not streams:
-            return
-
-        tshark_stream_string = " or ".join(["tcp.stream==" + stream
-                                            for stream in streams])
-
-        # Read the pcap file to get the packet informations
-        args = [
-                "tshark", "-n", "-r", self.file_name,
-                "-R", tshark_stream_string,
-                "-Tfields",
-                "-etcp.stream",
-                "-etcp.seq",
-                "-eframe.time",
-                "-etcp.len",
-                "-eframe.len",
-                "-etcp.ack",
-                "-eip.src",
-                "-eipv6.src",
-                "-etcp.srcport",
-                "-essh.kex_algorithms",
-                "-essh.server_host_key_algorithms",
-                "-essh.encryption_algorithms_client_to_server",
-                "-essh.encryption_algorithms_server_to_client",
-                "-essh.mac_algorithms_client_to_server",
-                "-essh.mac_algorithms_server_to_client",
-                "-essh.compression_algorithms_client_to_server",
-                "-essh.compression_algorithms_server_to_client",
-                ]
-
-        for port in ports:
-            args.append("-dtcp.port==%d,ssh" % port)
-
-        try:
-            tshark = subprocess.Popen(
-                args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        except OSError as e:
-            self._os_error(e)
-        (stdout, stderr) = tshark.communicate()
-        if tshark.returncode:
-            self._tshark_error(tshark.returncode, stderr)
-
-        for p in [l.split("\t") for l in stdout.split("\n")]:
-            if len(p) < 17:
-                continue
-
+        for p in self._tshark_extract_datagrams(ports, streams):
             try:
                 src = (p[6], int(p[8])) if p[6] else (p[7], int(p[8]))
                 time = datetime.strptime(p[2][:-3],
