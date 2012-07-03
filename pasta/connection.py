@@ -395,14 +395,14 @@ class ConnectionsCSVRepr(ConnectionsRepr):
     def __init__(self, logger, full, plugins, csv_writer):
         ConnectionsRepr.__init__(self, logger, full, plugins)
         self.csv_writer = csv_writer
-        columns = ['Connection nb', 'Detected as SSH', 'Source IP', \
+        columns = ['Connection nb', 'Detected as SSH', 'Source IP',
             'Source port','Destination IP', 'Destinantion port', 'Start date']
         if self.full:
             columns.extend(['Duration',
-                'Datargrams send by client', \
-                                            'Datagrams send by client in bytes',
-                'Datargrams send by server', \
-                                        'Datagrams send by server in bytes'])
+                'Datargrams send by client',
+                'Datagrams send by client in bytes',
+                'Datargrams send by server',
+                'Datagrams send by server in bytes'])
             for plugin in self.plugins:
                 columns.extend(self.plugins_fields[plugin])
         self.csv_writer.writerow(columns)
@@ -430,11 +430,9 @@ class ConnectionsCSVRepr(ConnectionsRepr):
                 plugin_results = self.result_plugin(connection, plugin)
                 for field in self.plugins_fields[plugin]:
                     if field in plugin_results:
-                        column.append(plugin_results[field])
+                        columns.append(plugin_results[field])
                     else:
-                        column.append('')
-                else:
-                    columns.extend(plugin_result)
+                        columns.append('')
         self.csv_writer.writerow(columns)
 
 class TestConnection(unittest.TestCase):
