@@ -26,6 +26,7 @@ Python 2.7 libraries:
     colorama (optional)
     texttable (optional)
 
+
 INSTALLATION
 
 To install python2.7 and tshark, use the package manager of your system if any,
@@ -39,6 +40,7 @@ If it does not work for you, you may give easy_install a try:
     easy_install requirements.txt
     (or easy_install-2.7 requirements.txt)
 Please note that these commands may need extra-privileges.
+
 
 DESCRIPTION
 
@@ -85,3 +87,20 @@ WARNING
 
 If the beginning of a connection is missing, the program will not be able to
 determine if the connection is a ssh one. Hence, use the -a option.
+
+
+HOW TO WRITE A NEW PLUGIN
+
+You need to add two files in the plugins folder. Let say that your plugin
+is called bolognese:
+    - bolognese.py:     should inherit and implement the required methods of
+                        one of the two classes defined plugins/__init__.py
+                        (more informations in this file)
+    - bolognese.plugin: metadatas of the plugin: at least something like
+                            [Core]
+                            Name = Bolognese
+                            Module = bolognese ; name of the .py file
+                            [Documentation]
+                            Author = PastaLover
+                            Version = 1
+                            Description = Add some sauce to PASTA
