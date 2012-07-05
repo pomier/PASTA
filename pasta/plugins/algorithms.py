@@ -36,12 +36,12 @@ class Algorithms(SingleConnectionAnalyser):
     #       http://www.iana.org/assignments/ssh-parameters/ssh-parameters.xml
     KEX_ALGORITHMS = {
             # values are (requires_encryption, requires_signature)
-            'diffie-hellman-group-exchange-sha1': ('TODO', 'TODO'), # TODO
-            'diffie-hellman-group-exchange-sha256': ('TODO', 'TODO'), # TODO
-            'diffie-hellman-group1-sha1': ('TODO', 'TODO'), # TODO
-            'diffie-hellman-group14-sha1': ('TODO', 'TODO'), # TODO
-            'ecdh-sha2-*': ('TODO', 'TODO'), # TODO
-            'ecmqv-sha2': ('TODO', 'TODO'), # TODO
+            'diffie-hellman-group-exchange-sha1': (False, False), # FIXME both values
+            'diffie-hellman-group-exchange-sha256': (False, False), # FIXME both values
+            'diffie-hellman-group1-sha1': (False, False), # FIXME both values
+            'diffie-hellman-group14-sha1': (False, False), # FIXME both values
+            'ecdh-sha2-*': (False, False), # FIXME both values
+            'ecmqv-sha2': (False, False), # FIXME both values
             'gss-group1-sha1-*': (False, False),
             'gss-group14-sha1-*': (False, False),
             'gss-gex-sha1-*': (False, False),
@@ -51,18 +51,18 @@ class Algorithms(SingleConnectionAnalyser):
             }
     SERVER_HOST_KEY_ALGORITHMS = {
             # values are (encryption_capable, signature_capable)
-            'ssh-dss': ('TODO', True), # TODO
-            'ssh-rsa': ('TODO', True), # TODO
-            'spki-sign-rsa': ('TODO', True), # TODO
-            'spki-sign-dss': ('TODO', True), # TODO
-            'pgp-sign-rsa': ('TODO', True), # TODO
-            'pgp-sign-dss': ('TODO', True), # TODO
+            'ssh-dss': (False, True), # FIXME encryption_capable
+            'ssh-rsa': (False, True), # FIXME encryption_capable
+            'spki-sign-rsa': (False, True), # FIXME encryption_capable
+            'spki-sign-dss': (False, True), # FIXME encryption_capable
+            'pgp-sign-rsa': (False, True), # FIXME encryption_capable
+            'pgp-sign-dss': (False, True), # FIXME encryption_capable
             'null': (False, False),
-            'ecdsa-sha2-*': ('TODO', True), # TODO
-            'x509v3-ssh-dss': ('TODO', True), # TODO
-            'x509v3-ssh-rsa': ('TODO', True), # TODO
-            'x509v3-rsa2048-sha256': ('TODO', True), # TODO
-            'x509v3-ecdsa-sha2-*': ('TODO', True) # TODO
+            'ecdsa-sha2-*': (False, True), # FIXME encryption_capable
+            'x509v3-ssh-dss': (False, True), # FIXME encryption_capable
+            'x509v3-ssh-rsa': (False, True), # FIXME encryption_capable
+            'x509v3-rsa2048-sha256': (False, True), # FIXME encryption_capable
+            'x509v3-ecdsa-sha2-*': (False, True) # FIXME encryption_capable
             }
 
     def analyse(self, connection):
