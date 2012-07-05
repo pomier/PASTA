@@ -44,8 +44,8 @@ if __name__ == '__main__':
         except ImportError:
             parser.exit(status=3, message='PASTA plugins require yapsy.\n'
                 'See README file for more informations.\n'
-                'Alternatively, use the option --no-plugins to disable the \
-                                                                    plugins\n')
+                'Alternatively, use the option --no-plugins to disable the'
+                ' plugins\n')
         from plugins import SingleConnectionAnalyser, \
                 InterConnectionsAnalyser
         # create the plugin manager
