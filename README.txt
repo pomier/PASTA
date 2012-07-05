@@ -36,10 +36,7 @@ or go to
 
 To install the python libraries, you may use pip:
     pip install -r requirements.txt
-If it does not work for you, you may give easy_install a try:
-    easy_install requirements.txt
-    (or easy_install-2.7 requirements.txt)
-Please note that these commands may need extra-privileges.
+Please note that this command may need extra-privileges.
 
 
 DESCRIPTION
