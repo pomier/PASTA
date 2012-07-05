@@ -28,8 +28,6 @@ by Yin Zhang and Vern Paxson
 from plugins import InterConnectionsAnalyser
 from datetime import timedelta
 
-# TODO: logging calls
-
 class SteppingStoneDetectionOnOff(InterConnectionsAnalyser):
     """
     Detection of stepping stones based on the paper
@@ -140,5 +138,3 @@ class SteppingStoneDetectionOnOff(InterConnectionsAnalyser):
         for c1, c2 in self.matches:
             s += '\n    %d <-> %d' % (c1.nb, c2.nb)
         return s
-
-# TODO unittests
