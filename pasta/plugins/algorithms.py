@@ -214,5 +214,3 @@ class Algorithms(SingleConnectionAnalyser):
                 'Compression algorithm (server to client)': \
                     C.FYel + self.algos['compression_s2c'] + C.FRes
                 }
-
-# TODO: unit tests
